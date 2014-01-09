@@ -29,7 +29,8 @@ def gp_datdir(subname): # subname = country initial in examples case
     extra_opts = [ getOpts(i) for i in xrange(nSets*2) ], # len(extra_opts) = nSets*2! pts/err alternately
     xlabel = 'year', ylabel = 'total population ({/Symbol \664} 10^{6})',
     titles = data.keys(), # using data keys as legend titles
-    key = defaultkey + [ 'font ",22"', 'width -1' ] # add extra options
+    key = defaultkey + [ 'font ",22"', 'width -1' ], # add extra options
+    write = True # write data to hdf5 file (optional)
   )
   return 'done'
 
