@@ -1,5 +1,5 @@
 import logging, argparse
-from examples.gp_from_txt import gp_from_txt
+from examples.gp_datdir import gp_datdir
 
 # parse arguments
 parser = argparse.ArgumentParser()
@@ -12,4 +12,4 @@ logging.basicConfig(
 )
 
 # run analysis
-logging.debug( gp_from_txt(args.subname) )
+logging.debug( gp_datdir(args.subname) )
