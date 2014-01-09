@@ -8,7 +8,8 @@ then:
 $ git clone gitlab:github/ccsgp_get_started.git --recursive
 $ cd ccsgp_get_started/
 $ virtualenv-2.7 env
-$ ./pip install -r requirements.txt
+$ ./pip install -U numpy
+$ ./pip install -U -r requirements.txt
 $ ./python -m pyana -h
 $ ./python -m pyana <country-initial>
 
@@ -18,3 +19,8 @@ $ open examplesDir/examples/gp_datdir/*.pdf
 
 make_plot example function call in pyana/examples/gp_datdir.py.
 symlink pyanaDir to somewhere else to get started on your own data.
+
+if you like to write output to HDF5, you'll have to install the HDF5 libraries. With MacPorts:
+$ sudo port install hdf5
+it's not "switched on" right now. If you want to use it, uncomment the h5py
+requirement in requirements.txt and rerun `./pip install -r requirements.txt`.
