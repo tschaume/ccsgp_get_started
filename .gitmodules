@@ -1,0 +1,3 @@
+[submodule "pyana/ccsgp"]
+	path = pyana/ccsgp
+	url = gitlab:ccs-pe-eval/ccsgp.git
