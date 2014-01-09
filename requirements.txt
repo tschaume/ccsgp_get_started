@@ -2,4 +2,4 @@ wsgiref==0.1.2
 numpy==1.8.0
 uncertainties==2.4.3
 gnuplot-py==1.8
-h5py==2.2.1
+#h5py==2.2.1

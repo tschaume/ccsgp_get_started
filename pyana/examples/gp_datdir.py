@@ -31,7 +31,7 @@ def gp_datdir(subname): # subname = country initial in examples case
     xlabel = 'year', ylabel = 'total population ({/Symbol \664} 10^{6})',
     titles = data.keys(), # using data keys as legend titles
     key = defaultkey + [ 'font ",22"', 'width -1' ], # add extra options
-    write = True # write data to hdf5 file (optional)
+    #write = True # write data to hdf5 file (optional), install h5py if you like to use it
   )
   return 'done'
 
