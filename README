@@ -1,10 +1,15 @@
+ccsgp_get_started
+-----------------
 
-$ git clone gitlab:github/ccsgp_get_started.git
-$ cd ccsgp_get_started/
-$ init submodule
+install virtualenv if you haven't yet. With MacPorts:
 $ sudo port install py27-virtualenv
+
+then:
+$ git clone gitlab:github/ccsgp_get_started.git --recursive
+$ cd ccsgp_get_started/
 $ virtualenv-2.7 env
 $ ./pip install -r requirements.txt
-- gnuplot.py
+$ ./python -m pyana -h
+$ ./python -m pyana <subname>
 
-./python -m pyana
+symlink pyanaDir to somewhere else to get started on your own data.
