@@ -6,7 +6,8 @@ from ..aux.utils import getWorkDir, zip_flat, getOpts
 from ..aux.config import defaultkey
 
 def gp_datdir(subname): # subname = country initial in examples case
-  inDir = os.path.join(getWorkDir(__name__, True), subname) # inDir for country initial
+  initial = subname.capitalize() # catch small case initials
+  inDir = os.path.join(getWorkDir(__name__, True), initial) # inDir for country initial
   data = OrderedDict() # OrderedDict with datasets to plot as separate keys
   for file in os.listdir(inDir): # loop all files for country initial
     country = os.path.splitext(file)[0] # filename stem is country
@@ -17,7 +18,7 @@ def gp_datdir(subname): # subname = country initial in examples case
   yMin = min(yVals)
   yMax = max(yVals)
   logging.debug(data) # shown if --log flag given on command line
-  outname = os.path.join(getWorkDir(__name__), subname) # output filename for make_plot
+  outname = os.path.join(getWorkDir(__name__), initial) # output filename for make_plot
   nSets = len(data) # number of datasets
   make_plot(
     name = outname, # extension-less name of output file
