@@ -1,4 +1,10 @@
 
-- virtualenv
+$ git clone gitlab:github/ccsgp_get_started.git
+$ cd ccsgp_get_started/
+$ init submodule
+$ sudo port install py27-virtualenv
+$ virtualenv-2.7 env
+$ ./pip install -r requirements.txt
 - gnuplot.py
 
+./python -m pyana
