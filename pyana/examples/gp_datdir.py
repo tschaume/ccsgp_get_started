@@ -15,8 +15,7 @@ def gp_datdir(subname): # subname = country initial in examples case
     data[country][:, 1:3] /= 1e6 # set unit to 1M
     if len(data) > 10: break
   yVals = [ n for v in data.values() for n in v[:, 1] ] # all y values
-  yMin = min(yVals)
-  yMax = max(yVals)
+  yMin, yMax = min(yVals), max(yVals)
   logging.debug(data) # shown if --log flag given on command line
   outname = os.path.join(getWorkDir(__name__), initial) # output filename for make_plot
   nSets = len(data) # number of datasets
