@@ -1,4 +1,4 @@
-import sys, os, itertools
+import sys, os, itertools, inspect
 
 def getOpts(i):
   opts = 'lt 1 lw 4 ps 2 '
@@ -12,15 +12,25 @@ def checkSymLink():
     logging.critical('create symlink %s to continue!' % link_name)
     sys.exit(1)
 
-def getWorkDir(module, isInput = False):
-  # use same output layout as for package
-  # split module & append 'Dir' to package name
-  dirs = module.split('.')
+def getWorkDirs():
+  # pydoc: use same output layout as for package
+  # get caller module
+  caller_fullurl = inspect.stack()[1][1]
+  caller_relurl = os.path.relpath(caller_fullurl)
+  caller_modurl = os.path.splitext(caller_relurl)[0]
+  # split caller_url & append 'Dir' to package name
+  dirs = caller_modurl.split('/')
   dirs[0] += 'Dir'
-  if isInput: dirs[0] += '/input'
-  pth = '/'.join(dirs)
-  if not isInput and not os.path.exists(pth): os.makedirs(pth)
-  return pth
+  # get, check and create outdir
+  outDir = os.path.join(*dirs)
+  if not os.path.exists(outDir): os.makedirs(outDir)
+  # get and check indir
+  dirs.insert(1, 'input')
+  inDir = os.path.join(*dirs)
+  if not os.path.exists(inDir):
+    logging.critical('create input dir %s to continue!' % inDir)
+    sys.exit(1)
+  return inDir, outDir
 
 def zip_flat(a, b):
   return list(itertools.chain.from_iterable(zip(a, b)))

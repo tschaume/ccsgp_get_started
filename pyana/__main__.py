@@ -1,15 +1,11 @@
-import logging, argparse
+
+# TODO: use package __main__ to run all analyses
+# with default arguments
+
+import string
+from aux.utils import checkSymLink
 from examples.gp_datdir import gp_datdir
 
-# parse arguments
-parser = argparse.ArgumentParser()
-parser.add_argument("subname", help="input subdir with txt files")
-parser.add_argument("--log", help="show log output", action="store_true")
-args = parser.parse_args()
-loglevel = 'DEBUG' if args.log else 'WARNING'
-logging.basicConfig(
-  format='%(message)s', level=getattr(logging, loglevel)
-)
-
-# run analysis
-logging.debug( gp_datdir(args.subname) )
+checkSymLink()
+for l in list(string.ascii_uppercase):
+  print gp_datdir(l)
