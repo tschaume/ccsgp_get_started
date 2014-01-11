@@ -3,7 +3,6 @@ import numpy as np
 from collections import OrderedDict
 from ..ccsgp.ccsgp import make_plot
 from ..aux.utils import getWorkDirs, zip_flat, getOpts
-from ..aux.config import defaultkey
 
 # subname = country initial in examples case
 # TODO: write pydoc's
@@ -37,7 +36,7 @@ def gp_datdir(subname):
     xlabel = 'year', # for symbol numbers see http://bit.ly/1erBgIk
     ylabel = 'total population ({/Symbol \664} 10^{6})',
     titles = data.keys(), # using data keys as legend titles
-    key = defaultkey + [ 'font ",22"', 'width -1' ], # add extra options
+    key = [ 'width -1' ], # add extra or overwrite key options
     #write = True # write data to hdf5 file (optional), install h5py if you like to use it
   )
   return 'done'
