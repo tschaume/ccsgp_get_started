@@ -4,3 +4,4 @@ env/*
 *.eps
 *.png
 *.hdf5
+pyanaDir
