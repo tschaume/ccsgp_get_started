@@ -1,5 +1,6 @@
 """
-example setup for plotting via http://gitlab.the-huck.com/ccs-pe-eval/ccsgp
+example setup for plotting using ccsgp
 
-ccsgp provides make_plot function based on gnuplot-py ...
+explain purpose of this repo
+for more info see $ pydoc pyana.examples
 """
