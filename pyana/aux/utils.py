@@ -1,6 +1,15 @@
 import sys, os, itertools, inspect
 
+"""
+small utility functions
+"""
+
 def getOpts(i):
+  """
+  A convience function for easy access to a default gnuplot option string.  For
+  even numbers i (data points) it produces the string 'lt 1 lw 4 ps 2 lc <i> pt
+  18'.  For odd numbers i (error bars) you'll get 'lt 1 lw 4 ps 2 lc 0'.
+  """
   opts = 'lt 1 lw 4 ps 2 '
   if not i%2: opts += 'lc %d pt 18' % int(i/2)
   else: opts += 'lc 0'
