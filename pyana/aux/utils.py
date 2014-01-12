@@ -1,19 +1,12 @@
-import sys, os, itertools, inspect
-
 """
 small utility functions
 """
 
+import sys, os, itertools, inspect
+
 def getOpts(i):
-  """
-  A convience function for easy access to a default gnuplot option string.  For
-  even numbers i (data points) it produces the string 'lt 1 lw 4 ps 2 lc <i> pt
-  18'.  For odd numbers i (error bars) you'll get 'lt 1 lw 4 ps 2 lc 0'.
-  """
-  opts = 'lt 1 lw 4 ps 2 '
-  if not i%2: opts += 'lc %d pt 18' % int(i/2)
-  else: opts += 'lc 0'
-  return opts
+  """A convience function for easy access to a gnuplot property string."""
+  return 'lt 1 lw 4 ps 2 lc %d pt 18' % i
 
 def checkSymLink():
   link_name = __name__.split('.')[0] + 'Dir'
@@ -40,7 +33,3 @@ def getWorkDirs():
     logging.critical('create input dir %s to continue!' % inDir)
     sys.exit(1)
   return inDir, outDir
-
-def zip_flat(a, b):
-  return list(itertools.chain.from_iterable(zip(a, b)))
-
