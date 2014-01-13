@@ -45,13 +45,13 @@ Installation
      $ pip install -U numpy
      $ pip install -U -r requirements.txt
 
-   - Every time you start in a new terminal you have to activate the correct
-     python environment by sourcing `env/bin/activate` again or instead use
-     `env/bin/python` directly!
+   Every time you start in a new terminal you have to activate the correct
+   python environment by sourcing `env/bin/activate` again or instead use
+   `env/bin/python` directly!
 
-   - The h5py package is currently omitted from the requirements. If you want to
-     use it, uncomment the h5py requirement in ``requirements.txt`` and rerun ``$
-     pip install -r requirements.txt``.
+   The h5py package is currently omitted from the requirements. If you want to
+   use it, uncomment the h5py requirement in ``requirements.txt`` and rerun ``$
+   pip install -r requirements.txt``.
 
 4. If you intend to run the examples (and you cloned recursively above), symlink
    *pyanaDir* to *ccsgp_get_started_data*::

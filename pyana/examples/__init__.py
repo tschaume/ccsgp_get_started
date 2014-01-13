@@ -1,14 +1,13 @@
 """
 
 The examples are based on a dataset of World Bank Indicators_.  You can use the
-dataset [#]_ yourself to play around. See the ``genExDat.sh`` [#]_ script in the
+dataset yourself to play around [#]_. See the ``genExDat.sh`` script in the
 same directory on how I extracted the data into the correct format for *ccsgp*.
 To generate all example plots based on *ccsgp_get_started_data* you can run::
 
   $ python -m pyana
   
-.. [#] ccsgp_get_started_data/input/examples/gp_datdir/WorldBankIndicators.csv
-.. [#] ccsgp_get_started_data/input/examples/gp_datdir/genExDat.sh
+.. [#] ccsgp_get_started_data/input/examples/gp_datdir/{WorldBankIndicators.csv, genExDat.sh}
 
 Alternatively, you can run a specific module, for instance::
 
