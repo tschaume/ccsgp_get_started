@@ -2,7 +2,7 @@ import logging, argparse, os, sys
 import numpy as np
 from collections import OrderedDict
 from ..ccsgp.ccsgp import make_plot
-from .utils import getWorkDirs
+from .utils import getWorkDirs, checkSymLink
 from ..ccsgp.utils import getOpts
 
 def gp_datdir(initial, topN):
@@ -66,6 +66,7 @@ def gp_datdir(initial, topN):
   return 'done'
 
 if __name__ == '__main__':
+  checkSymLink()
   parser = argparse.ArgumentParser()
   parser.add_argument("initial", help="country initial = input subdir with txt files")
   parser.add_argument("topN", help="number of most populated countries to plot")

@@ -1,6 +1,5 @@
-
 import string
-from aux.utils import checkSymLink
+from examples.utils import checkSymLink
 from examples.gp_datdir import gp_datdir
 
 checkSymLink()
