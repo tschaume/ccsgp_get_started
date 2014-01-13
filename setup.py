@@ -6,7 +6,7 @@ setup(
   name = 'ccsgp_get_started',
   version = '1.0',
   description = 'get started with ccsp',
-  license = 'MIT',
+  licence = 'MIT',
   author = 'Patrick Huck',
   author_email = 'phuck@lbl.gov',
   url = 'https://github.com/tschaume/ccsgp_get_started',
