@@ -1,7 +1,3 @@
-"""
-small utility functions
-"""
-
 import sys, os, itertools, inspect
 
 def checkSymLink():

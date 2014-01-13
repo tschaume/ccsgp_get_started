@@ -6,10 +6,15 @@ from .utils import getWorkDirs
 from ..ccsgp.utils import getOpts
 
 def gp_datdir(initial, topN):
-  """example for plotting from a text file using ccsgp
+  """example for plotting from a text file via np.loadtxt
 
-  - this is an easy way to use ccsgp by accepting its defaults
-  - see ccsgp documentation for more on make_plot
+  1. prepare input/output directories
+  2. load the data into an OrderedDict() [adjust axes units]
+  3. sort countries from highest to lowest population
+  4. select the <topN> most populated countries
+  5. call ccsgp.make_plot with data from 4
+
+  also see ``$ python -m pyana.examples.gp_datdir -h``.
 
   :param initial: country initial
   :type initial: str

@@ -6,34 +6,54 @@
 Get started with ccsgp!
 =======================
 
-.. automodule:: pyana.ccsgp
+.. pyana/__init__.py
+.. automodule:: pyana
    :members:
 
-.. automodule:: pyana.ccsgp.ccsgp
+Examples Module
+---------------
+
+.. pyana/examples/__init__.py
+.. automodule:: pyana.examples
    :members:
 
+.. pyana/examples/gp_datdir.py
 .. automodule:: pyana.examples.gp_datdir
    :members:
 
-.. automodule:: pyana.aux
-
-.. automodule:: pyana.aux.utils
+.. pyana/examples/utils.py
+.. automodule:: pyana.examples.utils
    :members:
 
+ccsgp
+-----
 
-MyPlot class, utility functions & default configuration
--------------------------------------------------------
+.. pyana/ccsgp/__init__.py
+.. automodule:: pyana.ccsgp
+   :members:
+
+User Functions
+^^^^^^^^^^^^^^
+
+.. pyana/ccsgp/ccsgp.py
+.. automodule:: pyana.ccsgp.ccsgp
+   :members:
+
+Base Class
+^^^^^^^^^^
 
 .. automodule:: pyana.ccsgp.myplot
    :members:
    :private-members:
 
-.. automodule:: pyana.ccsgp.utils
-   :members:
+Config & Utils
+^^^^^^^^^^^^^^
 
 .. automodule:: pyana.ccsgp.config
    :members:
 
+.. automodule:: pyana.ccsgp.utils
+   :members:
 
 Indices and tables
 ==================
