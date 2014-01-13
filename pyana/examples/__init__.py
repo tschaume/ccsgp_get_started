@@ -7,8 +7,10 @@ To generate all example plots based on *ccsgp_get_started_data* you can run::
 
   $ python -m pyana
   
-(this runs `pyana/__main__.py`). Alternatively, you can run a
-specific module, for instance::
+.. [#] ccsgp_get_started_data/input/examples/gp_datdir/WorldBankIndicators.csv
+.. [#] ccsgp_get_started_data/input/examples/gp_datdir/genExDat.sh
+
+Alternatively, you can run a specific module, for instance::
 
   $ python -m pyana.examples.gp_datdir [--log] <country-initial> <#-most-populated>
 
@@ -18,6 +20,4 @@ multiple plots on one page. To start on your own read the documentation below or
 the source code and use one of the examples as a template.
 
 .. _Indicators: http://www.tableausoftware.com/public/community/sample-data-sets#worldbank
-.. [#] ccsgp_get_started_data/input/examples/gp_datdir/WorldBankIndicators.csv
-.. [#] ccsgp_get_started_data/input/examples/gp_datdir/genExDat.sh
 """
