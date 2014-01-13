@@ -43,6 +43,7 @@ def gp_datdir(initial, topN):
   # "pop" (select) N most populated countries
   top_data = OrderedDict(
     sorted_data.popitem(last = False) for i in xrange(topN)
+    if sorted_data
   )
   # generate plot using ccsgp.make_plot
   nSets = len(top_data)
@@ -52,10 +53,9 @@ def gp_datdir(initial, topN):
     properties = [ getOpts(i) for i in xrange(nSets) ],
     titles = top_data.keys(), # use data keys as legend titles
     name = os.path.join(outDir, initial),
-    key = [ 'top', 'maxrows 2', 'width -1'],
-    xlabel = 'year',
+    key = [ 'at graph 1., 1.2', 'maxrows 2' ],
     ylabel = 'total population ({/Symbol \664} 10^{6})',
-    ylog = True
+    xlabel = 'year', tmargin = 2.0
   )
   return 'done'
 
