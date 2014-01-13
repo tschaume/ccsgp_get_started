@@ -12,6 +12,6 @@ setup(
   url = 'https://github.com/tschaume/ccsgp_get_started',
   packages = find_packages(),
   install_requires = [
-    'wsgiref==0.1.2', 'numpy==1.8.0', 'gnuplot-py==1.8', 'h5py==2.2.1'
+    'wsgiref==0.1.2', 'numpy==1.8.0', 'gnuplot-py==1.8'#, 'h5py==2.2.1'
   ]
 )
