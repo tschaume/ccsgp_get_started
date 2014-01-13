@@ -2,7 +2,8 @@ import logging, argparse, os, sys
 import numpy as np
 from collections import OrderedDict
 from ..ccsgp.ccsgp import make_plot
-from ..aux.utils import getWorkDirs, getOpts
+from .utils import getWorkDirs
+from ..ccsgp.utils import getOpts
 
 def gp_datdir(initial, topN):
   """example for plotting from a text file using ccsgp
