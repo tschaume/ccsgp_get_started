@@ -6,7 +6,7 @@ from .utils import getWorkDirs, checkSymLink
 from ..ccsgp.utils import getOpts
 
 def gp_datdir(initial, topN):
-  """example for plotting from a text file via np.loadtxt
+  """example for plotting from a text file via numpy.loadtxt
 
   1. prepare input/output directories
   2. load the data into an OrderedDict() [adjust axes units]
