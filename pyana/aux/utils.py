@@ -3,14 +3,6 @@ small utility functions
 """
 
 import sys, os, itertools, inspect
-from ..ccsgp.config import default_colors
-
-def getOpts(i):
-  """A convience function for easy access to gnuplot property string.
-
-  - uses default_colors list of ccsgp.config
-  """
-  return 'lt 1 lw 4 ps 2 lc %s pt 18' % default_colors[i]
 
 def checkSymLink():
   link_name = __name__.split('.')[0] + 'Dir'
