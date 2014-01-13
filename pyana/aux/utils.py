@@ -5,13 +5,14 @@ small utility functions
 import sys, os, itertools, inspect
 
 def checkSymLink():
+  """check for symbolic link to input directory"""
   link_name = __name__.split('.')[0] + 'Dir'
   if not os.path.islink(link_name):
     logging.critical('create symlink %s to continue!' % link_name)
     sys.exit(1)
 
 def getWorkDirs():
-  # pydoc: use same output layout as for package
+  """get input/output dirs (same output layout as for package)"""
   # get caller module
   caller_fullurl = inspect.stack()[1][1]
   caller_relurl = os.path.relpath(caller_fullurl)
