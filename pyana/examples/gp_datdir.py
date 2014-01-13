@@ -4,7 +4,7 @@ from collections import OrderedDict
 from ..ccsgp.ccsgp import make_plot
 from ..aux.utils import getWorkDirs, getOpts
 
-def gp_datdir(initial):
+def gp_datdir(initial, topN):
   """example for plotting from a text file using ccsgp
 
   - this is an easy way to use ccsgp by accepting its defaults
@@ -12,6 +12,8 @@ def gp_datdir(initial):
 
   :param initial: country initial
   :type initial: str
+  :param topN: number of most populated countries to plot
+  :type topN: int
   :ivar inDir: input directory according to package structure and initial
   :ivar outDir: output directory according to package structure
   :ivar data: OrderedDict with datasets to plot as separate keys
@@ -20,39 +22,51 @@ def gp_datdir(initial):
   :ivar file_url: absolute url to input file
   :ivar nSets: number of datasets
   """
+  # prepare input/output directories
   inDir, outDir = getWorkDirs()
   initial = initial.capitalize()
   inDir = os.path.join(inDir, initial)
   if not os.path.exists(inDir): # catch missing initial
     return "initial %s doesn't exist" % initial
+  # prepare data
   data = OrderedDict()
   for file in os.listdir(inDir):
     country = os.path.splitext(file)[0]
     file_url = os.path.join(inDir, file)
     data[country] = np.loadtxt(open(file_url, 'rb')) # load data
     data[country][:, 1:3] /= 1e6 # set unit to 1M
-    if len(data) > 10: break # don't plot more than 10 countries
   logging.debug(data) # shown if --log flag given on command line
-  nSets = len(data)
+  # sort countries according to mean population (highest -> lowest)
+  sorted_data = OrderedDict(sorted(
+    data.items(), key = lambda t: np.mean(t[1][:,1]), reverse = True
+  ))
+  # "pop" (select) N most populated countries
+  top_data = OrderedDict(
+    sorted_data.popitem(last = False) for i in xrange(topN)
+  )
+  # generate plot using ccsgp.make_plot
+  nSets = len(top_data)
   make_plot(
-    data = data.values(),
+    data = top_data.values(),
     styles = ['points'] * nSets,
     properties = [ getOpts(i) for i in xrange(nSets) ],
-    titles = data.keys(), # use data keys as legend titles
+    titles = top_data.keys(), # use data keys as legend titles
     name = os.path.join(outDir, initial),
-    key = [ 'width -1' ],
+    key = [ 'top', 'maxrows 2', 'width -1'],
     xlabel = 'year',
-    ylabel = 'total population ({/Symbol \664} 10^{6})'
+    ylabel = 'total population ({/Symbol \664} 10^{6})',
+    ylog = True
   )
   return 'done'
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument("initial", help="country initial = input subdir with txt files")
+  parser.add_argument("topN", help="number of most populated countries to plot")
   parser.add_argument("--log", help="show log output", action="store_true")
   args = parser.parse_args()
   loglevel = 'DEBUG' if args.log else 'WARNING'
   logging.basicConfig(
     format='%(message)s', level=getattr(logging, loglevel)
   )
-  print gp_datdir(args.initial)
+  print gp_datdir(args.initial, int(args.topN))
