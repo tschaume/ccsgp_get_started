@@ -14,7 +14,15 @@ def gp_datdir(initial, topN):
   4. select the <topN> most populated countries
   5. call ccsgp.make_plot with data from 4
 
-  also see ``$ python -m pyana.examples.gp_datdir -h``.
+  Below is an output image for country initial T and the 4 most populated
+  countries for this initial (click to enlarge). Also see::
+
+    $ python -m pyana.examples.gp_datdir -h
+
+  for help on the command line options.
+
+  .. image:: ../ccsgp_get_started_data/examples/gp_datdir/T.png
+     :width: 450 px
 
   :param initial: country initial
   :type initial: str
