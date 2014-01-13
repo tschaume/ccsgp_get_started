@@ -1,9 +1,9 @@
 """
 
 The examples are based on a dataset of World Bank Indicators_.  You can use the
-dataset_ yourself to play around. See the *genExDat.sh* script in the same
-directory on how I extracted the data into the correct format for *ccsgp*.  To
-generate all example plots based on *ccsgp_get_started_data* you can run::
+dataset [#]_ yourself to play around. See the ``genExDat.sh`` [#]_ script in the
+same directory on how I extracted the data into the correct format for *ccsgp*.
+To generate all example plots based on *ccsgp_get_started_data* you can run::
 
   $ python -m pyana
   
@@ -18,5 +18,6 @@ multiple plots on one page. To start on your own read the documentation below or
 the source code and use one of the examples as a template.
 
 .. _Indicators: http://www.tableausoftware.com/public/community/sample-data-sets#worldbank
-.. _dataset: ccsgp_get_started_data/input/examples/gp_datdir/WorldBankIndicators.csv
+.. [#] ccsgp_get_started_data/input/examples/gp_datdir/WorldBankIndicators.csv
+.. [#] ccsgp_get_started_data/input/examples/gp_datdir/genExDat.sh
 """

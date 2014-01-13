@@ -27,13 +27,13 @@ Installation
    * Include the submodule with the test data by cloning the git repository
      recursively::
 
-       $ git clone gitlab:github/ccsgp_get_started.git --recursive
+       $ git clone https://github.com/tschaume/ccsgp_get_started.git --recursive
        $ cd ccsgp_get_started/
 
    * or alternatively, for source code only, clone and init the `ccsgp`
      submodule separately::
 
-       $ git clone gitlab:github/ccsgp_get_started.git 
+       $ git clone https://github.com/tschaume/ccsgp_get_started.git
        $ cd ccsgp_get_started/
        $ git submodule init pyana/ccsgp
        $ git submodule update
@@ -63,7 +63,7 @@ Installation
    *pyanaDir* either to *ccsgp_get_started_data* or your own input/output
    directory (preferably separated from the code repository).
 
-.. _ccsgp: http://gitlab.the-huck.com/ccs-pe-eval/ccsgp
-.. _ccsgp_get_started: www.ccsgp.com
+.. _ccsgp: https://github.com/tschaume/ccsgp
+.. _ccsgp_get_started: https://github.com/tschaume/ccsgp_get_started
 .. _virtualenv: http://www.virtualenv.org/en/latest/virtualenv.html#usage
 """
