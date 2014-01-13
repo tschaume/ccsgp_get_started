@@ -1,4 +1,4 @@
-import sys, os, itertools, inspect
+import sys, os, itertools, inspect, logging
 
 def checkSymLink():
   """check for symbolic link to input directory"""
