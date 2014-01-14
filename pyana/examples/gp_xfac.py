@@ -12,9 +12,18 @@ shift = {
 def gp_xfac():
   """example using QM12 enhancement factors
 
-  - add link to QM12 poster
-  - include image
-  - describe variables used
+  - uses `gpcalls` kwarg to reset xtics
+  - numpy.loadtxt needs reshaping for input files w/ only one datapoint
+  - according poster presentations see QM12_ & NSD_ review
+
+  .. _QM12: http://indico.cern.ch/getFile.py/access?contribId=268&sessionId=10&resId=0&materialId=slides&confId=181055
+  .. _NSD: http://rnc.lbl.gov/~xdong/RNC/DirectorReview2012/posters/Huck.pdf
+
+  .. image:: ../ccsgp_get_started_data/examples/gp_gp_xfac/xfac.png
+     :width: 450 px
+
+  :ivar key: translates filename into legend/key label
+  :ivar shift: slightly shift selected data points
   """
   # prepare data
   inDir, outDir = getWorkDirs()
