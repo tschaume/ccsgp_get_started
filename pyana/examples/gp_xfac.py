@@ -19,7 +19,7 @@ def gp_xfac():
   .. _QM12: http://indico.cern.ch/getFile.py/access?contribId=268&sessionId=10&resId=0&materialId=slides&confId=181055
   .. _NSD: http://rnc.lbl.gov/~xdong/RNC/DirectorReview2012/posters/Huck.pdf
 
-  .. image:: ../ccsgp_get_started_data/examples/gp_gp_xfac/xfac.png
+  .. image:: ../ccsgp_get_started_data/examples/gp_xfac/xfac.png
      :width: 450 px
 
   :ivar key: translates filename into legend/key label
