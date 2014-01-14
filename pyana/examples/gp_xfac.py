@@ -1,0 +1,62 @@
+import logging, argparse, os, sys
+import numpy as np
+from collections import OrderedDict
+from ..ccsgp.ccsgp import make_plot
+from .utils import getWorkDirs, checkSymLink
+from ..ccsgp.utils import getOpts
+
+shift = {
+  'STAR Au+Au : 0.3 - 0.75 GeV': 1.02, 'STAR Au+Au : 0.2 - 0.6 GeV': 1.04
+}
+
+def gp_xfac():
+  """example using QM12 enhancement factors
+
+  - add link to QM12 poster
+  - include image
+  - describe variables used
+  """
+  # prepare data
+  inDir, outDir = getWorkDirs()
+  data = OrderedDict()
+  for file in os.listdir(inDir):
+    info = os.path.splitext(file)[0].split('_')
+    key = ' '.join(info[:2] + [':',
+      ' - '.join([
+        str(float(s)/1e3) for s in info[-1][:7].split('-')
+      ]) + ' GeV'
+    ])
+    file_url = os.path.join(inDir, file)
+    data[key] = np.loadtxt(
+      open(file_url, 'rb'), usecols = (i for i in xrange(4))
+    ).reshape((-1,4))
+    data[key][:, 0] *= shift.get(key, 1)
+  logging.debug(data) # shown if --log flag given on command line
+  # generate plot
+  nSets = len(data)
+  make_plot(
+    data = data.values(),
+    styles = ['points'] * nSets,
+    properties = [ getOpts(i) for i in xrange(nSets) ],
+    titles = data.keys(), # use data keys as legend titles
+    name = os.path.join(outDir, 'xfac'),
+    key = [ 'top center', 'maxcols 2', 'width -7', 'font ",20"' ],
+    ylabel = 'LMR Enhancement Factor',
+    xlabel = '{/Symbol \326}s_{NN} (GeV)',
+    xlog = True, lmargin = 4.3, gpcalls = [ 'format x "%g"',
+      'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)'
+    ]
+  )
+  return 'done'
+
+if __name__ == '__main__':
+  checkSymLink()
+  parser = argparse.ArgumentParser()
+  #parser.add_argument("initial", help="country initial = input subdir with txt files")
+  parser.add_argument("--log", help="show log output", action="store_true")
+  args = parser.parse_args()
+  loglevel = 'DEBUG' if args.log else 'WARNING'
+  logging.basicConfig(
+    format='%(message)s', level=getattr(logging, loglevel)
+  )
+  print gp_xfac()
