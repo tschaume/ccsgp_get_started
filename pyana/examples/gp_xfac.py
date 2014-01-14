@@ -54,7 +54,8 @@ def gp_xfac():
     xlabel = '{/Symbol \326}s_{NN} (GeV)',
     xlog = True, lmargin = 4.3, gpcalls = [ 'format x "%g"',
       'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)'
-    ]
+    ],
+    labels = { 'STAR Preliminary': [0.5, 0.5, False] }
   )
   return 'done'
 
