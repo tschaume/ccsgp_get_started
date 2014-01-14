@@ -28,6 +28,10 @@ Examples Module
 .. automodule:: pyana.examples.gp_datdir
    :members:
 
+.. pyana/examples/gp_xfac.py
+.. automodule:: pyana.examples.gp_xfac
+   :members:
+
 .. pyana/examples/utils.py
 .. automodule:: pyana.examples.utils
    :members:
