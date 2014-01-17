@@ -7,11 +7,13 @@ Get started with ccsgp!
 =======================
 
 *Authors*
-  **Patrick Huck**, ``default_colors`` in :class:`pyana.ccsgp.config`
-  contributed by Johanna Huck
+  **Patrick Huck** (GitHub_),
+  ``default_colors`` in :class:`pyana.ccsgp.config` contributed by Johanna Huck
 
 *Date*
   |today|
+
+.. _GitHub: https://github.com/tschaume
 
 .. pyana/__init__.py
 .. automodule:: pyana
