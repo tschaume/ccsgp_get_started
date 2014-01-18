@@ -31,7 +31,7 @@ def gp_datdir(initial, topN):
   :ivar inDir: input directory according to package structure and initial
   :ivar outDir: output directory according to package structure
   :ivar data: OrderedDict with datasets to plot as separate keys
-  :ivar file: data input file for specific country, format: x y y_err bin_width
+  :ivar file: data input file for specific country, format: [x y] OR [x y dx dy]
   :ivar country: country, filename stem of input file
   :ivar file_url: absolute url to input file
   :ivar nSets: number of datasets
@@ -48,7 +48,9 @@ def gp_datdir(initial, topN):
     country = os.path.splitext(file)[0]
     file_url = os.path.join(inDir, file)
     data[country] = np.loadtxt(open(file_url, 'rb')) # load data
-    data[country][:, 1:3] /= 1e6 # set unit to 1M
+    # set y-axis unit to 1M
+    data[country][:, 1] /= 1e6
+    if data[country].shape[1] > 2: data[country][:, 3:] /= 1e6
   logging.debug(data) # shown if --log flag given on command line
   # sort countries according to mean population (highest -> lowest)
   sorted_data = OrderedDict(sorted(
