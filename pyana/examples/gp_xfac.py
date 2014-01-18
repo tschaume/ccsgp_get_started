@@ -45,7 +45,6 @@ def gp_xfac():
   nSets = len(data)
   make_plot(
     data = data.values(),
-    styles = ['points'] * nSets,
     properties = [ getOpts(i) for i in xrange(nSets) ],
     titles = data.keys(), # use data keys as legend titles
     name = os.path.join(outDir, 'xfac'),
