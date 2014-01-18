@@ -36,9 +36,7 @@ def gp_xfac():
       ]) + ' GeV'
     ])
     file_url = os.path.join(inDir, file)
-    data[key] = np.loadtxt(
-      open(file_url, 'rb'), usecols = (i for i in xrange(4))
-    ).reshape((-1,4))
+    data[key] = np.loadtxt(open(file_url, 'rb')).reshape((-1,5))
     data[key][:, 0] *= shift.get(key, 1)
   logging.debug(data) # shown if --log flag given on command line
   # generate plot
