@@ -65,7 +65,6 @@ def gp_datdir(initial, topN):
   nSets = len(top_data)
   make_plot(
     data = top_data.values(),
-    styles = ['points'] * nSets,
     properties = [ getOpts(i) for i in xrange(nSets) ],
     titles = top_data.keys(), # use data keys as legend titles
     name = os.path.join(outDir, initial),
