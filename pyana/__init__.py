@@ -11,6 +11,10 @@ will be in the future:
 * import data from ROOT objects via root-py
 * and more ...
 
+Please submit tickets on GitHub issues_.
+
+.. _issues: https://github.com/tschaume/ccsgp_get_started/issues
+
 Installation
 ^^^^^^^^^^^^
 
