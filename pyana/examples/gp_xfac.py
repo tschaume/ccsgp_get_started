@@ -6,7 +6,7 @@ from .utils import getWorkDirs, checkSymLink
 from ..ccsgp.utils import getOpts
 
 shift = {
-  'STAR Au+Au : 0.3 - 0.75 GeV': 1.02, 'STAR Au+Au : 0.2 - 0.6 GeV': 1.04
+  'STAR Au+Au : 0.3 - 0.75 GeV': 1.06, 'STAR Au+Au : 0.2 - 0.6 GeV': 1.12
 }
 
 def gp_xfac():
