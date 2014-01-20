@@ -24,6 +24,9 @@ def gp_datdir(initial, topN):
   .. image:: ../ccsgp_get_started_data/examples/gp_datdir/T.png
      :width: 450 px
 
+  .. image:: ../ccsgp_get_started_data/examples/gp_datdir/U.png
+     :width: 450 px
+
   :param initial: country initial
   :type initial: str
   :param topN: number of most populated countries to plot
