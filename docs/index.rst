@@ -34,6 +34,10 @@ Examples Module
 .. automodule:: pyana.examples.gp_xfac
    :members:
 
+.. pyana/examples/gp_panel.py
+.. automodule:: pyana.examples.gp_panel
+   :members:
+
 .. pyana/examples/utils.py
 .. automodule:: pyana.examples.utils
    :members:

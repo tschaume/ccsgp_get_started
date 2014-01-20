@@ -10,7 +10,7 @@ def gp_panel(version):
   """example for a panel plot using QM12 data (see gp_xfac)
 
   .. image:: ../ccsgp_get_started_data/examples/gp_panel/panelQM12.png
-     :width: 450 px
+     :width: 700 px
 
   :param version: plot version / input subdir name
   :type version: str
