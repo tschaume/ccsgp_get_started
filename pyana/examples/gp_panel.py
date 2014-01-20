@@ -12,16 +12,22 @@ def gp_panel(version):
   data = {}
   for file in os.listdir(inDir):
     energy = re.compile('\d+').search(file).group()
+    data_type = re.sub('%s\.dat' % energy, '', file)
     file_url = os.path.join(inDir, file)
-    data[energy] = np.loadtxt(open(file_url, 'rb')).reshape((-1,5))
+    data_import = np.loadtxt(open(file_url, 'rb'))
+    if energy not in data: data[energy] = [ data_import ]
+    else: data[energy].append(data_import)
   make_panel(
     dpt_dict = OrderedDict(
-      (' '.join([k, 'GeV']), [[data[k]], [getOpts(0)], ['data'] ])
-      for k in sorted(data, key=int)
+      (' '.join([k, 'GeV']), [
+        data[k],
+        [ 'with lines', 'with linespoints', getOpts(0) ],
+        [ '+medium', 'cocktail', 'data' ]
+      ]) for k in sorted(data, key=int)
     ),
     name = os.path.join(outDir, 'panel%s' % version),
-    ylabel = 'invariant yield',
-    xlabel = 'invariant mass (GeV/c^{2})',
+    ylabel = 'dielectron pair production rate',
+    xlabel = 'dielectron mass (GeV/c^{2})',
     ylog = True, xr = [0, 1.29], yr = [1e-4, 20],
     lmargin = 0.08, bmargin = 0.15
   )
