@@ -4,6 +4,7 @@ from collections import OrderedDict
 from .utils import getWorkDirs, checkSymLink
 from ..ccsgp.ccsgp import make_panel
 from ..ccsgp.utils import getOpts
+from ..ccsgp.config import default_colors
 
 def gp_panel(version):
   """example for a panel plot using QM12 data (see gp_xfac)"""
@@ -20,16 +21,19 @@ def gp_panel(version):
   make_panel(
     dpt_dict = OrderedDict(
       (' '.join([k, 'GeV']), [
-        data[k],
-        [ 'with lines', 'with linespoints', getOpts(0) ],
-        [ '+medium', 'cocktail', 'data' ]
+        data[k], [
+          'with filledcurves lt 1 lw 4 pt 0 lc %s' % default_colors[8],
+          'with lines lc 0 lw 5 lt 1',
+          'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0]
+        ], [ '+medium', 'cocktail', 'data' ]
       ]) for k in sorted(data, key=int)
-    ),
+    ), # 'lc 0' works here because no error plotting necessary
     name = os.path.join(outDir, 'panel%s' % version),
     ylabel = 'dielectron pair production rate',
     xlabel = 'dielectron mass (GeV/c^{2})',
-    ylog = True, xr = [0, 1.29], yr = [1e-4, 20],
-    lmargin = 0.08, bmargin = 0.15
+    ylog = True, xr = [0, 1.1], yr = [1e-4, 20],
+    lmargin = 0.08, bmargin = 0.15,
+    gpcalls = ['mxtics 2']
   )
   return 'done'
 
