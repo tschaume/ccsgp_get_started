@@ -12,18 +12,18 @@ def gp_panel(version):
   data = {}
   for file in os.listdir(inDir):
     energy = re.compile('\d+').search(file).group()
-    key = ' '.join([energy, 'GeV'])
     file_url = os.path.join(inDir, file)
-    data[key] = np.loadtxt(open(file_url, 'rb')).reshape((-1,5))
+    data[energy] = np.loadtxt(open(file_url, 'rb')).reshape((-1,5))
   make_panel(
     dpt_dict = OrderedDict(
-      (k, [ [v], [getOpts(0)], ['data'] ])
-      for k, v in data.iteritems()
+      (' '.join([k, 'GeV']), [[data[k]], [getOpts(0)], ['data'] ])
+      for k in sorted(data, key=int)
     ),
     name = os.path.join(outDir, 'panel%s' % version),
     ylabel = 'invariant yield',
     xlabel = 'invariant mass (GeV/c^{2})',
-    ylog = True, xr = [0, 1.2]
+    ylog = True, xr = [0, 1.29], yr = [1e-4, 20],
+    lmargin = 0.08, bmargin = 0.15
   )
   return 'done'
 
