@@ -21,10 +21,10 @@ def gp_datdir(initial, topN):
 
   for help on the command line options.
 
-  .. image:: ../ccsgp_get_started_data/examples/gp_datdir/T.png
+  .. image:: ../ccsgp_get_started_data/examples/gp_datdir/output/T.png
      :width: 450 px
 
-  .. image:: ../ccsgp_get_started_data/examples/gp_datdir/U.png
+  .. image:: ../ccsgp_get_started_data/examples/gp_datdir/output/U.png
      :width: 450 px
 
   :param initial: country initial
