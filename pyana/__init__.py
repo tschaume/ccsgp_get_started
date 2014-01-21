@@ -34,7 +34,20 @@ Installation
      $ git clone https://github.com/tschaume/ccsgp_get_started.git --recursive
      $ cd ccsgp_get_started/
 
-   or alternatively, for source code only, clone and init the `ccsgp`
+   Pull in public STAR dielectron data into a new branch to use gp_xfac and gp_panel::
+
+     $ git remote add dielec_public http://gitlab.the-huck.com/star/dielectron_data_public.git
+     $ git checkout -b star_dielec
+     $ git pull dielec_public master
+
+   If you are part of the STAR collaboration you can also pull in the protected
+   STAR dielectron data to include in gp_panel::
+
+     $ git remote add dielec_protect http://cgit.the-huck.com/dielectron_data_protected
+     $ git pull dielec_protect master
+       (enter STAR protected credentials)
+
+   Or alternatively, for source code only, clone and init the `ccsgp`
    submodule separately::
 
      $ git clone https://github.com/tschaume/ccsgp_get_started.git
