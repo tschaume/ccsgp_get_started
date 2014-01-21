@@ -8,7 +8,7 @@ def checkSymLink():
     sys.exit(1)
 
 def getWorkDirs():
-  """get input/output dirs (same output layout as for package)"""
+  """get input/output dirs (same input/output layout as for package)"""
   # get caller module
   caller_fullurl = inspect.stack()[1][1]
   caller_relurl = os.path.relpath(caller_fullurl)
@@ -17,10 +17,10 @@ def getWorkDirs():
   dirs = caller_modurl.split('/')
   dirs[0] += 'Dir'
   # get, check and create outdir
-  outDir = os.path.join(*dirs)
+  outDir = os.path.join(*(dirs + ['output']))
   if not os.path.exists(outDir): os.makedirs(outDir)
   # get and check indir
-  dirs.insert(1, 'input')
+  dirs.append('input')
   inDir = os.path.join(*dirs)
   if not os.path.exists(inDir):
     logging.critical('create input dir %s to continue!' % inDir)
