@@ -27,7 +27,8 @@ def gp_stack(version):
     if fnmatch(file, 'data*'): data[energy] = data_import
     else: cocktail[energy] = data_import
   dataOrdered = OrderedDict(
-    (' '.join([k, 'GeV']), data[k]) for k in sorted(data, key=int)
+    (' '.join([k, 'GeV', '{/Symbol \264} %g' % shift[k]]), data[k])
+    for k in sorted(data, key=int)
   )
   nSetsData, nSetsCocktail = len(dataOrdered), len(cocktail)
   make_plot(
