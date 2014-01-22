@@ -38,6 +38,10 @@ Examples Module
 .. automodule:: pyana.examples.gp_panel
    :members:
 
+.. pyana/examples/gp_stack.py
+.. automodule:: pyana.examples.gp_stack
+   :members:
+
 .. pyana/examples/utils.py
 .. automodule:: pyana.examples.utils
    :members:
