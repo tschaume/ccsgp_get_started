@@ -8,9 +8,15 @@ from ..ccsgp.utils import getOpts
 from ..ccsgp.config import default_colors
 
 shift = { '200': 200., '62': 20., '39': 1., '19': 0.05 }
+cocktail_style = 'with filledcurves pt 0 lc %s lw 5 lt 1' % default_colors[8]
+pseudo_point = np.array([ [-1,1e-7,0,0,1] ])
 
 def gp_stack(version):
   """example for a plot w/ stacked graphs using QM12 data (see gp_panel)
+
+  * how to omit keys from the legend
+  * manually add legend entries
+  * automatically plot arrows for error bars larger than data point value
 
   :param version: plot version / input subdir name
   :type version: str
@@ -32,19 +38,17 @@ def gp_stack(version):
   )
   nSetsData, nSetsCocktail = len(dataOrdered), len(cocktail)
   make_plot(
-    data = cocktail.values() + dataOrdered.values(),
-    properties = [
-      'with filledcurves pt 0 lc %s lw 5 lt 1' % default_colors[8]
-    ] * nSetsCocktail + [
+    data = cocktail.values() + [ pseudo_point ] + dataOrdered.values(),
+    properties = [ cocktail_style ] * (nSetsCocktail+1) + [
       'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i]
       for i in xrange(nSetsData)
     ],
-    titles = [''] * nSetsCocktail + dataOrdered.keys(),
+    titles = [''] * nSetsCocktail + ['Cocktail w/o {/Symbol \162}'] + dataOrdered.keys(),
     name = os.path.join(outDir, 'stack%s' % version),
     ylabel = 'dielectron pair production rate',
     xlabel = 'dielectron mass (GeV/c^{2})',
     ylog = True, xr = [0, 3.5], yr = [3e-6, 2e3],
-    lmargin = 0.07
+    lmargin = 0.07, key = ['width -3']
   )
   return 'done'
 
