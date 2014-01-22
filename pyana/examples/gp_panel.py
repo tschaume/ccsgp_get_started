@@ -23,6 +23,7 @@ def gp_panel(version):
     data_type = re.sub('%s\.dat' % energy, '', file)
     file_url = os.path.join(inDir, file)
     data_import = np.loadtxt(open(file_url, 'rb'))
+    if data_type == 'cocktail': data_import[:, 4] *= 0.
     if energy not in data: data[energy] = [ data_import ]
     else: data[energy].append(data_import)
   make_panel(
