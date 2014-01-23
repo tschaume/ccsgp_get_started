@@ -49,6 +49,7 @@ def gp_xfac():
     key = [ 'top center', 'maxcols 2', 'width -7', 'font ",20"' ],
     ylabel = 'LMR Enhancement Factor',
     xlabel = '{/Symbol \326}s_{NN} (GeV)',
+    yr = [0.5, 6.5],
     xlog = True, gpcalls = [
       'format x "%g"',
       'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
