@@ -28,6 +28,7 @@ def gp_xfac():
   # prepare data
   inDir, outDir = getWorkDirs()
   data = OrderedDict()
+  # TODO: "really" reproduce plot using spectral data
   for file in os.listdir(inDir):
     info = os.path.splitext(file)[0].split('_')
     key = ' '.join(info[:2] + [':',
