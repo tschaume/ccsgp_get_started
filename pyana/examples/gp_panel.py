@@ -23,6 +23,7 @@ def gp_panel(version):
     data_type = re.sub('%s\.dat' % energy, '', file)
     file_url = os.path.join(inDir, file)
     data_import = np.loadtxt(open(file_url, 'rb'))
+    data_import = data_import[data_import[:,0] < 1.1]
     if data_type == 'cocktail': data_import[:, 4] *= 0.
     if energy not in data: data[energy] = [ data_import ]
     else: data[energy].append(data_import)
@@ -41,6 +42,7 @@ def gp_panel(version):
     xlabel = 'dielectron mass (GeV/c^{2})',
     ylog = True, xr = [0, 1.1], yr = [1e-4, 20],
     lmargin = 0.08, bmargin = 0.15,
+    arrow_length = 0.4, arrow_bar = 0.002,
     gpcalls = ['mxtics 2']
   )
   return 'done'
