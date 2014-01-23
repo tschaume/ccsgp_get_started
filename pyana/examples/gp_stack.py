@@ -18,6 +18,9 @@ def gp_stack(version):
   * manually add legend entries
   * automatically plot arrows for error bars larger than data point value
 
+  .. image:: pics/stackQM12.png
+     :width: 550px
+
   :param version: plot version / input subdir name
   :type version: str
   """
