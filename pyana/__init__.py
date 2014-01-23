@@ -72,7 +72,7 @@ Installation
    STAR dielectron data to include it in gp_panel::
 
      $ git remote add dielec_protect http://cgit.the-huck.com/dielectron_data_protected
-     $ git pull dielec_protect master
+     $ git pull -Xtheirs dielec_protect master
        (enter STAR protected credentials)
 
 
