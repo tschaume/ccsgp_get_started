@@ -49,9 +49,10 @@ def gp_stack(version):
     xlabel = 'dielectron mass (GeV/c^{2})',
     ylog = True, xr = [0, 3.5], yr = [3e-6, 2e3],
     lmargin = 0.07, key = ['width -3'],
-    #arrows = [ # plot a test arrow
-    #  [ [0.5, 1e-5], [2, 100], 'heads filled lc 2 lw 5 lt 1' ],
-    #]
+    arrows = [ # missing error bars @ 39 GeV
+      [ [2.4, 5e-5], [2.3, 1e-5], 'head filled lc 1 lw 5 lt 1 front' ],
+    ],
+    labels = { '??': [2.4, 1e-4, True] }
   )
   return 'done'
 
