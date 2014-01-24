@@ -33,7 +33,7 @@ def gp_stack(version):
     file_url = os.path.join(inDir, file)
     data_import = np.loadtxt(open(file_url, 'rb'))
     # following scaling is wrong for y < 0 && shift != 1
-    data_import[:, 1:] *= shift[energy]
+    data_import[:, (1,3,4)] *= shift[energy]
     if fnmatch(file, 'data*'):
       data[energy] = data_import
     elif energy == '19' and version == 'QM12': # cut of cocktail above 1.1 GeV/c^2
