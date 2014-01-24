@@ -37,7 +37,7 @@ def gp_stack(version):
     if fnmatch(file, 'data*'):
       data[energy] = data_import
     else:
-      data_import[:,2] = 0 # don't plot dx for cocktail
+      data_import[:,(2,3)] = 0 # don't plot dx,dy for cocktail
       if energy == '19' and version == 'QM12':
         # cut of cocktail above 1.1 GeV/c^2
         cocktail[energy] = data_import[data_import[:,0] < 1.3]
@@ -60,6 +60,7 @@ def gp_stack(version):
     xlabel = 'dielectron mass (GeV/c^{2})',
     ylog = True, xr = [0, 3.5], yr = [3e-7 if version == 'QM12' else 1e-8, 2e3],
     lmargin = 0.07, key = ['width -3', 'at graph 0.85,0.98'],
+    arrow_offset = 0.8,
     #arrows = [ # example arrow
     #  [ [2.4, 5e-5], [2.3, 1e-5], 'head filled lc 1 lw 5 lt 1 front' ],
     #],
