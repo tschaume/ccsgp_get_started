@@ -7,7 +7,7 @@ from ..ccsgp.ccsgp import make_plot
 from ..ccsgp.utils import getOpts
 from ..ccsgp.config import default_colors
 
-shift = { '200': 200., '62': 20., '39': 1., '19': 0.05 }
+shift = { '200': 200., '62': 15., '39': 0.5, '19': 0.01 }
 cocktail_style = 'with filledcurves pt 0 lc %s lw 5 lt 1' % default_colors[8]
 pseudo_point = np.array([ [-1,1e-7,0,0,1] ])
 
@@ -33,13 +33,16 @@ def gp_stack(version):
     file_url = os.path.join(inDir, file)
     data_import = np.loadtxt(open(file_url, 'rb'))
     # following scaling is wrong for y < 0 && shift != 1
-    data_import[:, (1,3,4)] *= shift[energy]
+    data_import[:,(1,3,4)] *= shift[energy]
     if fnmatch(file, 'data*'):
       data[energy] = data_import
-    elif energy == '19' and version == 'QM12': # cut of cocktail above 1.1 GeV/c^2
-      cocktail[energy] = data_import[data_import[:,0] < 1.3]
     else:
-      cocktail[energy] = data_import
+      data_import[:,2] = 0 # don't plot dx for cocktail
+      if energy == '19' and version == 'QM12':
+        # cut of cocktail above 1.1 GeV/c^2
+        cocktail[energy] = data_import[data_import[:,0] < 1.3]
+      else:
+        cocktail[energy] = data_import
   dataOrdered = OrderedDict(
     (' '.join([k, 'GeV', '{/Symbol \264} %g' % shift[k]]), data[k])
     for k in sorted(data, key=int)
@@ -55,7 +58,7 @@ def gp_stack(version):
     name = os.path.join(outDir, 'stack%s' % version),
     ylabel = 'dielectron pair production rate',
     xlabel = 'dielectron mass (GeV/c^{2})',
-    ylog = True, xr = [0, 3.5], yr = [1e-6 if version == 'QM12' else 8e-8, 2e3],
+    ylog = True, xr = [0, 3.5], yr = [3e-7 if version == 'QM12' else 1e-8, 2e3],
     lmargin = 0.07, key = ['width -3', 'at graph 0.85,0.98'],
     #arrows = [ # example arrow
     #  [ [2.4, 5e-5], [2.3, 1e-5], 'head filled lc 1 lw 5 lt 1 front' ],
