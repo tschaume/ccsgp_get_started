@@ -25,25 +25,29 @@ def gp_rdiff(version):
     data_type = re.sub('%s\.dat' % energy, '', file)
     file_url = os.path.join(inDir, file)
     data_import = np.loadtxt(open(file_url, 'rb'))
-    if fnmatch(file, 'data*'): data[energy] = data_import
+    if data_type == 'data': data[energy] = data_import
     else: cocktail[energy] = data_import
   dataOrdered = OrderedDict()
   for energy in sorted(data, key=int):
+    # data uncertainty array multiplied by binwidth (col2 = dx)
     # TODO: 39 GeV has a datapoint with negative error!
-    # TODO: how about statistical error bar on data?
     uData = unp.uarray(data[energy][:,1], data[energy][:,4])
-    uData *= data[energy][:,2] # multiply data by binwidth
-    # stat. error for cocktail = 0!
+    uData *= data[energy][:,2] * 2
+    # cocktail uncertainty array multiplied by binwidth
+    # stat. error for cocktail ~ 0!
     uCocktail = unp.uarray(cocktail[energy][:,1], cocktail[energy][:,4])
-    uCocktail *= cocktail[energy][:,2] # multiply cocktail by binwidth
-    edges = np.concatenate(([0], data[energy][:,0] + data[energy][:,2] * 0.5))
+    uCocktail *= cocktail[energy][:,2] * 2
+    # data bin edges and cocktail bin centers
+    edges = np.concatenate(([0], data[energy][:,0] + data[energy][:,2]))
     xc = cocktail[energy][:,0]
+    # loop data bins
+    # TODO: check whether cocktail & data edges coincide!
+    # TODO: implement ratio!
     for i, (e0, e1) in enumerate(zip(edges[:-1], edges[1:])):
-      # TODO: check whether cocktail & data edges coincide!
-      # TODO: implement ratio!
       uDiff = uData[i] - fsum(uCocktail[(xc > e0) & (xc < e1)])
       dp = [
         data[energy][i,0], uDiff.nominal_value,
+        # statistical error bar on data stays the same for diff
         # TODO: adjust statistical error on data for ratio!
         0., data[energy][i,3], uDiff.std_dev
       ]
@@ -52,7 +56,7 @@ def gp_rdiff(version):
       if key in dataOrdered:
         print 'appending ', dp
         np.append(dataOrdered[key], [dp], axis=0)
-        dataOrdered[key]
+        print '%r' % dataOrdered[key]
       else: dataOrdered[key] = np.array([ dp ])
       print '%r' % dataOrdered[key]
     break
