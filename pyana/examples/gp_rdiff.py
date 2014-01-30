@@ -88,7 +88,6 @@ def gp_rdiff(version):
   # make plot
   nSets = len(dataOrdered)
   nSetsPlot = nSets/2 if nSets > 4 else nSets
-  filename = 'diffAbsMed%s' % version if nSets > 4 else 'diffAbs%s' % version
   ylabel = 'data/medium' if nSets > 4 else 'data'
   props = [
     'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i] for i in xrange(nSetsPlot)
@@ -103,7 +102,7 @@ def gp_rdiff(version):
   make_plot(
     data = [ np.array(d) for d in dataOrdered.values()],
     properties = props, titles = titles,
-    name = os.path.join(outDir, filename),
+    name = os.path.join(outDir, 'diffAbs%s' % version),
     xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
     ylabel = '%s - (cocktail w/o {/Symbol \162}) ({/Symbol \264} 10^{-3})' % ylabel,
     xr = [0.2,0.77], yr = [-1,9],
