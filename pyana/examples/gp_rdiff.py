@@ -25,6 +25,7 @@ def gp_rdiff(version):
     data_type = re.sub('%s\.dat' % energy, '', file)
     file_url = os.path.join(inDir, file)
     data_import = np.loadtxt(open(file_url, 'rb'))
+    data_import = data_import[data_import[:,0] < 1.5]
     if data_type == 'data': data[energy] = data_import
     else: cocktail[energy] = data_import
   dataOrdered = OrderedDict()
@@ -58,7 +59,6 @@ def gp_rdiff(version):
       key = ' '.join([energy, 'GeV'])
       if key in dataOrdered: dataOrdered[key].append(dp)
       else: dataOrdered[key] = [ dp ]
-    break
   # make plot
   nSets = len(dataOrdered)
   make_plot(
@@ -70,7 +70,7 @@ def gp_rdiff(version):
     # TODO: adjust name and ylabel for ratio
     name = os.path.join(outDir, 'diff%s' % version), ylabel = 'diff',
     xlabel = 'dielectron mass (GeV/c^{2})',
-    xr = [0.1,1.1]
+    xr = [0.2,0.78]
   )
   return 'done'
 
