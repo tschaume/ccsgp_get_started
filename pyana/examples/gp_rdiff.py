@@ -93,15 +93,16 @@ def gp_rdiff(version):
   props = [
     'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i] for i in xrange(nSetsPlot)
   ]
+  titles = dataOrdered.keys()
   if nSets > 4:
     props = zip_flat(props, [
       'with filledcurves pt 0 lt 1 lw 4 lc %s' % default_colors[i]
       for i in xrange(nSetsPlot)
     ])
+    titles = zip_flat(dataOrdered.keys()[::2], [''] * nSetsPlot)
   make_plot(
     data = [ np.array(d) for d in dataOrdered.values()],
-    properties = props,
-    titles = dataOrdered.keys(),
+    properties = props, titles = titles,
     name = os.path.join(outDir, filename),
     xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
     ylabel = '%s - (cocktail w/o {/Symbol \162}) ({/Symbol \264} 10^{-3})' % ylabel,
