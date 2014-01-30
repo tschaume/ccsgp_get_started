@@ -77,7 +77,14 @@ def gp_rdiff(version):
       # loop medium bins
       for i, (e0, e1) in enumerate(zip(edgesMed[:-1], edgesMed[1:])):
         # calc. difference and divide by data binwidth again
-        uDiff = uMedium[i] - fsum(uCocktail[(xc > e0) & (xc < e1)])
+        mask = (xc > e0) & (xc < e1)
+        #cbw = cocktail[energy][0,2] # cocktail has equi-distant binning
+        #idx_low = list(mask).index(True)
+        #idx_upp = len(mask) - 1 - list(mask)[::-1].index(True)
+        #print '%s> e0: %g == %g :xc-cbw && e1: %g == %g :xc+cbw' % (
+        #  energy, e0, xc[idx_low]-cbw, e1, xc[idx_upp]+cbw
+        #)
+        uDiff = uMedium[i] - fsum(uCocktail[mask])
         uDiff /= medium[energy][i,2] * 2 * yunit
         # set data point
         dp = [medium[energy][i,0], uDiff.nominal_value, 0., 0., 0.] #, uDiff.std_dev]
