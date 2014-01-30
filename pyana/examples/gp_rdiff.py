@@ -42,35 +42,36 @@ def gp_rdiff(version):
     xc = cocktail[energy][:,0]
     # loop data bins
     # TODO: check whether cocktail & data edges coincide!
-    # TODO: implement ratio!
     for i, (e0, e1) in enumerate(zip(edges[:-1], edges[1:])):
+      # calc. difference and divide by data binwidth again
+      # TODO: implement ratio!
       uDiff = uData[i] - fsum(uCocktail[(xc > e0) & (xc < e1)])
+      uDiff /= data[energy][i,2] * 2
+      # set data point
       dp = [
         data[energy][i,0], uDiff.nominal_value,
         # statistical error bar on data stays the same for diff
         # TODO: adjust statistical error on data for ratio!
         0., data[energy][i,3], uDiff.std_dev
       ]
+      # build list of data points
       key = ' '.join([energy, 'GeV'])
-      print dp
-      if key in dataOrdered:
-        print 'appending ', dp
-        np.append(dataOrdered[key], [dp], axis=0)
-        print '%r' % dataOrdered[key]
-      else: dataOrdered[key] = np.array([ dp ])
-      print '%r' % dataOrdered[key]
+      if key in dataOrdered: dataOrdered[key].append(dp)
+      else: dataOrdered[key] = [ dp ]
     break
-  #nSets = len(dataOrdered)
-  #make_plot(
-  #  data = dataOrdered.values(),
-  #  properties = [
-  #    'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i] for i in xrange(nSets)
-  #  ],
-  #  titles = dataOrdered.keys(),
-  #  # TODO: adjust name and ylabel for ratio
-  #  name = os.path.join(outDir, 'diff%s' % version), ylabel = 'diff',
-  #  xlabel = 'dielectron mass (GeV/c^{2})',
-  #)
+  # make plot
+  nSets = len(dataOrdered)
+  make_plot(
+    data = [ np.array(d) for d in dataOrdered.values()],
+    properties = [
+      'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i] for i in xrange(nSets)
+    ],
+    titles = dataOrdered.keys(),
+    # TODO: adjust name and ylabel for ratio
+    name = os.path.join(outDir, 'diff%s' % version), ylabel = 'diff',
+    xlabel = 'dielectron mass (GeV/c^{2})',
+    xr = [0.1,1.1]
+  )
   return 'done'
 
 if __name__ == '__main__':
