@@ -9,6 +9,9 @@ from ..ccsgp.config import default_colors
 from uncertainties import unumpy as unp
 from uncertainties.umath import fsum
 
+xshift = 0.01
+yunit = 1.0e-3
+
 def gp_rdiff(version):
   """example for ratio or difference plots using QM12 data (see gp_panel)
 
@@ -47,13 +50,14 @@ def gp_rdiff(version):
       # calc. difference and divide by data binwidth again
       # TODO: implement ratio!
       uDiff = uData[i] - fsum(uCocktail[(xc > e0) & (xc < e1)])
-      uDiff /= data[energy][i,2] * 2
+      uDiff /= data[energy][i,2] * 2 * yunit
       # set data point
+      xs = xshift if energy == '39' else 0.
       dp = [
-        data[energy][i,0], uDiff.nominal_value,
+        data[energy][i,0] + xs, uDiff.nominal_value,
         # statistical error bar on data stays the same for diff
         # TODO: adjust statistical error on data for ratio!
-        0., data[energy][i,3], uDiff.std_dev
+        0., data[energy][i,3] / yunit, uDiff.std_dev
       ]
       # build list of data points
       key = ' '.join([energy, 'GeV'])
@@ -68,9 +72,15 @@ def gp_rdiff(version):
     ],
     titles = dataOrdered.keys(),
     # TODO: adjust name and ylabel for ratio
-    name = os.path.join(outDir, 'diff%s' % version), ylabel = 'diff',
-    xlabel = 'dielectron mass (GeV/c^{2})',
-    xr = [0.2,0.78]
+    name = os.path.join(outDir, 'diffAbs%s' % version),
+    xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
+    ylabel = 'data - (cocktail w/o {/Symbol \162}) ({/Symbol \264} 10^{-3})',
+    xr = [0.2,0.77], yr = [-1,9],
+    labels = {
+      '{/Symbol \104}M_{ee}(39GeV) = +%g GeV/c^{2}' % xshift: [0.1, 0.9, False]
+    },
+    key = ['at graph 1.,1.1', 'maxrows 1'],
+    lines = { 'x=0': 'lc 0 lw 4 lt 2' }
   )
   return 'done'
 
