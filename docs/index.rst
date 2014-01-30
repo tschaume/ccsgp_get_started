@@ -42,6 +42,10 @@ Examples Module
 .. automodule:: pyana.examples.gp_stack
    :members:
 
+.. pyana/examples/gp_rdiff.py
+.. automodule:: pyana.examples.gp_rdiff
+   :members:
+
 .. pyana/examples/utils.py
 .. automodule:: pyana.examples.utils
    :members:
