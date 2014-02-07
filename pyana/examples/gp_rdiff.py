@@ -39,7 +39,7 @@ def gp_rdiff(version):
   - TODO: adjust statistical error on data for ratio!
   - TODO: adjust name and ylabel for ratio
 
-  .. image:: pics/panelQM12.png
+  .. image:: pics/diffAbsQM12.png
      :width: 450 px
 
   :param version: plot version / input subdir name
