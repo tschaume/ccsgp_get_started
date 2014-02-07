@@ -52,7 +52,7 @@ def gp_rdiff(version):
     data_type = re.sub('%s\.dat' % energy, '', file)
     file_url = os.path.join(inDir, file)
     data_import = np.loadtxt(open(file_url, 'rb'))
-    data_import = data_import[data_import[:,0] < 0.8]
+    data_import = data_import[data_import[:,0] < 0.81]
     if data_type == 'data': data[energy] = data_import
     elif data_type == 'cocktail': cocktail[energy] = data_import
     else: medium[energy] = data_import
@@ -81,19 +81,20 @@ def gp_rdiff(version):
         eCl_bw = eCl - eCocktail[idx[0]-1]
         corr_low = (eCl - e0) / eCl_bw
         abs_corr_low = float(corr_low) * uCocktail[idx[0]-1]
-        print ('    low: %g == %g -> %g (%g) -> %g -> {}' % (
+        uCocktailSum += abs_corr_low
+        print ('    low: %g == %g -> %g (%g) -> %g -> {} -> {}' % (
           e0, eCl, eCl - e0, eCl_bw, corr_low
-        )).format(abs_corr_low)
+        )).format(abs_corr_low, uCocktailSum)
       if not_coinc_upp:
         eCu_bw = eCocktail[idx[1]+1] - eCu
         corr_upp = (e1 - eCu) / eCu_bw
         abs_corr_upp = float(corr_upp) * uCocktail[idx[1]]
-        print ('    upp: %g == %g -> %g (%g) -> %g -> {}' % (
+        uCocktailSum += abs_corr_upp
+        print ('    upp: %g == %g -> %g (%g) -> %g -> {} -> {}' % (
           e1, eCu, e1 - eCu, eCu_bw, corr_upp
-        )).format(abs_corr_upp)
-      continue
+        )).format(abs_corr_upp, uCocktailSum)
       # calc. difference and divide by data binwidth again
-      uDiff = uData[i] - (uCocktailSum)
+      uDiff = uData[i] - uCocktailSum
       uDiff /= data[energy][i,2] * 2 * yunit
       # set data point
       xs = xshift if energy == '39' else 0.
