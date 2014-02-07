@@ -35,11 +35,9 @@ def gp_rdiff(version):
   - stat. error for medium = 0!
   - stat. error for cocktail ~ 0!
   - statistical error bar on data stays the same for diff
-  - TODO: check whether cocktail & data/medium edges coincide!
   - TODO: implement ratio!
   - TODO: adjust statistical error on data for ratio!
   - TODO: adjust name and ylabel for ratio
-  - TODO: 39 GeV has a datapoint with negative error!
 
   :param version: plot version / input subdir name
   :type version: str
@@ -52,8 +50,7 @@ def gp_rdiff(version):
     data_type = re.sub('%s\.dat' % energy, '', file)
     file_url = os.path.join(inDir, file)
     data_import = np.loadtxt(open(file_url, 'rb'))
-    data_import = data_import[data_import[:,0] < 0.81]
-    if data_type == 'data': data[energy] = data_import
+    if data_type == 'data': data[energy] = data_import[data_import[:,0] < 0.8]
     elif data_type == 'cocktail': cocktail[energy] = data_import
     else: medium[energy] = data_import
 
@@ -64,70 +61,75 @@ def gp_rdiff(version):
     eData = getEdges(data[energy])
     uCocktail = getUArray(cocktail[energy])
     eCocktail = getEdges(cocktail[energy])
-    uMedium = getUArray(medium[energy]) if energy in medium else None
-    # loop data bins
-    for i, (e0, e1) in enumerate(zip(eData[:-1], eData[1:])):
-      # get mask and according indices
-      mask = (eCocktail >= e0) & (eCocktail <= e1)
-      idx = getMaskIndices(mask)
-      # determine coinciding flags
-      eCl, eCu = eCocktail[idx[0]], eCocktail[idx[1]]
-      not_coinc_low, not_coinc_upp = (eCl != e0), (eCu != e1)
-      # get cocktail sum in data bin (always w/o last bin)
-      uCocktailSum = fsum(uCocktail[mask[:-1]][:-1])
-      print ('%s> %g - %g: {}' % (energy, e0, e1)).format(uCocktailSum)
-      # get correction for non-coinciding edges
-      if not_coinc_low:
-        eCl_bw = eCl - eCocktail[idx[0]-1]
-        corr_low = (eCl - e0) / eCl_bw
-        abs_corr_low = float(corr_low) * uCocktail[idx[0]-1]
-        uCocktailSum += abs_corr_low
-        print ('    low: %g == %g -> %g (%g) -> %g -> {} -> {}' % (
-          e0, eCl, eCl - e0, eCl_bw, corr_low
-        )).format(abs_corr_low, uCocktailSum)
-      if not_coinc_upp:
-        eCu_bw = eCocktail[idx[1]+1] - eCu
-        corr_upp = (e1 - eCu) / eCu_bw
-        abs_corr_upp = float(corr_upp) * uCocktail[idx[1]]
-        uCocktailSum += abs_corr_upp
-        print ('    upp: %g == %g -> %g (%g) -> %g -> {} -> {}' % (
-          e1, eCu, e1 - eCu, eCu_bw, corr_upp
-        )).format(abs_corr_upp, uCocktailSum)
-      # calc. difference and divide by data binwidth again
-      uDiff = uData[i] - uCocktailSum
-      uDiff /= data[energy][i,2] * 2 * yunit
-      # set data point
-      xs = xshift if energy == '39' else 0.
-      dp = [
-        data[energy][i,0] + xs, uDiff.nominal_value,
-        0., data[energy][i,3] / yunit, uDiff.std_dev
-      ]
-      # build list of data points
-      key = ' '.join([energy, 'GeV'])
-      if key in dataOrdered: dataOrdered[key].append(dp)
-      else: dataOrdered[key] = [ dp ]
-    # comparison to medium calculations
+    loop = [eData]
     if energy in medium:
-      # medium bin edges
-      edgesMed = np.concatenate(([0], medium[energy][:,0] + medium[energy][:,2]))
-      # loop medium bins
-      for i, (e0, e1) in enumerate(zip(edgesMed[:-1], edgesMed[1:])):
+      uMedium = getUArray(medium[energy])
+      eMedium = getEdges(medium[energy])
+      loop.append(eMedium)
+    # loop data/medium bins
+    for l, eArr in enumerate(loop):
+      for i, (e0, e1) in enumerate(zip(eArr[:-1], eArr[1:])):
+        logging.debug('%s/%d> %g - %g:' % (energy, l, e0, e1))
+        # get mask and according indices
+        mask = (eCocktail >= e0) & (eCocktail <= e1)
+        # data/medium bin range larger than single cocktail bin
+        if np.any(mask):
+          idx = getMaskIndices(mask)
+          # determine coinciding flags
+          eCl, eCu = eCocktail[idx[0]], eCocktail[idx[1]]
+          not_coinc_low, not_coinc_upp = (eCl != e0), (eCu != e1)
+          # get cocktail sum in data bin (always w/o last bin)
+          uCocktailSum = fsum(uCocktail[mask[:-1]][:-1])
+          logging.debug('    sum: {}'.format(uCocktailSum))
+          # get correction for non-coinciding edges
+          if not_coinc_low:
+            eCl_bw = eCl - eCocktail[idx[0]-1]
+            corr_low = (eCl - e0) / eCl_bw
+            abs_corr_low = float(corr_low) * uCocktail[idx[0]-1]
+            uCocktailSum += abs_corr_low
+            logging.debug(('    low: %g == %g -> %g (%g) -> %g -> {} -> {}' % (
+              e0, eCl, eCl - e0, eCl_bw, corr_low
+            )).format(abs_corr_low, uCocktailSum))
+          if not_coinc_upp:
+            eCu_bw = eCocktail[idx[1]+1] - eCu
+            corr_upp = (e1 - eCu) / eCu_bw
+            abs_corr_upp = float(corr_upp) * uCocktail[idx[1]]
+            uCocktailSum += abs_corr_upp
+            logging.debug(('    upp: %g == %g -> %g (%g) -> %g -> {} -> {}' % (
+              e1, eCu, e1 - eCu, eCu_bw, corr_upp
+            )).format(abs_corr_upp, uCocktailSum))
+        else:
+          mask = (eCocktail >= e0)
+          idx = getMaskIndices(mask) # only use first index
+          corr = (e1 - e0) / (eCocktail[idx[0]+1] - eCocktail[idx[0]])
+          uCocktailSum = float(corr) * uCocktail[idx[0]]
+          logging.debug('    sum: {}'.format(uCocktailSum))
         # calc. difference and divide by data binwidth again
-        mask = (xc > e0) & (xc < e1)
-        #cbw = cocktail[energy][0,2] # cocktail has equi-distant binning
-        #idx_low = list(mask).index(True)
-        #idx_upp = len(mask) - 1 - list(mask)[::-1].index(True)
-        #print '%s> e0: %g == %g :xc-cbw && e1: %g == %g :xc+cbw' % (
-        #  energy, e0, xc[idx_low]-cbw, e1, xc[idx_upp]+cbw
-        #)
-        uDiff = uMedium[i] - fsum(uCocktail[mask])
-        uDiff /= medium[energy][i,2] * 2 * yunit
-        # set data point
-        dp = [medium[energy][i,0], uDiff.nominal_value, 0., 0., 0.] #, uDiff.std_dev]
+        # + set data point
+        xs = xshift if energy == '39' else 0.
+        if not l:
+          uDiff = uData[i] - uCocktailSum
+          uDiff /= data[energy][i,2] * 2 * yunit
+          dp = [
+            data[energy][i,0] + xs, uDiff.nominal_value,
+            0., data[energy][i,3] / yunit, uDiff.std_dev
+          ]
+          key = ' '.join([energy, 'GeV'])
+        else:
+          uDiff = uMedium[i] - uCocktailSum
+          uDiff /= medium[energy][i,2] * 2 * yunit
+          # cut off medium/cocktail at omega
+          if medium[energy][i,0] > 0.74:
+            continue
+          dp = [
+            medium[energy][i,0] + xs, uDiff.nominal_value,
+            0., 0., 0. # uDiff.std_dev
+          ]
+          key = ' '.join([energy, 'GeV (Med.)'])
         # build list of data points
-        key = ' '.join([energy, 'GeV (Med.)'])
         if key in dataOrdered: dataOrdered[key].append(dp)
         else: dataOrdered[key] = [ dp ]
+
   # make plot
   nSets = len(dataOrdered)
   nSetsPlot = nSets/2 if nSets > 4 else nSets
@@ -148,7 +150,7 @@ def gp_rdiff(version):
     name = os.path.join(outDir, 'diffAbs%s' % version),
     xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
     ylabel = '%s - (cocktail w/o {/Symbol \162}) ({/Symbol \264} 10^{-3})' % ylabel,
-    xr = [0.2,0.77], yr = [-1,9],
+    xr = [0.2,0.76], yr = [-1,9],
     labels = {
       '{/Symbol \104}M_{ee}(39GeV) = +%g GeV/c^{2}' % xshift: [0.1, 0.9, False]
     },
