@@ -28,6 +28,48 @@ def getMaskIndices(mask):
     list(mask).index(True), len(mask) - 1 - list(mask)[::-1].index(True)
   ]
 
+def enumzipEdges(eArr):
+  """zip and enumerate edges into pairs of lower and upper limits"""
+  return enumerate(zip(eArr[:-1], eArr[1:]))
+
+def getCocktailSum(e0, e1, eCocktail, uCocktail):
+  """get the cocktail sum for a given data bin range"""
+  # get mask and according indices
+  mask = (eCocktail >= e0) & (eCocktail <= e1)
+  # data bin range wider than single cocktail bin
+  if np.any(mask):
+    idx = getMaskIndices(mask)
+    # determine coinciding flags
+    eCl, eCu = eCocktail[idx[0]], eCocktail[idx[1]]
+    not_coinc_low, not_coinc_upp = (eCl != e0), (eCu != e1)
+    # get cocktail sum in data bin (always w/o last bin)
+    uCocktailSum = fsum(uCocktail[mask[:-1]][:-1])
+    logging.debug('    sum: {}'.format(uCocktailSum))
+    # get correction for non-coinciding edges
+    if not_coinc_low:
+      eCl_bw = eCl - eCocktail[idx[0]-1]
+      corr_low = (eCl - e0) / eCl_bw
+      abs_corr_low = float(corr_low) * uCocktail[idx[0]-1]
+      uCocktailSum += abs_corr_low
+      logging.debug(('    low: %g == %g -> %g (%g) -> %g -> {} -> {}' % (
+        e0, eCl, eCl - e0, eCl_bw, corr_low
+      )).format(abs_corr_low, uCocktailSum))
+    if not_coinc_upp:
+      eCu_bw = eCocktail[idx[1]+1] - eCu
+      corr_upp = (e1 - eCu) / eCu_bw
+      abs_corr_upp = float(corr_upp) * uCocktail[idx[1]]
+      uCocktailSum += abs_corr_upp
+      logging.debug(('    upp: %g == %g -> %g (%g) -> %g -> {} -> {}' % (
+        e1, eCu, e1 - eCu, eCu_bw, corr_upp
+      )).format(abs_corr_upp, uCocktailSum))
+  else:
+    mask = (eCocktail >= e0)
+    idx = getMaskIndices(mask) # only use first index
+    corr = (e1 - e0) / (eCocktail[idx[0]+1] - eCocktail[idx[0]])
+    uCocktailSum = float(corr) * uCocktail[idx[0]]
+    logging.debug('    sum: {}'.format(uCocktailSum))
+  return uCocktailSum
+
 def gp_rdiff(version):
   """example for ratio or difference plots using QM12 data (see gp_panel)
 
@@ -71,42 +113,10 @@ def gp_rdiff(version):
       loop.append(eMedium)
     # loop data/medium bins
     for l, eArr in enumerate(loop):
-      for i, (e0, e1) in enumerate(zip(eArr[:-1], eArr[1:])):
+      for i, (e0, e1) in enumzipEdges(eArr):
         logging.debug('%s/%d> %g - %g:' % (energy, l, e0, e1))
-        # get mask and according indices
-        mask = (eCocktail >= e0) & (eCocktail <= e1)
-        # data/medium bin range larger than single cocktail bin
-        if np.any(mask):
-          idx = getMaskIndices(mask)
-          # determine coinciding flags
-          eCl, eCu = eCocktail[idx[0]], eCocktail[idx[1]]
-          not_coinc_low, not_coinc_upp = (eCl != e0), (eCu != e1)
-          # get cocktail sum in data bin (always w/o last bin)
-          uCocktailSum = fsum(uCocktail[mask[:-1]][:-1])
-          logging.debug('    sum: {}'.format(uCocktailSum))
-          # get correction for non-coinciding edges
-          if not_coinc_low:
-            eCl_bw = eCl - eCocktail[idx[0]-1]
-            corr_low = (eCl - e0) / eCl_bw
-            abs_corr_low = float(corr_low) * uCocktail[idx[0]-1]
-            uCocktailSum += abs_corr_low
-            logging.debug(('    low: %g == %g -> %g (%g) -> %g -> {} -> {}' % (
-              e0, eCl, eCl - e0, eCl_bw, corr_low
-            )).format(abs_corr_low, uCocktailSum))
-          if not_coinc_upp:
-            eCu_bw = eCocktail[idx[1]+1] - eCu
-            corr_upp = (e1 - eCu) / eCu_bw
-            abs_corr_upp = float(corr_upp) * uCocktail[idx[1]]
-            uCocktailSum += abs_corr_upp
-            logging.debug(('    upp: %g == %g -> %g (%g) -> %g -> {} -> {}' % (
-              e1, eCu, e1 - eCu, eCu_bw, corr_upp
-            )).format(abs_corr_upp, uCocktailSum))
-        else:
-          mask = (eCocktail >= e0)
-          idx = getMaskIndices(mask) # only use first index
-          corr = (e1 - e0) / (eCocktail[idx[0]+1] - eCocktail[idx[0]])
-          uCocktailSum = float(corr) * uCocktail[idx[0]]
-          logging.debug('    sum: {}'.format(uCocktailSum))
+        # get cocktail sum in data bin range
+        uCocktailSum = getCocktailSum(e0, e1, eCocktail, uCocktail)
         # calc. difference and divide by data binwidth again
         # + set data point
         xs = xshift if energy == '39' else 0.
