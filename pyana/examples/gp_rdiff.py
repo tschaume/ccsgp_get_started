@@ -55,9 +55,12 @@ def getCocktailSum(e0, e1, eCocktail, uCocktail):
         e0, eCl, eCl - e0, eCl_bw, corr_low
       )).format(abs_corr_low, uCocktailSum))
     if not_coinc_upp:
-      eCu_bw = eCocktail[idx[1]+1] - eCu
-      corr_upp = (e1 - eCu) / eCu_bw
-      abs_corr_upp = float(corr_upp) * uCocktail[idx[1]]
+      if idx[1]+1 < len(eCocktail):
+        eCu_bw = eCocktail[idx[1]+1] - eCu
+        corr_upp = (e1 - eCu) / eCu_bw
+        abs_corr_upp = float(corr_upp) * uCocktail[idx[1]]
+      else:# catch last index (quick fix!)
+        abs_corr_upp = eCu_bw = corr_upp = 0
       uCocktailSum += abs_corr_upp
       logging.debug(('    upp: %g == %g -> %g (%g) -> %g -> {} -> {}' % (
         e1, eCu, e1 - eCu, eCu_bw, corr_upp
@@ -65,8 +68,13 @@ def getCocktailSum(e0, e1, eCocktail, uCocktail):
   else:
     mask = (eCocktail >= e0)
     idx = getMaskIndices(mask) # only use first index
-    corr = (e1 - e0) / (eCocktail[idx[0]+1] - eCocktail[idx[0]])
-    uCocktailSum = float(corr) * uCocktail[idx[0]]
+    # catch if already at last index
+    if idx[0] == idx[1] and idx[0] == len(eCocktail)-1:
+      corr = (e1 - e0) / (eCocktail[idx[0]] - eCocktail[idx[0]-1])
+      uCocktailSum = float(corr) * uCocktail[idx[0]-1]
+    else: # default case
+      corr = (e1 - e0) / (eCocktail[idx[0]+1] - eCocktail[idx[0]])
+      uCocktailSum = float(corr) * uCocktail[idx[0]]
     logging.debug('    sum: {}'.format(uCocktailSum))
   return uCocktailSum
 
