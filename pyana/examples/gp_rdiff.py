@@ -100,6 +100,7 @@ def gp_rdiff(version):
   data, cocktail, medium = OrderedDict(), OrderedDict(), OrderedDict()
   for file in os.listdir(inDir):
     energy = re.compile('\d+').search(file).group()
+    if energy == '27': continue
     data_type = re.sub('%s\.dat' % energy, '', file)
     file_url = os.path.join(inDir, file)
     data_import = np.loadtxt(open(file_url, 'rb'))
@@ -173,7 +174,8 @@ def gp_rdiff(version):
     ylabel = '%s - (cocktail w/o {/Symbol \162}) ({/Symbol \264} 10^{-3})' % ylabel,
     xr = [0.2,0.76], yr = [-1,9],
     labels = {
-      '{/Symbol \104}M_{ee}(39GeV) = +%g GeV/c^{2}' % xshift: [0.1, 0.9, False]
+      '{/Symbol \104}M_{ee}(39GeV) = +%g GeV/c^{2}' % xshift: [0.1, 0.9, False],
+      'STAR Preliminary': [0.4,0.85,False]
     },
     key = ['at graph 1.,1.1', 'maxrows 1'],
     lines = { 'x=0': 'lc 0 lw 4 lt 2' }
