@@ -6,6 +6,10 @@ from ..ccsgp.ccsgp import make_panel
 from ..ccsgp.utils import getOpts
 from ..ccsgp.config import default_colors
 
+medium_opts = 'with filledcurves lt 1 lw 4 pt 0 lc %s' % default_colors[8]
+cocktail_opts = 'with lines lc 0 lw 5 lt 1'
+data_opts = 'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0]
+
 def gp_panel(version):
   """example for a panel plot using QM12 data (see gp_xfac)
 
@@ -31,11 +35,11 @@ def gp_panel(version):
   make_panel(
     dpt_dict = OrderedDict(
       (' '.join([k, 'GeV']), [
-        data[k], [
-          'with filledcurves lt 1 lw 4 pt 0 lc %s' % default_colors[8],
-          'with lines lc 0 lw 5 lt 1',
-          'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0]
-        ], [ '+medium', 'cocktail', 'data' ]
+        data[k],
+        [ medium_opts, cocktail_opts, data_opts ] if len(data[k]) > 2
+        else [ cocktail_opts, data_opts],
+        [ '+medium', 'cocktail', 'data' ] if len(data[k]) > 2
+        else [ 'cocktail', 'data' ]
       ]) for k in sorted(data, key=int)
     ), # 'lc 0' works here because no error plotting necessary
     name = os.path.join(outDir, 'panel%s' % version),
@@ -44,7 +48,8 @@ def gp_panel(version):
     ylog = True, xr = [0, 1.1], yr = [1e-4, 20],
     lmargin = 0.08, bmargin = 0.15,
     arrow_length = 0.4, arrow_bar = 0.002,
-    gpcalls = ['mxtics 2']
+    gpcalls = ['mxtics 2'],
+    labels = {'STAR Preliminary': [0.4,0.7,False]}
   )
   return 'done'
 
