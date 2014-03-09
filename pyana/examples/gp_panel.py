@@ -43,8 +43,8 @@ def gp_panel(version):
       ]) for k in sorted(data, key=int)
     ), # 'lc 0' works here because no error plotting necessary
     name = os.path.join(outDir, 'panel%s' % version),
-    ylabel = 'dielectron pair production rate',
-    xlabel = 'dielectron mass (GeV/c^{2})',
+    ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
+    xlabel = 'invariant dielectron mass, M_{ee} (GeV/c^{2})',
     ylog = True, xr = [0, 1.1], yr = [1e-4, 20],
     lmargin = 0.08, bmargin = 0.15,
     arrow_length = 0.4, arrow_bar = 0.002,
