@@ -7,7 +7,6 @@ from ..ccsgp.ccsgp import make_plot
 from ..ccsgp.utils import getOpts
 from ..ccsgp.config import default_colors
 
-shift = { '200': 200., '62': 15., '39': 0.5, '27': 0.01, '19': 1e-4 }
 cocktail_style = 'with filledcurves pt 0 lc %s lw 5 lt 1' % default_colors[8]
 pseudo_point = np.array([ [-1,1e-7,0,0,1] ])
 
@@ -24,6 +23,11 @@ def gp_stack(version):
   :param version: plot version / input subdir name
   :type version: str
   """
+  shift = {
+    '200': 200., '62': 15., '39': 0.5, '27': 0.01, '19': 1e-4
+  } if version != 'QM12' else {
+    '200': 200., '62': 20., '39': 1., '19': 0.05
+  }
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version)
   data, cocktail = OrderedDict(), OrderedDict()
@@ -39,7 +43,7 @@ def gp_stack(version):
     elif fnmatch(file, 'cocktail*'):
       data_import[:,(2,3)] = 0 # don't plot dx,dy for cocktail
       if energy == '19' and version == 'QM12':
-        # cut of cocktail above 1.1 GeV/c^2
+        # cut off cocktail above 1.1 GeV/c^2
         cocktail[energy] = data_import[data_import[:,0] < 1.3]
       else:
         cocktail[energy] = data_import
@@ -56,9 +60,9 @@ def gp_stack(version):
     ],
     titles = [''] * nSetsCocktail + ['Cocktail w/o {/Symbol \162}'] + dataOrdered.keys(),
     name = os.path.join(outDir, 'stack%s' % version),
-    ylabel = 'dielectron pair production rate',
-    xlabel = 'dielectron mass (GeV/c^{2})',
-    ylog = True, xr = [0, 3.5], yr = [3e-7 if version == 'QM12' else 1e-10, 2e3],
+    ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
+    xlabel = 'invariant dielectron mass, M_{ee} (GeV/c^{2})',
+    ylog = True, xr = [0, 3.5], yr = [1e-6 if version == 'QM12' else 1e-10, 2e3],
     lmargin = 0.09, tmargin = 0.9, arrow_offset = 0.8,
     key = ['width -3', 'at graph 1.,1.2', 'maxrows 2'],
     labels = {'STAR Preliminary': [0.4,0.9,False]}
