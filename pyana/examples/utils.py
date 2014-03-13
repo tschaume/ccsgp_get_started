@@ -35,6 +35,7 @@ def getWorkDirs():
 
 def getUArray(npArr):
   """uncertainty array multiplied by binwidth (col2 = dx)"""
+  # propagates systematic uncertainty!
   return unp.uarray(npArr[:,1], npArr[:,4]) * npArr[:,2] * 2
 
 def getEdges(npArr):
@@ -98,14 +99,17 @@ def getCocktailSum(e0, e1, eCocktail, uCocktail):
     logging.debug('    sum: {}'.format(uCocktailSum))
   return uCocktailSum
 
-def getMassRangesSums(energy, indata, outdata):
-  uMedium = getUArray(indata)
-  eMedium = getEdges(indata)
+def getMassRangesSums(energy, indata, outdata, onlyLMR = False):
+  # combine stat. and syst. errorbars
+  indata[:,4] = np.sqrt(indata[:,3] * indata[:,3] + indata[:,4] * indata[:,4])
+  uInData = getUArray(indata)
+  eInData = getEdges(indata)
   for i, (e0, e1) in enumzipEdges(eRanges):
-    uSum = getCocktailSum(e0, e1, eMedium, uMedium)
+    if onlyLMR and i != 1: continue
+    uSum = getCocktailSum(e0, e1, eInData, uInData)
     logging.debug('%s> %g - %g: %r' % (energy, e0, e1, uSum))
     dp = [
-      float(energy), uSum.nominal_value, 0, uSum.std_dev, 0
-    ] # TODO: syst.  uncertainties
+      float(energy), uSum.nominal_value, 0, 0, uSum.std_dev
+    ]
     if mass_titles[i] in outdata: outdata[mass_titles[i]].append(dp)
     else: outdata[mass_titles[i]] = [ dp ]

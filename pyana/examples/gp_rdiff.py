@@ -3,7 +3,7 @@ import numpy as np
 from fnmatch import fnmatch
 from collections import OrderedDict
 from .utils import getWorkDirs, checkSymLink
-from .utils import getUArray, getEdges, getCocktailSum, enumzipEdges
+from .utils import getUArray, getEdges, getCocktailSum, enumzipEdges, getMassRangesSums
 from ..ccsgp.ccsgp import make_plot
 from ..ccsgp.utils import getOpts, zip_flat
 from ..ccsgp.config import default_colors
@@ -61,13 +61,14 @@ def gp_rdiff(version):
         uCocktailSum = getCocktailSum(e0, e1, eCocktail, uCocktail)
         # calc. difference and divide by data binwidth again
         # + set data point
-        xs = xshift if energy == '39' else 0.
+        #xs = xshift if energy == '39' else 0.
+        xs = 0. # TODO: cannot use shift when calculating excess yield based on dataOrdered
         if not l:
           uDiff = uData[i] - uCocktailSum
           uDiff /= data[energy][i,2] * 2 * yunit
           dp = [
             data[energy][i,0] + xs, uDiff.nominal_value,
-            0., data[energy][i,3] / yunit, uDiff.std_dev
+            data[energy][i,2], data[energy][i,3] / yunit, uDiff.std_dev
           ]
           key = ' '.join([energy, 'GeV'])
         else:
@@ -84,6 +85,14 @@ def gp_rdiff(version):
         # build list of data points
         if key in dataOrdered: dataOrdered[key].append(dp)
         else: dataOrdered[key] = [ dp ]
+
+  # integrated excess yield in mass ranges
+  excess = {}
+  for k, v in dataOrdered.iteritems():
+    if fnmatch(k, '*Med.*'): continue
+    energy = re.compile('\d+').search(k).group()
+    getMassRangesSums(energy, np.array(v), excess, onlyLMR = True)
+  print excess
 
   # make plot
   nSets = len(dataOrdered)
