@@ -86,14 +86,6 @@ def gp_rdiff(version):
         if key in dataOrdered: dataOrdered[key].append(dp)
         else: dataOrdered[key] = [ dp ]
 
-  # integrated excess yield in mass ranges
-  excess = {}
-  for k, v in dataOrdered.iteritems():
-    if fnmatch(k, '*Med.*'): continue
-    energy = re.compile('\d+').search(k).group()
-    getMassRangesSums(energy, np.array(v), excess, onlyLMR = True)
-  print excess
-
   # make plot
   nSets = len(dataOrdered)
   nSetsPlot = nSets/2 if nSets > 4 else nSets
@@ -121,6 +113,27 @@ def gp_rdiff(version):
     },
     key = ['at graph 1.,1.1', 'maxrows 1'],
     lines = { 'x=0': 'lc 0 lw 4 lt 2' }
+  )
+
+  # integrated excess yield in mass ranges
+  excess = {}
+  for k, v in dataOrdered.iteritems():
+    if fnmatch(k, '*Med.*'): continue
+    energy = re.compile('\d+').search(k).group()
+    getMassRangesSums(energy, np.array(v), excess, onlyLMR = True)
+  logging.debug(excess)
+  make_plot(
+    data = [ np.array(excess['LMR']) ],
+    properties = [ 'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0] ],
+    titles = [ 'LMR' ],
+    name = os.path.join(outDir, 'excess%s' % version),
+    xlabel = '{/Symbol \326}s_{NN} (GeV)',
+    ylabel = 'LMR Excess Yield ({/Symbol \264} 10^{-3})',
+    lmargin = 0.08, xlog = True, #xr = [0.2,0.76],
+    yr = [0,2.5], gpcalls = [
+      'nokey', 'format x "%g"',
+      'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
+    ]
   )
   return 'done'
 
