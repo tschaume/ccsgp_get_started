@@ -25,7 +25,7 @@ def gp_stack(version):
   """
   shift = {
     '200': 200., '62': 15., '39': 0.5, '27': 0.01, '19': 1e-4
-  } if version != 'QM12' else {
+  } if version != 'QM12' and version != 'Latest19200_PatrickQM12' else {
     '200': 200., '62': 20., '39': 1., '19': 0.05
   }
   inDir, outDir = getWorkDirs()
@@ -52,6 +52,8 @@ def gp_stack(version):
     for k in sorted(data, key=int)
   )
   nSetsData, nSetsCocktail = len(dataOrdered), len(cocktail)
+  yr_low = 3e-7 if version == 'QM12' else 1e-10
+  if version == 'Latest19200_PatrickQM12': yr_low = 1e-7
   make_plot(
     data = cocktail.values() + [ pseudo_point ] + dataOrdered.values(),
     properties = [ cocktail_style ] * (nSetsCocktail+1) + [
@@ -62,7 +64,7 @@ def gp_stack(version):
     name = os.path.join(outDir, 'stack%s' % version),
     ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
     xlabel = 'invariant dielectron mass, M_{ee} (GeV/c^{2})',
-    ylog = True, xr = [0, 3.5], yr = [1e-6 if version == 'QM12' else 1e-10, 2e3],
+    ylog = True, xr = [0, 3.5], yr = [yr_low, 2e3],
     lmargin = 0.09, tmargin = 0.9, arrow_offset = 0.8,
     key = ['width -3', 'at graph 1.,1.2', 'maxrows 2'],
     labels = {'STAR Preliminary': [0.4,0.9,False]}
