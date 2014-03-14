@@ -2,7 +2,7 @@ import logging, argparse, os, sys, re
 import numpy as np
 from fnmatch import fnmatch
 from collections import OrderedDict
-from .utils import getWorkDirs, checkSymLink
+from .utils import getWorkDirs, checkSymLink, getEnergy4Key
 from ..ccsgp.ccsgp import make_plot
 from ..ccsgp.utils import getOpts
 from ..ccsgp.config import default_colors
@@ -25,7 +25,9 @@ def gp_stack(version):
   """
   shift = {
     '200': 200., '62': 15., '39': 0.5, '27': 0.01, '19': 1e-4
-  } if version != 'QM12' and version != 'Latest19200_PatrickQM12' else {
+  } if (
+    version != 'QM12' and version != 'Latest19200_PatrickQM12' and version != 'QM12Latest200'
+  ) else {
     '200': 200., '62': 20., '39': 1., '19': 0.05
   }
   inDir, outDir = getWorkDirs()
@@ -48,12 +50,13 @@ def gp_stack(version):
       else:
         cocktail[energy] = data_import
   dataOrdered = OrderedDict(
-    (' '.join([k, 'GeV', '{/Symbol \264} %g' % shift[k]]), data[k])
+    (' '.join([getEnergy4Key(k), 'GeV', '{/Symbol \264} %g' % shift[k]]), data[k])
     for k in sorted(data, key=int)
   )
   nSetsData, nSetsCocktail = len(dataOrdered), len(cocktail)
   yr_low = 3e-7 if version == 'QM12' else 1e-10
   if version == 'Latest19200_PatrickQM12': yr_low = 1e-7
+  if version == 'QM12Latest200': yr_low = 2e-6
   make_plot(
     data = cocktail.values() + [ pseudo_point ] + dataOrdered.values(),
     properties = [ cocktail_style ] * (nSetsCocktail+1) + [
@@ -67,7 +70,7 @@ def gp_stack(version):
     ylog = True, xr = [0, 3.5], yr = [yr_low, 2e3],
     lmargin = 0.09, tmargin = 0.9, arrow_offset = 0.8,
     key = ['width -3', 'at graph 1.,1.2', 'maxrows 2'],
-    labels = {'STAR Preliminary': [0.4,0.9,False]}
+    labels = {'BES Energies are STAR Preliminary': [0.38,0.9,False]}
     #arrows = [ # example arrow
     #  [ [2.4, 5e-5], [2.3, 1e-5], 'head filled lc 1 lw 5 lt 1 front' ],
     #],

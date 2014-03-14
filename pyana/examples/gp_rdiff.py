@@ -33,7 +33,7 @@ def gp_rdiff(version):
   data, cocktail, medium = OrderedDict(), OrderedDict(), OrderedDict()
   for file in os.listdir(inDir):
     energy = re.compile('\d+').search(file).group()
-    if energy == '27': continue
+    #if energy == '27': continue
     data_type = re.sub('%s\.dat' % energy, '', file)
     file_url = os.path.join(inDir, file)
     data_import = np.loadtxt(open(file_url, 'rb'))

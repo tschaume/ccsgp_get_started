@@ -1,7 +1,7 @@
 import logging, argparse, os, sys, re
 import numpy as np
 from collections import OrderedDict
-from .utils import getWorkDirs, checkSymLink
+from .utils import getWorkDirs, checkSymLink, getEnergy4Key
 from ..ccsgp.ccsgp import make_panel
 from ..ccsgp.utils import getOpts
 from ..ccsgp.config import default_colors
@@ -30,8 +30,9 @@ def gp_panel(version):
     data_import = data_import[data_import[:,0] < 1.1]
     if data_type == 'cocktail': data_import[:,2:] = 0.
     elif data_type == '+medium': data_import[:,2] = 0.
-    if energy not in data: data[energy] = [ data_import ]
-    else: data[energy].append(data_import)
+    key = getEnergy4Key(energy)
+    if key not in data: data[key] = [ data_import ]
+    else: data[key].append(data_import)
   make_panel(
     dpt_dict = OrderedDict(
       (' '.join([k, 'GeV']), [
@@ -40,7 +41,7 @@ def gp_panel(version):
         else [ cocktail_opts, data_opts],
         [ '+medium', 'cocktail', 'data' ] if len(data[k]) > 2
         else [ 'cocktail', 'data' ]
-      ]) for k in sorted(data, key=int)
+      ]) for k in sorted(data, key=float)
     ), # 'lc 0' works here because no error plotting necessary
     name = os.path.join(outDir, 'panel%s' % version),
     ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
@@ -48,7 +49,9 @@ def gp_panel(version):
     ylog = True, xr = [0, 1.1], yr = [1e-4, 20],
     lmargin = 0.1, bmargin = 0.15,
     arrow_length = 0.4, arrow_bar = 0.002,
-    gpcalls = ['mxtics 2'],
+    gpcalls = [
+      'mxtics 2', 'label 8 "" at graph 0.4,0.7' if version == 'QM12Latest200' else ''
+    ],
     labels = {'STAR Preliminary': [0.4,0.7,False]}
   )
   return 'done'

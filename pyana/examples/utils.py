@@ -113,3 +113,8 @@ def getMassRangesSums(energy, indata, outdata, onlyLMR = False):
     ]
     if mass_titles[i] in outdata: outdata[mass_titles[i]].append(dp)
     else: outdata[mass_titles[i]] = [ dp ]
+
+def getEnergy4Key(energy):
+  if energy == '19': return '19.6'
+  if energy == '62': return '62.4'
+  return energy
