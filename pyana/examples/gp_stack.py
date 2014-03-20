@@ -80,7 +80,7 @@ def gp_stack(version):
       'width -14', 'maxcols 1'
     ],
     #labels = {'BES Energies are STAR Preliminary': [0.38,0.9,False]}
-    labels = {'{/Symbol=50 \775}': [0.64,0.833,False]}
+    labels = {'{/Symbol=50 \775}': [0.64,0.81,False]}
     #arrows = [ # example arrow
     #  [ [2.4, 5e-5], [2.3, 1e-5], 'head filled lc 1 lw 5 lt 1 front' ],
     #],
