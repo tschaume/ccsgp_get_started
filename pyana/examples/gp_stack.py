@@ -50,7 +50,11 @@ def gp_stack(version):
       else:
         cocktail[energy] = data_import
   dataOrdered = OrderedDict(
-    (' '.join([getEnergy4Key(k), 'GeV', '{/Symbol \264} %g' % shift[k]]), data[k])
+    (' '.join([
+      getEnergy4Key(k), 'GeV', '{/Symbol \264} %g' % shift[k],
+      '            STAR Preliminary' if version == 'QM12Latest200' and k == '39' else '',
+      '    [arXiv:1312.7397]' if version == 'QM12Latest200' and k == '200' else ''
+    ]), data[k])
     for k in sorted(data, key=int)
   )
   nSetsData, nSetsCocktail = len(dataOrdered), len(cocktail)
@@ -68,9 +72,15 @@ def gp_stack(version):
     ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
     xlabel = 'invariant dielectron mass, M_{ee} (GeV/c^{2})',
     ylog = True, xr = [0, 3.5], yr = [yr_low, 2e3],
-    lmargin = 0.09, tmargin = 0.9, arrow_offset = 0.8,
-    key = ['width -3', 'at graph 1.,1.2', 'maxrows 2'],
-    labels = {'BES Energies are STAR Preliminary': [0.38,0.9,False]}
+    lmargin = 0.09, arrow_offset = 0.8,
+    tmargin = 0.9 if version != 'QM12Latest200' else 0.99,
+    key = [
+      'width -3', 'at graph 1.,1.2', 'maxrows 2'
+    ] if version != 'QM12Latest200' else [
+      'width -14', 'maxcols 1'
+    ],
+    #labels = {'BES Energies are STAR Preliminary': [0.38,0.9,False]}
+    labels = {'{/Symbol=50 \775}': [0.64,0.833,False]}
     #arrows = [ # example arrow
     #  [ [2.4, 5e-5], [2.3, 1e-5], 'head filled lc 1 lw 5 lt 1 front' ],
     #],
