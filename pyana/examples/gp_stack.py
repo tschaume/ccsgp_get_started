@@ -10,7 +10,7 @@ from ..ccsgp.config import default_colors
 cocktail_style = 'with filledcurves pt 0 lc %s lw 5 lt 1' % default_colors[8]
 pseudo_point = np.array([ [-1,1e-7,0,0,1] ])
 
-def gp_stack(version):
+def gp_stack(version, energies):
   """example for a plot w/ stacked graphs using QM12 data (see gp_panel)
 
   * how to omit keys from the legend
@@ -37,7 +37,9 @@ def gp_stack(version):
     energy = re.compile('\d+').search(file).group()
     data_type = re.sub('%s\.dat' % energy, '', file)
     file_url = os.path.join(inDir, file)
-    data_import = np.loadtxt(open(file_url, 'rb'))
+    data_import = np.array([[-1, 1, 0, 0, 0]]) if (
+      energies is not None and energy not in energies
+    ) else np.loadtxt(open(file_url, 'rb'))
     # following scaling is wrong for y < 0 && shift != 1
     data_import[:,(1,3,4)] *= shift[energy]
     if fnmatch(file, 'data*'):
@@ -54,8 +56,7 @@ def gp_stack(version):
       getEnergy4Key(k), 'GeV', '{/Symbol \264} %g' % shift[k],
       '            STAR Preliminary' if version == 'QM12Latest200' and k == '39' else '',
       '    [arXiv:1312.7397]' if version == 'QM12Latest200' and k == '200' else ''
-    ]), data[k])
-    for k in sorted(data, key=int)
+    ]), data[k]) for k in sorted(data, key=int)
   )
   nSetsData, nSetsCocktail = len(dataOrdered), len(cocktail)
   yr_low = 3e-7 if version == 'QM12' else 1e-10
@@ -68,7 +69,9 @@ def gp_stack(version):
       for i in xrange(nSetsData)
     ],
     titles = [''] * nSetsCocktail + ['Cocktail w/o {/Symbol \162}'] + dataOrdered.keys(),
-    name = os.path.join(outDir, 'stack%s' % version),
+    name = os.path.join(outDir, 'stack%s%s' % (
+      version, '_' + '-'.join(energies) if energies is not None else ''
+    )),
     ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
     xlabel = 'invariant dielectron mass, M_{ee} (GeV/c^{2})',
     ylog = True, xr = [0, 3.5], yr = [yr_low, 2e3],
@@ -91,10 +94,11 @@ if __name__ == '__main__':
   checkSymLink()
   parser = argparse.ArgumentParser()
   parser.add_argument("version", help="version = subdir name of input dir")
+  parser.add_argument("--energies", nargs='*', help="list of energies to plot (for animation)")
   parser.add_argument("--log", help="show log output", action="store_true")
   args = parser.parse_args()
   loglevel = 'DEBUG' if args.log else 'WARNING'
   logging.basicConfig(
     format='%(message)s', level=getattr(logging, loglevel)
   )
-  print gp_stack(args.version)
+  print gp_stack(args.version, args.energies)
