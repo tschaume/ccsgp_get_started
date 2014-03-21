@@ -1,5 +1,9 @@
 """
 
+If the documentation here doesn't contain screenshots it didn't build correctly.
+In that case, please find a static manually uploaded version at
+http://downloads.the-huck.com/ccsgp_get_started/
+
 This package_ provides a sample setup to get started with ccsgp_. `ccsgp` is
 initialized as a module and its usage demonstrated with dedicated functions in
 the examples module. Helpful utility functions are also included to complement
