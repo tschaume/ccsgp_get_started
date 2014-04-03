@@ -8,9 +8,10 @@ from ..ccsgp.utils import getOpts
 from ..ccsgp.config import default_colors
 
 cocktail_style = 'with filledcurves pt 0 lc %s lw 5 lt 1' % default_colors[8]
+medium_style = 'with lines lc %s lw 5 lt 2' % default_colors[4]
 pseudo_point = np.array([ [-1,1e-7,0,0,1] ])
 
-def gp_stack(version, energies):
+def gp_stack(version, energies, inclMed):
   """example for a plot w/ stacked graphs using QM12 data (see gp_panel)
 
   * how to omit keys from the legend
@@ -32,7 +33,7 @@ def gp_stack(version, energies):
   }
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version)
-  data, cocktail = OrderedDict(), OrderedDict()
+  data, cocktail, medium = OrderedDict(), OrderedDict(), OrderedDict()
   for file in os.listdir(inDir):
     energy = re.compile('\d+').search(file).group()
     data_type = re.sub('%s\.dat' % energy, '', file)
@@ -51,6 +52,9 @@ def gp_stack(version, energies):
         cocktail[energy] = data_import[data_import[:,0] < 1.3]
       else:
         cocktail[energy] = data_import
+    elif inclMed and fnmatch(file, '+medium*'):
+      data_import[:,2:] = 0 # don't plot dx, dy1, dy2 for medium
+      medium[energy] = data_import
   dataOrdered = OrderedDict(
     (' '.join([
       getEnergy4Key(k), 'GeV', '{/Symbol \264} %g' % shift[k],
@@ -58,19 +62,25 @@ def gp_stack(version, energies):
       '    [arXiv:1312.7397]' if version == 'QM12Latest200' and k == '200' else ''
     ]), data[k]) for k in sorted(data, key=int)
   )
-  nSetsData, nSetsCocktail = len(dataOrdered), len(cocktail)
+  cocktailOrdered = OrderedDict((k, cocktail[k]) for k in sorted(cocktail, key=int))
+  mediumOrdered = OrderedDict((k, medium[k]) for k in sorted(medium, key=int))
+  nSetsData, nSetsCocktail, nSetsMedium = len(dataOrdered), len(cocktail), len(medium)
   yr_low = 3e-7 if version == 'QM12' else 1e-10
   if version == 'Latest19200_PatrickQM12': yr_low = 1e-7
   if version == 'QM12Latest200': yr_low = 2e-6
   make_plot(
-    data = cocktail.values() + [ pseudo_point ] + dataOrdered.values(),
-    properties = [ cocktail_style ] * (nSetsCocktail+1) + [
+    data = cocktailOrdered.values() + ([ pseudo_point ] if inclMed else [])
+    + mediumOrdered.values() + [ pseudo_point ] + dataOrdered.values(),
+    properties = [ cocktail_style ] * (nSetsCocktail+1) + [ medium_style ] *
+    (nSetsMedium+bool(nSetsMedium)) + [
       'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i]
       for i in xrange(nSetsData)
     ],
-    titles = [''] * nSetsCocktail + ['Cocktail w/o {/Symbol \162}'] + dataOrdered.keys(),
-    name = os.path.join(outDir, 'stack%s%s' % (
-      version, '_' + '-'.join(energies) if energies is not None else ''
+    titles = [''] * nSetsCocktail + ['Cocktail w/o {/Symbol \162}'] + [''] *
+    nSetsMedium + ['+ Medium'] * bool(nSetsMedium) + dataOrdered.keys(),
+    name = os.path.join(outDir, 'stack%s%s%s' % (
+      version, 'InclMed' if inclMed else '',
+      '_' + '-'.join(energies) if energies is not None else ''
     )),
     ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
     xlabel = 'invariant dielectron mass, M_{ee} (GeV/c^{2})',
@@ -83,7 +93,7 @@ def gp_stack(version, energies):
       'width -14', 'maxcols 1'
     ],
     #labels = {'BES Energies are STAR Preliminary': [0.38,0.9,False]}
-    labels = {'{/Symbol=50 \775}': [0.64,0.81,False]}
+    labels = {'{/Symbol=50 \775}': [0.64,0.81 if not inclMed else 0.75,False]}
     #arrows = [ # example arrow
     #  [ [2.4, 5e-5], [2.3, 1e-5], 'head filled lc 1 lw 5 lt 1 front' ],
     #],
@@ -95,10 +105,11 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument("version", help="version = subdir name of input dir")
   parser.add_argument("--energies", nargs='*', help="list of energies to plot (for animation)")
+  parser.add_argument("--med", help="include medium calculations", action="store_true")
   parser.add_argument("--log", help="show log output", action="store_true")
   args = parser.parse_args()
   loglevel = 'DEBUG' if args.log else 'WARNING'
   logging.basicConfig(
     format='%(message)s', level=getattr(logging, loglevel)
   )
-  print gp_stack(args.version, args.energies)
+  print gp_stack(args.version, args.energies, args.med)
