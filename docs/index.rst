@@ -30,6 +30,10 @@ Examples Module
 .. automodule:: pyana.examples.gp_datdir
    :members:
 
+.. pyana/examples/gp_lcltpt.py
+.. automodule:: pyana.examples.gp_lcltpt
+   :members:
+
 .. pyana/examples/gp_xfac.py
 .. automodule:: pyana.examples.gp_xfac
    :members:
