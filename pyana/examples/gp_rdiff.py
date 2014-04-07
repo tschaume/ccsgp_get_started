@@ -11,7 +11,7 @@ from ..ccsgp.config import default_colors
 xshift = 0.01
 yunit = 1.0e-3
 
-def gp_rdiff(version):
+def gp_rdiff(args):
   """example for ratio or difference plots using QM12 data (see gp_panel)
 
   - uses uncertainties package for easier error propagation and rebinning
@@ -25,11 +25,11 @@ def gp_rdiff(version):
   .. image:: pics/diffAbsQM12.png
      :width: 450 px
 
-  :param version: plot version / input subdir name
-  :type version: str
+  :param args: arguments parser
+  :type args: argparse
   """
   inDir, outDir = getWorkDirs()
-  inDir = os.path.join(inDir, version)
+  inDir = os.path.join(inDir, args.version)
   data, cocktail, medium = OrderedDict(), OrderedDict(), OrderedDict()
   for file in os.listdir(inDir):
     energy = re.compile('\d+').search(file).group()
@@ -39,7 +39,7 @@ def gp_rdiff(version):
     data_import = np.loadtxt(open(file_url, 'rb'))
     if data_type == 'data': data[energy] = data_import[data_import[:,0] < 0.8]
     elif data_type == 'cocktail': cocktail[energy] = data_import
-    else: medium[energy] = data_import
+    elif not args.nomed: medium[energy] = data_import
 
   dataOrdered = OrderedDict()
   for energy in sorted(data, key=int):
@@ -68,7 +68,8 @@ def gp_rdiff(version):
           uDiff /= data[energy][i,2] * 2 * yunit
           dp = [
             data[energy][i,0] + xs, uDiff.nominal_value,
-            data[energy][i,2], data[energy][i,3] / yunit, uDiff.std_dev
+            data[energy][i,2] if not args.noxerr else 0.,
+            data[energy][i,3] / yunit, uDiff.std_dev
           ]
           key = ' '.join([energy, 'GeV'])
         else:
@@ -89,7 +90,7 @@ def gp_rdiff(version):
   # make plot
   nSets = len(dataOrdered)
   nSetsPlot = nSets/2 if nSets > 4 else nSets
-  ylabel = 'data/medium' if nSets > 4 else 'data'
+  ylabel = 'data/medium' if nSets > 4 and not args.nomed else 'data'
   props = [
     'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i] for i in xrange(nSetsPlot)
   ]
@@ -103,19 +104,26 @@ def gp_rdiff(version):
   make_plot(
     data = [ np.array(d) for d in dataOrdered.values()],
     properties = props, titles = titles,
-    name = os.path.join(outDir, 'diffAbs%s' % version),
+    name = os.path.join(outDir, 'diffAbs%s%s%s' % (
+      args.version, 'NoMed' if args.nomed else '',
+      'NoXErr' if args.noxerr else ''
+    )),
     xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
     ylabel = '%s - (cocktail w/o {/Symbol \162}) ({/Symbol \264} 10^{-3})' % ylabel,
     xr = [0.2,0.76], yr = [-1,9],
     labels = {
-      '{/Symbol \104}M_{ee}(39GeV) = +%g GeV/c^{2}' % xshift: [0.1, 0.9, False],
-      'STAR Preliminary': [0.4,0.85,False]
+      #'{/Symbol \104}M_{ee}(39GeV) = +%g GeV/c^{2}' % xshift: [0.1, 0.9, False],
+      'BES: STAR Preliminary' if args.version == 'QM12Latest200'
+      else 'STAR Preliminary': [0.25,0.85,False],
+      '200 GeV: [arXiv:1312.7397]' if args.version == 'QM12Latest200'
+      else '': [0.25,0.93,False]
     },
     key = ['at graph 1.,1.1', 'maxrows 1'],
     lines = { 'x=0': 'lc 0 lw 4 lt 2' }
   )
 
   # integrated excess yield in mass ranges
+  if args.nomed or args.noxerr: return 'done'
   excess = {}
   for k, v in dataOrdered.iteritems():
     if fnmatch(k, '*Med.*'): continue
@@ -126,7 +134,7 @@ def gp_rdiff(version):
     data = [ np.array(excess['LMR']) ],
     properties = [ 'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0] ],
     titles = [ 'LMR' ],
-    name = os.path.join(outDir, 'excess%s' % version),
+    name = os.path.join(outDir, 'excess%s' % args.version),
     xlabel = '{/Symbol \326}s_{NN} (GeV)',
     ylabel = 'LMR Excess Yield ({/Symbol \264} 10^{-3})',
     lmargin = 0.08, xlog = True, #xr = [0.2,0.76],
@@ -141,10 +149,12 @@ if __name__ == '__main__':
   checkSymLink()
   parser = argparse.ArgumentParser()
   parser.add_argument("version", help="version = subdir name of input dir")
+  parser.add_argument("--nomed", help="don't plot medium", action="store_true")
+  parser.add_argument("--noxerr", help="no dx errors", action="store_true")
   parser.add_argument("--log", help="show log output", action="store_true")
   args = parser.parse_args()
   loglevel = 'DEBUG' if args.log else 'WARNING'
   logging.basicConfig(
     format='%(message)s', level=getattr(logging, loglevel)
   )
-  print gp_rdiff(args.version)
+  print gp_rdiff(args)
