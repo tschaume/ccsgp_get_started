@@ -5,6 +5,11 @@ from .utils import getWorkDirs, checkSymLink
 from ..ccsgp.config import default_colors
 
 def gp_lcltpt():
+  """ example plot to display linecolors, linetypes and pointtypes
+
+  .. image:: pics/gp_lcltpt.png
+     :width: 450 px
+  """
   inDir, outDir = getWorkDirs()
   nSets = len(default_colors)
   make_plot(
