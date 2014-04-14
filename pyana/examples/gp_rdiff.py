@@ -2,7 +2,7 @@ import logging, argparse, os, sys, re
 import numpy as np
 from fnmatch import fnmatch
 from collections import OrderedDict
-from .utils import getWorkDirs, checkSymLink
+from .utils import getWorkDirs, checkSymLink, eRanges
 from .utils import getUArray, getEdges, getCocktailSum, enumzipEdges, getMassRangesSums
 from ..ccsgp.ccsgp import make_plot
 from ..ccsgp.utils import getOpts, zip_flat
@@ -101,6 +101,13 @@ def gp_rdiff(args):
       for i in xrange(nSetsPlot)
     ])
     titles = zip_flat(dataOrdered.keys()[::2], [''] * nSetsPlot)
+  labels = {
+    #'{/Symbol \104}M_{ee}(39GeV) = +%g GeV/c^{2}' % xshift: [0.1, 0.9, False],
+    'BES: STAR Preliminary' if args.version == 'QM12Latest200'
+    else 'STAR Preliminary': [0.25,0.85,False],
+    '200 GeV: [arXiv:1312.7397]' if args.version == 'QM12Latest200'
+    else '': [0.25,0.93,False]
+  }
   make_plot(
     data = [ np.array(d) for d in dataOrdered.values()],
     properties = props, titles = titles,
@@ -110,14 +117,7 @@ def gp_rdiff(args):
     )),
     xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
     ylabel = '%s - (cocktail w/o {/Symbol \162}) ({/Symbol \264} 10^{-3})' % ylabel,
-    xr = [0.2,0.76], yr = [-1,9],
-    labels = {
-      #'{/Symbol \104}M_{ee}(39GeV) = +%g GeV/c^{2}' % xshift: [0.1, 0.9, False],
-      'BES: STAR Preliminary' if args.version == 'QM12Latest200'
-      else 'STAR Preliminary': [0.25,0.85,False],
-      '200 GeV: [arXiv:1312.7397]' if args.version == 'QM12Latest200'
-      else '': [0.25,0.93,False]
-    },
+    xr = [0.2,0.76], yr = [-1,9], labels = labels,
     key = ['at graph 1.,1.1', 'maxrows 1'],
     lines = { 'x=0': 'lc 0 lw 4 lt 2' }
   )
@@ -136,12 +136,14 @@ def gp_rdiff(args):
     titles = [ 'LMR' ],
     name = os.path.join(outDir, 'excess%s' % args.version),
     xlabel = '{/Symbol \326}s_{NN} (GeV)',
-    ylabel = 'LMR Excess Yield ({/Symbol \264} 10^{-3})',
+    ylabel = 'LMR Excess Yield for %.2f < M_{ee} < %.2f ({/Symbol \264} 10^{-3})' % (
+      eRanges[1], eRanges[2]
+    ),
     lmargin = 0.08, xlog = True, #xr = [0.2,0.76],
     yr = [0,2.5], gpcalls = [
       'nokey', 'format x "%g"',
       'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
-    ]
+    ], labels = labels
   )
   return 'done'
 
