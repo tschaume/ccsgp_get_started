@@ -88,12 +88,16 @@ def gp_stack(version, energies, inclMed):
     lmargin = 0.09, arrow_offset = 0.8,
     tmargin = 0.9 if version != 'QM12Latest200' else 0.99,
     key = [
-      'width -3', 'at graph 1.,1.2', 'maxrows 2'
+      'width -8.5' if (inclMed and not version == 'Latest19200_PatrickQM12')
+      else 'width -6',
+      'at graph 1.04,1.2', 'maxrows 2', 'font ",20"', 'samplen 0.3'
     ] if version != 'QM12Latest200' else [
       'width -14', 'maxcols 1'
     ],
     #labels = {'BES Energies are STAR Preliminary': [0.38,0.9,False]}
-    labels = {'{/Symbol=50 \775}': [0.64,0.81 if not inclMed else 0.75,False]}
+    labels = {
+      '{/Symbol=50 \775}': [0.64,0.81 if not inclMed else 0.75,False]
+    } if version == 'QM12Latest200' else {},
     #arrows = [ # example arrow
     #  [ [2.4, 5e-5], [2.3, 1e-5], 'head filled lc 1 lw 5 lt 1 front' ],
     #],
