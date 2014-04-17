@@ -52,11 +52,9 @@ def gp_panel(version, skip):
     ylog = True, xr = [0, 1.1], yr = [1e-4, 20],
     lmargin = 0.1, bmargin = 0.15,
     arrow_length = 0.4, arrow_bar = 0.002,
-    gpcalls = [
-      'mxtics 2', 'label %d "" at graph 0.4,0.7' % (
-        8 if skip is None else 6
-      ) if version == 'QM12Latest200' else ''
-    ],
+    gpcalls = ['mxtics 2'] + (['label %d "" at graph 0.4,0.7' % (
+      8 if skip is None else 6
+    )] if version == 'QM12Latest200' else []),
     labels = {'STAR Preliminary': [0.4,0.7,False]}
   )
   return 'done'
