@@ -36,18 +36,25 @@ def gp_ptspec():
     base, mee_name, rnge = k.split('_')
     if mee_name not in mee_range: mee_range[mee_name] = rnge
     energy = re.compile('\d+').search(base).group()
+    if energy == '200': continue
+    data_type = re.sub(str(energy), '', base)
     data[k][:,(1,3,4)] *= float(yscale[energy])
+    if data_type == 'cocktail': data[k][:,2:] = 0.
     yvals += [v for v in data[k][:,1] if v > 0]
     if mee_name not in dpt_dict: dpt_dict[mee_name] = [ [], [], [] ]
     dpt_dict[mee_name][0].append(data[k])
-    dpt_dict[mee_name][1].append('lt 1 lw 4 ps 1.5 lc %s pt 18' % (
-      default_colors[len(dpt_dict[mee_name][1])]
-    ))
-    dpt_dict[mee_name][2].append(' '.join([
-      getEnergy4Key(energy), 'GeV', '{/Symbol \264} 10^{%d}' % (
-        Decimal(yscale[energy]).as_tuple().exponent
-      )
-    ]))
+    dpt_dict[mee_name][1].append(
+        'lt 1 lw 4 ps 1.5 lc %s pt 18' % (default_colors[len(dpt_dict[mee_name][1])])
+        if data_type == 'data' else
+        'with lines lt 1 lw 4 lc %s' % (default_colors[len(dpt_dict[mee_name][1])])
+        )
+    dpt_dict[mee_name][2].append(
+        ' '.join([
+            getEnergy4Key(energy), 'GeV', '{/Symbol \264} 10^{%d}' % (
+                Decimal(yscale[energy]).as_tuple().exponent
+                )
+            ]) if data_type == 'data' else ''
+    )
   dpt_dict_sort = OrderedDict(
     (' '.join([getMeeLabel(k), ':', mee_range[k]]), dpt_dict[k])
     for k in mee_keys
@@ -65,7 +72,6 @@ def gp_ptspec():
     arrow_bar = 0.002,
   )
   return 'done'
-  #data_type = re.sub(str(energy), '', base)
 
 if __name__ == '__main__':
   checkSymLink()
