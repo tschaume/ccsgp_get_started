@@ -81,7 +81,8 @@ def gp_rdiff(args):
             continue
           dp = [
             medium[energy][i,0] + xs, uDiff.nominal_value,
-            0., 0., 0. # uDiff.std_dev
+            medium[energy][i,2] if not args.noxerr else 0.,
+            0., 0. # uDiff.std_dev
           ]
           key = ' '.join([energy, 'GeV (Med.)'])
         # build list of data points
@@ -127,22 +128,27 @@ def gp_rdiff(args):
   if args.nomed or args.noxerr: return 'done'
   excess = {}
   for k, v in dataOrdered.iteritems():
-    if fnmatch(k, '*Med.*'): continue
-    energy = re.compile('\d+').search(k).group()
-    getMassRangesSums(energy, np.array(v), excess, onlyLMR = True)
+    suffix = ''
+    if fnmatch(k, '*Med.*'): suffix = '_Med'
+    energy = getEnergy4Key(re.compile('\d+').search(k).group())
+    getMassRangesSums(energy, np.array(v), excess, onlyLMR = True, suffix = suffix)
   logging.debug(excess)
   make_plot(
-    data = [ np.array(excess['LMR']) ],
-    properties = [ 'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0] ],
-    titles = [ 'LMR' ],
+    data = [ np.array(excess['LMR']), np.array(excess['LMR_Med']) ],
+    properties = [
+        'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0],
+        'with linespoints lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[1],
+        ],
+    titles = [ 'data - cocktail', 'medium' ],
     name = os.path.join(outDir, 'excess%s' % args.version),
     xlabel = '{/Symbol \326}s_{NN} (GeV)',
     ylabel = 'LMR Excess Yield for %.2f < M_{ee} < %.2f ({/Symbol \264} 10^{-3})' % (
       eRanges[1], eRanges[2]
     ),
     lmargin = 0.08, xlog = True, #xr = [0.2,0.76],
-    yr = [0,2.5], gpcalls = [
-      'nokey', 'format x "%g"',
+    key = ['width -4'],
+    yr = [0,3], gpcalls = [
+      'format x "%g"',
       'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
     ], labels = labels
   )

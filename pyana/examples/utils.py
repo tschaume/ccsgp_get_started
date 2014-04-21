@@ -99,7 +99,7 @@ def getCocktailSum(e0, e1, eCocktail, uCocktail):
     logging.debug('    sum: {}'.format(uCocktailSum))
   return uCocktailSum
 
-def getMassRangesSums(energy, indata, outdata, onlyLMR = False):
+def getMassRangesSums(energy, indata, outdata, onlyLMR = False, suffix = ""):
   # combine stat. and syst. errorbars
   indata[:,4] = np.sqrt(indata[:,3] * indata[:,3] + indata[:,4] * indata[:,4])
   uInData = getUArray(indata)
@@ -111,8 +111,9 @@ def getMassRangesSums(energy, indata, outdata, onlyLMR = False):
     dp = [
       float(energy), uSum.nominal_value, 0, 0, uSum.std_dev
     ]
-    if mass_titles[i] in outdata: outdata[mass_titles[i]].append(dp)
-    else: outdata[mass_titles[i]] = [ dp ]
+    key = mass_titles[i] + suffix
+    if key in outdata: outdata[key].append(dp)
+    else: outdata[key] = [ dp ]
 
 def getEnergy4Key(energy):
   if energy == '19': return '19.6'
