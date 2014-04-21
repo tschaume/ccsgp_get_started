@@ -2,7 +2,7 @@ import logging, argparse, os, sys, re
 import numpy as np
 from fnmatch import fnmatch
 from collections import OrderedDict
-from .utils import getWorkDirs, checkSymLink, eRanges
+from .utils import getWorkDirs, checkSymLink, eRanges, getEnergy4Key
 from .utils import getUArray, getEdges, getCocktailSum, enumzipEdges, getMassRangesSums
 from ..ccsgp.ccsgp import make_plot
 from ..ccsgp.utils import getOpts, zip_flat
@@ -33,16 +33,17 @@ def gp_rdiff(args):
   data, cocktail, medium = OrderedDict(), OrderedDict(), OrderedDict()
   for file in os.listdir(inDir):
     energy = re.compile('\d+').search(file).group()
-    #if energy == '27': continue
     data_type = re.sub('%s\.dat' % energy, '', file)
+    energy = getEnergy4Key(energy)
     file_url = os.path.join(inDir, file)
     data_import = np.loadtxt(open(file_url, 'rb'))
     if data_type == 'data': data[energy] = data_import[data_import[:,0] < 0.8]
     elif data_type == 'cocktail': cocktail[energy] = data_import
     elif not args.nomed: medium[energy] = data_import
+  nSetsData = len(data)
 
   dataOrdered = OrderedDict()
-  for energy in sorted(data, key=int):
+  for energy in sorted(data, key=float):
     # data & bin edges
     uData = getUArray(data[energy])
     eData = getEdges(data[energy])
@@ -89,13 +90,13 @@ def gp_rdiff(args):
 
   # make plot
   nSets = len(dataOrdered)
-  nSetsPlot = nSets/2 if nSets > 4 else nSets
-  ylabel = 'data/medium' if nSets > 4 and not args.nomed else 'data'
+  nSetsPlot = nSets/2 if nSets > nSetsData else nSets
+  ylabel = 'data/medium' if nSets > nSetsData and not args.nomed else 'data'
   props = [
     'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i] for i in xrange(nSetsPlot)
   ]
   titles = dataOrdered.keys()
-  if nSets > 4:
+  if nSets > nSetsData:
     props = zip_flat(props, [
       'with filledcurves pt 0 lt 1 lw 4 lc %s' % default_colors[i]
       for i in xrange(nSetsPlot)
@@ -104,7 +105,7 @@ def gp_rdiff(args):
   labels = {
     #'{/Symbol \104}M_{ee}(39GeV) = +%g GeV/c^{2}' % xshift: [0.1, 0.9, False],
     'BES: STAR Preliminary' if args.version == 'QM12Latest200'
-    else 'STAR Preliminary': [0.25,0.85,False],
+    else 'STAR Preliminary': [0.5,0.05,False],
     '200 GeV: [arXiv:1312.7397]' if args.version == 'QM12Latest200'
     else '': [0.25,0.93,False]
   }
@@ -117,8 +118,8 @@ def gp_rdiff(args):
     )),
     xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
     ylabel = '%s - (cocktail w/o {/Symbol \162}) ({/Symbol \264} 10^{-3})' % ylabel,
-    xr = [0.2,0.76], yr = [-1,9], labels = labels,
-    key = ['at graph 1.,1.1', 'maxrows 1'],
+    xr = [0.2,0.76], yr = [-1,10.3], labels = labels,
+    key = ['at graph 1.,1.1', 'maxrows 1', 'width -1.5'],
     lines = { 'x=0': 'lc 0 lw 4 lt 2' }
   )
 
