@@ -6,6 +6,8 @@ from ..ccsgp.ccsgp import make_panel, make_plot
 from ..ccsgp.utils import getOpts
 from ..ccsgp.config import default_colors
 from decimal import Decimal
+import uncertainties.umath as umath
+import uncertainties.unumpy as unp
 
 mee_keys = ['pi0', 'LMR', 'omega', 'phi', 'IMR', 'jpsi']
 
@@ -16,39 +18,55 @@ def getMeeLabel(s):
   if s == 'jpsi': return 'J/{/Symbol \171}'
   return s
 
+def splitFileName(fn):
+  # energy, mee_name, mee_range, data_type
+  split_arr = fn.split('_')
+  return (
+    re.compile('\d+').search(split_arr[0]).group(),
+    split_arr[1], split_arr[2],
+    re.compile('[a-z]+').search(split_arr[0]).group()
+  )
+
 def gp_ptspec():
   """example for a 2D-panel plot"""
   # import data and calculate average pT's
   inDir, outDir = getWorkDirs()
-  data, avpt = OrderedDict(), OrderedDict()
-  for file in os.listdir(inDir):
-    file_url = os.path.join(inDir, file)
-    key = os.path.splitext(file)[0] # unique
-    data[key] = np.loadtxt(open(file_url, 'rb'))
-    avpt[key] = np.average(data[key][:,0], weights=data[key][:,0]*data[key][:,1])
-    # TODO: statistical errors on avpt!
+  data, data_avpt = OrderedDict(), OrderedDict()
+  yvalsPt = []
+  for filename in os.listdir(inDir):
+    file_url = os.path.join(inDir, filename)
+    filebase = os.path.splitext(filename)[0] # unique
+    data[filebase] = np.loadtxt(open(file_url, 'rb'))
+    probs = unp.uarray(data[filebase][:,1], data[filebase][:,3]) # dN/pTdpT
+    probs *= data[filebase][:,0] # = dN/pTdpT * pT
+    probs /= umath.fsum(probs) # probabilities
+    pTs = unp.uarray(data[filebase][:,0], data[filebase][:,2]) # pT
+    avpt = umath.fsum(pTs*probs)
+    weights = data[filebase][:,1] * data[filebase][:,0]
+    logging.info(('%s: {} %g' % (filebase, np.average(data[filebase][:,0], weights=weights))).format(avpt))
+    energy, mee_name, mee_range, data_type = splitFileName(filebase)
+    dp = [ float(energy), avpt.nominal_value, 0., avpt.std_dev, 0. ] # TODO: syst. uncertainties
+    avpt_key = mee_name if data_type == 'data' else mee_name + '_c'
+    if avpt_key in data_avpt: data_avpt[avpt_key].append(dp)
+    else: data_avpt[avpt_key] = [ dp ]
+    yvalsPt.append(avpt)
   # generate input dpt_dict
-  dpt_dict, avpt_data = OrderedDict(), OrderedDict()
-  mee_range = {}
-  yvals, yvalsPt = [], []
+  dpt_dict = OrderedDict(), OrderedDict()
+  yvals = []
   yscale = { '62': '1e6', '39': '1e4', '27': '1e2', '19': '1.' }
   for k in sorted(data.keys()):
-    # energy, mee_name, mass range, data type
-    base, mee_name, rnge = k.split('_')
-    if mee_name not in mee_range: mee_range[mee_name] = rnge
-    energy = re.compile('\d+').search(base).group()
+    energy, mee_name, mee_range, data_type = splitFileName(k)
     if energy == '200': continue
-    data_type = re.sub(str(energy), '', base)
-    # pt spectra
     data[k][:,(1,3,4)] *= float(yscale[energy])
     if data_type == 'cocktail': data[k][:,2:] = 0.
     yvals += [v for v in data[k][:,1] if v > 0]
     if mee_name not in dpt_dict: dpt_dict[mee_name] = [ [], [], [] ]
+    col = len(dpt_dict[mee_name][1]) # TODO: fix colors to match between data/cocktail
     dpt_dict[mee_name][0].append(data[k])
     dpt_dict[mee_name][1].append(
-        'lt 1 lw 4 ps 1.5 lc %s pt 18' % (default_colors[len(dpt_dict[mee_name][1])])
+        'lt 1 lw 4 ps 1.5 lc %s pt 18' % (default_colors[col])
         if data_type == 'data' else
-        'with lines lt 1 lw 4 lc %s' % (default_colors[len(dpt_dict[mee_name][1])])
+        'with lines lt 1 lw 4 lc %s' % (default_colors[col])
         )
     dpt_dict[mee_name][2].append(
         ' '.join([
@@ -57,12 +75,7 @@ def gp_ptspec():
                 )
             ]) if data_type == 'data' else ''
     )
-    # mean pt
-    if data_type == 'cocktail':
-        yvalsPt.append(avpt[k])
-        dp = [ float(energy), avpt[k], 0., 0., 0. ] # TODO: stat./syst. uncertainties
-        if mee_name in avpt_data: avpt_data[mee_name].append(dp)
-        else: avpt_data[mee_name] = [ dp ]
+  # order dict for panel plot
   dpt_dict_sort = OrderedDict(
     (' '.join([getMeeLabel(k), ':', mee_range[k], ' GeV/c^{2}']), dpt_dict[k])
     for k in mee_keys
@@ -82,12 +95,19 @@ def gp_ptspec():
   # make mean pt plot
   yMinPt, yMaxPt = 0.95*min(yvalsPt), 1.25 #1.05*max(yvalsPt)
   make_plot(
-    data = [ np.array(avpt_data[k]) for k in mee_keys ],
+    data = [ # cocktail
+      np.array(data_avpt[k+'_c']) for k in mee_keys
+    ] + [ # data
+      np.array(data_avpt[k]) for k in mee_keys
+    ],
     properties = [
-        'with linespoints lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i]
-        for i in xrange(len(mee_keys))
-        ],
-    titles = [ getMeeLabel(k) for k in mee_keys ],
+     'with lines lt 2 lw 4 lc %s' % default_colors[i if i < 5 else i+1]
+      for i in xrange(len(mee_keys))
+    ] + [
+     'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i if i < 5 else i+1]
+      for i in xrange(len(mee_keys))
+    ],
+    titles = [ getMeeLabel(k) for k in mee_keys ] + ['']*len(mee_keys),
     name = os.path.join(outDir, 'meanPt'),
     xlabel = '{/Symbol \326}s_{NN} (GeV)',
     ylabel = '{/Symbol \341}p_{T}{/Symbol \361} (GeV/c)',
