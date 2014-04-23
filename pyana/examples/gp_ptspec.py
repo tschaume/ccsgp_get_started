@@ -82,8 +82,17 @@ def gp_ptspec():
         )
       ]) if data_type == 'data' else ''
     )
-  # sort data_avpt by energy
+  # sort data_avpt by energy and apply x-shift for better visibility
   for k in data_avpt: data_avpt[k].sort(key=lambda x: x[0])
+  energies = [ dp[0] for dp in data_avpt[mee_keys[0]] ]
+  energies.append(75.) # TODO: think of better upper limit
+  linsp = {}
+  for start,stop in zip(energies[:-1],energies[1:]):
+    linsp[start] = np.linspace(start, stop, num = 4*len(mee_keys))
+  for k in data_avpt:
+    key = k.split('_')[0]
+    for i in xrange(len(data_avpt[k])):
+      data_avpt[k][i][0] = linsp[energies[i]][mee_keys.index(key)]
   # make panel plot
   yMin, yMax = 0.5*min(yvals), 3*max(yvals)
   make_panel(
@@ -98,7 +107,6 @@ def gp_ptspec():
   )
   # make mean pt plot
   yMinPt, yMaxPt = 0.95*min(yvalsPt), 1.05*max(yvalsPt)
-  print data_avpt
   make_plot(
     data = [ # cocktail
       np.array(data_avpt[k+'_c']) for k in mee_keys
@@ -116,8 +124,8 @@ def gp_ptspec():
     name = os.path.join(outDir, 'meanPt'),
     xlabel = '{/Symbol \326}s_{NN} (GeV)',
     ylabel = '{/Symbol \341}p_{T}{/Symbol \361} (GeV/c)',
-    lmargin = 0.08, xlog = True,
-    xr = [17,220],# yr = [yMinPt, yMaxPt],
+    lmargin = 0.08, xlog = True, #xr = [17,220],
+    yr = [0,1.4], #yr = [yMinPt, yMaxPt],
     key = [ 'maxrows 1', 'at graph 1, 1.1' ],
     gpcalls = [
       'format x "%g"',
