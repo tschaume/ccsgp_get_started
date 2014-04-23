@@ -1,4 +1,4 @@
-import logging, argparse, os, sys, re
+import logging, argparse, os, sys, re, math
 import numpy as np
 from fnmatch import fnmatch
 from collections import OrderedDict
@@ -10,6 +10,8 @@ from pymodelfit import LinearModel
 
 cocktail_style = 'with filledcurves pt 0 lc %s lw 5 lt 1' % default_colors[8]
 medium_style = 'with lines lc %s lw 5 lt 2' % default_colors[4]
+dataIMRfit_style = 'with lines lc %s lw 5 lt 1' % default_colors[-2]
+cocktailIMRfit_style = 'with lines lc %s lw 5 lt 2' % default_colors[-2]
 pseudo_point = np.array([ [-1,1e-7,0,0,1] ])
 
 def gp_stack(version, energies, inclMed):
@@ -35,7 +37,9 @@ def gp_stack(version, energies, inclMed):
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version)
   data, cocktail, medium = OrderedDict(), OrderedDict(), OrderedDict()
+  dataIMRfit, cocktailIMRfit = OrderedDict(), OrderedDict()
   linmod = LinearModel()
+  rangeIMR = [1.15, 2.5]
   for filename in os.listdir(inDir):
     energy = re.compile('\d+').search(filename).group()
     data_type = re.sub('%s\.dat' % energy, '', filename)
@@ -45,7 +49,7 @@ def gp_stack(version, energies, inclMed):
     ) else np.loadtxt(open(file_url, 'rb'))
     # fit IMR region with exp(-M/kT+C)
     if energies is None and (data_type == 'data' or data_type == 'cocktail'):
-      mask = (data_import[:,0] > 1.1) & (data_import[:,0] < 2.5)
+      mask = (data_import[:,0] > rangeIMR[0]) & (data_import[:,0] < rangeIMR[1])
       dataIMR = data_import[mask]
       mIMR, bIMR = linmod.fitErrxy(
           dataIMR[:,0], np.log10(dataIMR[:,1]), dataIMR[:,2],
@@ -53,6 +57,10 @@ def gp_stack(version, energies, inclMed):
       )
       logging.info('%s: m = %g , b = %g => T = %g' % (filename, mIMR, bIMR, -1./mIMR))
       #print linmod.getCov()
+      IMRfit = np.array([ [x, math.pow(10.,mIMR*x+bIMR), 0., 0., 0.] for x in rangeIMR ]) # TODO: errors
+      IMRfit[:,(1,3,4)] *= shift[energy]
+      if data_type == 'data': dataIMRfit[energy] = IMRfit
+      else: cocktailIMRfit[energy] = IMRfit
     # following scaling is wrong for y < 0 && shift != 1
     data_import[:,(1,3,4)] *= shift[energy]
     if fnmatch(filename, 'data*'):
@@ -76,20 +84,27 @@ def gp_stack(version, energies, inclMed):
   )
   cocktailOrdered = OrderedDict((k, cocktail[k]) for k in sorted(cocktail, key=int))
   mediumOrdered = OrderedDict((k, medium[k]) for k in sorted(medium, key=int))
+  dataIMRfitOrdered = OrderedDict((k, dataIMRfit[k]) for k in sorted(dataIMRfit, key=int))
+  cocktailIMRfitOrdered = OrderedDict((k, cocktailIMRfit[k]) for k in sorted(cocktailIMRfit, key=int))
   nSetsData, nSetsCocktail, nSetsMedium = len(dataOrdered), len(cocktail), len(medium)
+  nSetsDataIMRfit, nSetsCocktailIMRfit = len(dataIMRfitOrdered), len(cocktailIMRfitOrdered)
   yr_low = 3e-7 if version == 'QM12' else 1e-10
   if version == 'Latest19200_PatrickQM12': yr_low = 1e-7
   if version == 'QM12Latest200': yr_low = 2e-6
   make_plot(
     data = cocktailOrdered.values() + ([ pseudo_point ] if inclMed else [])
-    + mediumOrdered.values() + [ pseudo_point ] + dataOrdered.values(),
+    + mediumOrdered.values() + [ pseudo_point ] + dataOrdered.values()
+    + dataIMRfitOrdered.values() + [ pseudo_point ]
+    + cocktailIMRfitOrdered.values() + [pseudo_point ],
     properties = [ cocktail_style ] * (nSetsCocktail+1) + [ medium_style ] *
     (nSetsMedium+bool(nSetsMedium)) + [
       'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i]
       for i in xrange(nSetsData)
-    ],
+    ] + [ dataIMRfit_style ] * (nSetsDataIMRfit+1)
+    + [ cocktailIMRfit_style ] * (nSetsCocktailIMRfit+1),
     titles = [''] * nSetsCocktail + ['Cocktail w/o {/Symbol \162}'] + [''] *
-    nSetsMedium + ['+ Medium'] * bool(nSetsMedium) + dataOrdered.keys(),
+    nSetsMedium + ['+ Medium'] * bool(nSetsMedium) + dataOrdered.keys() +
+    [''] * nSetsDataIMRfit + ['IMR fit data'] + [''] * nSetsCocktailIMRfit + ['IMR fit cock.'],
     name = os.path.join(outDir, 'stack%s%s%s' % (
       version, 'InclMed' if inclMed else '',
       '_' + '-'.join(energies) if energies is not None else ''
