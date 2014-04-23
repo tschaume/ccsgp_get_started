@@ -6,6 +6,7 @@ from .utils import getWorkDirs, checkSymLink, getEnergy4Key
 from ..ccsgp.ccsgp import make_plot
 from ..ccsgp.utils import getOpts
 from ..ccsgp.config import default_colors
+from pymodelfit import LinearModel
 
 cocktail_style = 'with filledcurves pt 0 lc %s lw 5 lt 1' % default_colors[8]
 medium_style = 'with lines lc %s lw 5 lt 2' % default_colors[4]
@@ -34,6 +35,7 @@ def gp_stack(version, energies, inclMed):
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version)
   data, cocktail, medium = OrderedDict(), OrderedDict(), OrderedDict()
+  linmod = LinearModel()
   for file in os.listdir(inDir):
     energy = re.compile('\d+').search(file).group()
     data_type = re.sub('%s\.dat' % energy, '', file)
@@ -41,6 +43,15 @@ def gp_stack(version, energies, inclMed):
     data_import = np.array([[-1, 1, 0, 0, 0]]) if (
       energies is not None and energy not in energies
     ) else np.loadtxt(open(file_url, 'rb'))
+    # fit IMR region with exp(-M/T+C) [C=-1/T0?]
+    if energies is None and data_type == 'data':
+      mask = (data_import[:,0] > 1.1) & (data_import[:,0] < 2.5)
+      dataIMR = data_import[mask]
+      print file, linmod.fitErrxy(
+        dataIMR[:,0], np.log10(dataIMR[:,1]), dataIMR[:,2],
+        np.log10(dataIMR[:,3]) if data_type == 'data' else 0.
+        # TODO: include syst. uncertainties
+      )
     # following scaling is wrong for y < 0 && shift != 1
     data_import[:,(1,3,4)] *= shift[energy]
     if fnmatch(file, 'data*'):
