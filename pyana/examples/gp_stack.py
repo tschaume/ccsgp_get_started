@@ -36,10 +36,10 @@ def gp_stack(version, energies, inclMed):
   inDir = os.path.join(inDir, version)
   data, cocktail, medium = OrderedDict(), OrderedDict(), OrderedDict()
   linmod = LinearModel()
-  for file in os.listdir(inDir):
-    energy = re.compile('\d+').search(file).group()
-    data_type = re.sub('%s\.dat' % energy, '', file)
-    file_url = os.path.join(inDir, file)
+  for filename in os.listdir(inDir):
+    energy = re.compile('\d+').search(filename).group()
+    data_type = re.sub('%s\.dat' % energy, '', filename)
+    file_url = os.path.join(inDir, filename)
     data_import = np.array([[-1, 1, 0, 0, 0]]) if (
       energies is not None and energy not in energies
     ) else np.loadtxt(open(file_url, 'rb'))
@@ -47,23 +47,23 @@ def gp_stack(version, energies, inclMed):
     if energies is None and data_type == 'data':
       mask = (data_import[:,0] > 1.1) & (data_import[:,0] < 2.5)
       dataIMR = data_import[mask]
-      print file, linmod.fitErrxy(
+      print filename, linmod.fitErrxy(
         dataIMR[:,0], np.log10(dataIMR[:,1]), dataIMR[:,2],
         np.log10(dataIMR[:,3]) if data_type == 'data' else 0.
         # TODO: include syst. uncertainties
       )
     # following scaling is wrong for y < 0 && shift != 1
     data_import[:,(1,3,4)] *= shift[energy]
-    if fnmatch(file, 'data*'):
+    if fnmatch(filename, 'data*'):
       data[energy] = data_import
-    elif fnmatch(file, 'cocktail*'):
+    elif fnmatch(filename, 'cocktail*'):
       data_import[:,(2,3)] = 0 # don't plot dx,dy for cocktail
       if energy == '19' and version == 'QM12':
         # cut off cocktail above 1.1 GeV/c^2
         cocktail[energy] = data_import[data_import[:,0] < 1.3]
       else:
         cocktail[energy] = data_import
-    elif inclMed and fnmatch(file, '+medium*'):
+    elif inclMed and fnmatch(filename, '+medium*'):
       data_import[:,2:] = 0 # don't plot dx, dy1, dy2 for medium
       medium[energy] = data_import
   dataOrdered = OrderedDict(
