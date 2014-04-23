@@ -9,8 +9,6 @@ from decimal import Decimal
 import uncertainties.umath as umath
 import uncertainties.unumpy as unp
 
-mee_keys = ['pi0', 'LMR', 'omega', 'phi', 'IMR', 'jpsi']
-
 def getMeeLabel(s):
   if s == 'pi0': return '{/Symbol \160}^0'
   if s == 'omega': return '{/Symbol \167}'
@@ -27,63 +25,69 @@ def splitFileName(fn):
     re.compile('[a-z]+').search(split_arr[0]).group()
   )
 
+def getSubplotTitle(mn, mr):
+  return ' '.join([getMeeLabel(mn), ':', mr, ' GeV/c^{2}'])
+
 def gp_ptspec():
-  """example for a 2D-panel plot"""
-  # import data and calculate average pT's
+  """example for a 2D-panel plot (TODO)"""
+  mee_keys = ['pi0', 'LMR', 'omega', 'phi', 'IMR', 'jpsi']
+  mee_dict = OrderedDict((k,'') for k in mee_keys)
+  yscale = { '62': '1e6', '39': '1e4', '27': '1e2', '19': '1.' }
   inDir, outDir = getWorkDirs()
-  data, data_avpt = OrderedDict(), OrderedDict()
-  yvalsPt = []
+  data, data_avpt, dpt_dict = {}, {}, {}
+  yvals, yvalsPt = [], []
   for filename in os.listdir(inDir):
+    # import data
     file_url = os.path.join(inDir, filename)
     filebase = os.path.splitext(filename)[0] # unique
+    energy, mee_name, mee_range, data_type = splitFileName(filebase)
+    if energy == '200': continue
+    if mee_name not in mee_keys: continue
+    mee_dict[mee_name] = mee_range
     data[filebase] = np.loadtxt(open(file_url, 'rb'))
+    # calculate average pT first
     probs = unp.uarray(data[filebase][:,1], data[filebase][:,3]) # dN/pTdpT
     probs *= data[filebase][:,0] # = dN/pTdpT * pT
     probs /= umath.fsum(probs) # probabilities
     pTs = unp.uarray(data[filebase][:,0], data[filebase][:,2]) # pT
     avpt = umath.fsum(pTs*probs)
     weights = data[filebase][:,1] * data[filebase][:,0]
-    logging.info(('%s: {} %g' % (filebase, np.average(data[filebase][:,0], weights=weights))).format(avpt))
-    energy, mee_name, mee_range, data_type = splitFileName(filebase)
-    dp = [ float(energy), avpt.nominal_value, 0., avpt.std_dev, 0. ] # TODO: syst. uncertainties
+    logging.info(('%s: {} %g' % (
+      filebase, np.average(data[filebase][:,0], weights=weights)
+    )).format(avpt)) # TODO: syst. uncertainties
+    # save datapoint for average pT and append to yvalsPt for yaxis range
+    dp = [ float(getEnergy4Key(energy)), avpt.nominal_value, 0., avpt.std_dev, 0. ]
     avpt_key = mee_name if data_type == 'data' else mee_name + '_c'
     if avpt_key in data_avpt: data_avpt[avpt_key].append(dp)
     else: data_avpt[avpt_key] = [ dp ]
-    yvalsPt.append(avpt)
-  # generate input dpt_dict
-  dpt_dict = OrderedDict(), OrderedDict()
-  yvals = []
-  yscale = { '62': '1e6', '39': '1e4', '27': '1e2', '19': '1.' }
-  for k in sorted(data.keys()):
-    energy, mee_name, mee_range, data_type = splitFileName(k)
-    if energy == '200': continue
-    data[k][:,(1,3,4)] *= float(yscale[energy])
-    if data_type == 'cocktail': data[k][:,2:] = 0.
-    yvals += [v for v in data[k][:,1] if v > 0]
-    if mee_name not in dpt_dict: dpt_dict[mee_name] = [ [], [], [] ]
-    col = len(dpt_dict[mee_name][1]) # TODO: fix colors to match between data/cocktail
-    dpt_dict[mee_name][0].append(data[k])
-    dpt_dict[mee_name][1].append(
-        'lt 1 lw 4 ps 1.5 lc %s pt 18' % (default_colors[col])
-        if data_type == 'data' else
-        'with lines lt 1 lw 4 lc %s' % (default_colors[col])
-        )
-    dpt_dict[mee_name][2].append(
-        ' '.join([
-            getEnergy4Key(energy), 'GeV', '{/Symbol \264} 10^{%d}' % (
-                Decimal(yscale[energy]).as_tuple().exponent
-                )
-            ]) if data_type == 'data' else ''
+    yvalsPt.append(avpt.nominal_value)
+    # now adjust data for panel plot and append to yvals
+    data[filebase][:,(1,3,4)] *= float(yscale[energy])
+    if data_type == 'cocktail': data[filebase][:,2:] = 0.
+    yvals += [v for v in data[filebase][:,1] if v > 0]
+    # prepare dict for panel plot
+    dpt_dict_key = getSubplotTitle(mee_name, mee_range)
+    if dpt_dict_key not in dpt_dict: dpt_dict[dpt_dict_key] = [ [], [], [] ]
+    col = len(dpt_dict[dpt_dict_key][1]) # TODO: fix colors to match between data/cocktail
+    dpt_dict[dpt_dict_key][0].append(data[filebase]) # data
+    dpt_dict[dpt_dict_key][1].append( # properties
+      'lt 1 lw 4 ps 1.5 lc %s pt 18' % (default_colors[col])
+      if data_type == 'data' else
+      'with lines lt 1 lw 4 lc %s' % (default_colors[col])
     )
-  # order dict for panel plot
-  dpt_dict_sort = OrderedDict(
-    (' '.join([getMeeLabel(k), ':', mee_range[k], ' GeV/c^{2}']), dpt_dict[k])
-    for k in mee_keys
-  )
-  yMin, yMax = 0.5*min(yvals), 3*max(yvals)
+    dpt_dict[dpt_dict_key][2].append( # legend titles
+      ' '.join([
+        getEnergy4Key(energy), 'GeV', '{/Symbol \264} 10^{%d}' % (
+          Decimal(yscale[energy]).as_tuple().exponent
+        )
+      ]) if data_type == 'data' else ''
+    )
+  # sort data_avpt by energy
+  for k in data_avpt: data_avpt[k].sort(key=lambda x: x[0])
   # make panel plot
+  yMin, yMax = 0.5*min(yvals), 3*max(yvals)
   make_panel(
-    dpt_dict = dpt_dict_sort,
+    dpt_dict = dpt_dict,
     name = os.path.join(outDir, 'ptspec'),
     ylabel = '1/N@_{mb}^{evt} d^{2}N@_{ee}^{acc.}/p_{T}dp_{T}dM_{ee} (c^4/GeV^3)',
     xlabel = 'dielectron transverse momentum, p_{T} (GeV/c)',
@@ -93,7 +97,8 @@ def gp_ptspec():
     arrow_bar = 0.002,
   )
   # make mean pt plot
-  yMinPt, yMaxPt = 0.95*min(yvalsPt), 1.25 #1.05*max(yvalsPt)
+  yMinPt, yMaxPt = 0.95*min(yvalsPt), 1.05*max(yvalsPt)
+  print data_avpt
   make_plot(
     data = [ # cocktail
       np.array(data_avpt[k+'_c']) for k in mee_keys
@@ -112,7 +117,7 @@ def gp_ptspec():
     xlabel = '{/Symbol \326}s_{NN} (GeV)',
     ylabel = '{/Symbol \341}p_{T}{/Symbol \361} (GeV/c)',
     lmargin = 0.08, xlog = True,
-    xr = [17,220], yr = [yMinPt, yMaxPt],
+    xr = [17,220],# yr = [yMinPt, yMaxPt],
     key = [ 'maxrows 1', 'at graph 1, 1.1' ],
     gpcalls = [
       'format x "%g"',
