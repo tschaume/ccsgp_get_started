@@ -43,15 +43,16 @@ def gp_stack(version, energies, inclMed):
     data_import = np.array([[-1, 1, 0, 0, 0]]) if (
       energies is not None and energy not in energies
     ) else np.loadtxt(open(file_url, 'rb'))
-    # fit IMR region with exp(-M/T+C) [C=-1/T0?]
-    if energies is None and data_type == 'data':
+    # fit IMR region with exp(-M/kT+C)
+    if energies is None and (data_type == 'data' or data_type == 'cocktail'):
       mask = (data_import[:,0] > 1.1) & (data_import[:,0] < 2.5)
       dataIMR = data_import[mask]
-      print filename, linmod.fitErrxy(
-        dataIMR[:,0], np.log10(dataIMR[:,1]), dataIMR[:,2],
-        np.log10(dataIMR[:,3]) if data_type == 'data' else 0.
-        # TODO: include syst. uncertainties
+      mIMR, bIMR = linmod.fitErrxy(
+          dataIMR[:,0], np.log10(dataIMR[:,1]), dataIMR[:,2],
+          np.log10(dataIMR[:,3]) # TODO: include syst. uncertainties
       )
+      logging.info('%s: m = %g , b = %g => T = %g' % (filename, mIMR, bIMR, -1./mIMR))
+      #print linmod.getCov()
     # following scaling is wrong for y < 0 && shift != 1
     data_import[:,(1,3,4)] *= shift[energy]
     if fnmatch(filename, 'data*'):
