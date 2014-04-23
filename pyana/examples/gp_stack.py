@@ -14,7 +14,7 @@ dataIMRfit_style = 'with lines lc %s lw 5 lt 1' % default_colors[-2]
 cocktailIMRfit_style = 'with lines lc %s lw 5 lt 2' % default_colors[-2]
 pseudo_point = np.array([ [-1,1e-7,0,0,1] ])
 
-def gp_stack(version, energies, inclMed):
+def gp_stack(version, energies, inclMed, inclFits):
   """example for a plot w/ stacked graphs using QM12 data (see gp_panel)
 
   * how to omit keys from the legend
@@ -48,7 +48,7 @@ def gp_stack(version, energies, inclMed):
       energies is not None and energy not in energies
     ) else np.loadtxt(open(file_url, 'rb'))
     # fit IMR region with exp(-M/kT+C)
-    if energies is None and (data_type == 'data' or data_type == 'cocktail'):
+    if inclFits and energies is None and (data_type == 'data' or data_type == 'cocktail'):
       mask = (data_import[:,0] > rangeIMR[0]) & (data_import[:,0] < rangeIMR[1])
       dataIMR = data_import[mask]
       mIMR, bIMR = linmod.fitErrxy(
@@ -94,8 +94,8 @@ def gp_stack(version, energies, inclMed):
   make_plot(
     data = cocktailOrdered.values() + ([ pseudo_point ] if inclMed else [])
     + mediumOrdered.values() + [ pseudo_point ] + dataOrdered.values()
-    + dataIMRfitOrdered.values() + [ pseudo_point ]
-    + cocktailIMRfitOrdered.values() + [pseudo_point ],
+    + dataIMRfitOrdered.values() + ([ pseudo_point ] if inclFits else [])
+    + cocktailIMRfitOrdered.values() + ([ pseudo_point ] if inclFits else []),
     properties = [ cocktail_style ] * (nSetsCocktail+1) + [ medium_style ] *
     (nSetsMedium+bool(nSetsMedium)) + [
       'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i]
@@ -104,9 +104,10 @@ def gp_stack(version, energies, inclMed):
     + [ cocktailIMRfit_style ] * (nSetsCocktailIMRfit+1),
     titles = [''] * nSetsCocktail + ['Cocktail w/o {/Symbol \162}'] + [''] *
     nSetsMedium + ['+ Medium'] * bool(nSetsMedium) + dataOrdered.keys() +
-    [''] * nSetsDataIMRfit + ['IMR fit data'] + [''] * nSetsCocktailIMRfit + ['IMR fit cock.'],
-    name = os.path.join(outDir, 'stack%s%s%s' % (
-      version, 'InclMed' if inclMed else '',
+    [''] * nSetsDataIMRfit + ['IMR fit data'] * inclFits +
+    [''] * nSetsCocktailIMRfit + ['IMR fit cock.'] * inclFits,
+    name = os.path.join(outDir, 'stack%s%s%s%s' % (
+      version, 'InclMed' if inclMed else '', 'InclFits' if inclFits else '',
       '_' + '-'.join(energies) if energies is not None else ''
     )),
     ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
@@ -115,7 +116,7 @@ def gp_stack(version, energies, inclMed):
     lmargin = 0.09, arrow_offset = 0.8,
     tmargin = 0.9 if version != 'QM12Latest200' else 0.99,
     key = [
-      'width -8.5' if (inclMed and not version == 'Latest19200_PatrickQM12')
+      'width -8.5' if ((inclMed or inclFits) and not version == 'Latest19200_PatrickQM12')
       else 'width -6',
       'at graph 1.04,1.2', 'maxrows 2', 'font ",20"', 'samplen 0.3'
     ] if version != 'QM12Latest200' else [
@@ -137,10 +138,11 @@ if __name__ == '__main__':
   parser.add_argument("version", help="version = subdir name of input dir")
   parser.add_argument("--energies", nargs='*', help="list of energies to plot (for animation)")
   parser.add_argument("--med", help="include medium calculations", action="store_true")
+  parser.add_argument("--fit", help="include IMR fits", action="store_true")
   parser.add_argument("--log", help="show log output", action="store_true")
   args = parser.parse_args()
   loglevel = 'DEBUG' if args.log else 'WARNING'
   logging.basicConfig(
     format='%(message)s', level=getattr(logging, loglevel)
   )
-  print gp_stack(args.version, args.energies, args.med)
+  print gp_stack(args.version, args.energies, args.med, args.fit)
