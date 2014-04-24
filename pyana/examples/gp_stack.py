@@ -67,6 +67,7 @@ def gp_stack(version, energies, inclMed, inclFits):
       slope_par = -1./mIMR
       logging.info('%s: m = %g , b = %g => T = %g' % (filename, mIMR, bIMR, slope_par))
       # Monte-Carlo the datapoints within dx/dy -> parameter mean & std.dev.
+      slope_par_err = 0.
       if data_type == 'data':
         # one random generator per x,y for each data point in IMR
         rndm = OrderedDict((ax,[]) for ax in ['x','y'])
@@ -102,14 +103,15 @@ def gp_stack(version, energies, inclMed, inclFits):
         mIMRMC_avg = np.average(mIMRMC[:,0], weights=weights)
         mIMRMC_var = np.average((mIMRMC[:,0]-mIMRMC_avg)**2, weights=weights)
         umIMR = ufloat(mIMRMC_avg, math.sqrt(mIMRMC_var))
-        logging.info(('=> %g == {}' % mIMR).format(umIMR))
+        slope_par_err = abs(math.sqrt(mIMRMC_var)/mIMRMC_avg * slope_par)
+        logging.info(('=> %g == {} => err = %g' % (mIMR, slope_par_err)).format(umIMR))
       # set IMR slope datapoint
       IMRfit = np.array([ [x, math.pow(10.,mIMR*x+bIMR), 0., 0., 0.] for x in rangeIMR ])
       IMRfit[:,(1,3,4)] *= shift[energy]
       if data_type == 'data': dataIMRfit[energy] = IMRfit
       else: cocktailIMRfit[energy] = IMRfit
       # fill array for T vs sqrt(s) plot
-      dp = [ float(getEnergy4Key(energy)), slope_par, 0., 0., 0. ]
+      dp = [ float(getEnergy4Key(energy)), slope_par, 0., slope_par_err, 0. ]
       if data_type in dataTvsS: dataTvsS[data_type].append(dp)
       else: dataTvsS[data_type] = [ dp ]
     # following scaling is wrong for y < 0 && shift != 1
@@ -193,10 +195,10 @@ def gp_stack(version, energies, inclMed, inclFits):
       name = os.path.join(outDir, 'IMRslope%s' % version),
       xlabel = '{/Symbol \326}s_{NN} (GeV)',
       ylabel = 'Slope Parameter T [log(dN/dM) = -M/T+C] (GeV/c^{2})',
-      lmargin = 0.1, xlog = True, gpcalls = [
+      lmargin = 0.1, xlog = True, yr = [0,3.5], gpcalls = [
         'format x "%g"',
         'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
-      ],
+      ]
     )
   return 'done'
 
