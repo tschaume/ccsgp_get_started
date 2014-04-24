@@ -37,7 +37,7 @@ def gp_stack(version, energies, inclMed, inclFits):
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version)
   data, cocktail, medium = OrderedDict(), OrderedDict(), OrderedDict()
-  dataIMRfit, cocktailIMRfit = OrderedDict(), OrderedDict()
+  dataIMRfit, cocktailIMRfit, dataTvsS = OrderedDict(), OrderedDict(), OrderedDict()
   linmod = LinearModel()
   rangeIMR = [1.15, 2.5]
   for filename in os.listdir(inDir):
@@ -55,12 +55,17 @@ def gp_stack(version, energies, inclMed, inclFits):
           dataIMR[:,0], np.log10(dataIMR[:,1]), dataIMR[:,2],
           np.log10(dataIMR[:,3]) # TODO: include syst. uncertainties
       )
-      logging.info('%s: m = %g , b = %g => T = %g' % (filename, mIMR, bIMR, -1./mIMR))
-      #print linmod.getCov()
-      IMRfit = np.array([ [x, math.pow(10.,mIMR*x+bIMR), 0., 0., 0.] for x in rangeIMR ]) # TODO: errors
+      slope_par = -1./mIMR
+      logging.info('%s: m = %g , b = %g => T = %g' % (filename, mIMR, bIMR, slope_par))
+      #print linmod.getCov() # TODO: errors
+      IMRfit = np.array([ [x, math.pow(10.,mIMR*x+bIMR), 0., 0., 0.] for x in rangeIMR ])
       IMRfit[:,(1,3,4)] *= shift[energy]
       if data_type == 'data': dataIMRfit[energy] = IMRfit
       else: cocktailIMRfit[energy] = IMRfit
+      # fill array for T vs sqrt(s) plot
+      dp = [ float(getEnergy4Key(energy)), slope_par, 0., 0., 0. ]
+      if data_type in dataTvsS: dataTvsS[data_type].append(dp)
+      else: dataTvsS[data_type] = [ dp ]
     # following scaling is wrong for y < 0 && shift != 1
     data_import[:,(1,3,4)] *= shift[energy]
     if fnmatch(filename, 'data*'):
@@ -130,6 +135,23 @@ def gp_stack(version, energies, inclMed, inclFits):
     #  [ [2.4, 5e-5], [2.3, 1e-5], 'head filled lc 1 lw 5 lt 1 front' ],
     #],
   )
+  if inclFits:
+    for t in dataTvsS: dataTvsS[t].sort(key=lambda x: x[0])
+    make_plot(
+      data = [ np.array(dataTvsS['cocktail']), np.array(dataTvsS['data']) ],
+      properties = [
+       'with lines lt 2 lw 4 lc %s' % default_colors[0],
+       'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0]
+      ],
+      titles = [ 'cocktail', 'data' ],
+      name = os.path.join(outDir, 'IMRslope%s' % version),
+      xlabel = '{/Symbol \326}s_{NN} (GeV)',
+      ylabel = 'Slope Parameter T [log(dN/dM) = -M/T+C] (GeV/c^{2})',
+      lmargin = 0.1, xlog = True, gpcalls = [
+        'format x "%g"',
+        'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
+      ],
+    )
   return 'done'
 
 if __name__ == '__main__':
