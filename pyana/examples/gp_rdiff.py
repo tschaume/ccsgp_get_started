@@ -11,7 +11,7 @@ from ..ccsgp.config import default_colors
 xshift = 0.01
 yunit = 1.0e-3
 
-def gp_rdiff(args):
+def gp_rdiff(version, nomed, noxerr):
   """example for ratio or difference plots using QM12 data (see gp_panel)
 
   - uses uncertainties package for easier error propagation and rebinning
@@ -25,11 +25,15 @@ def gp_rdiff(args):
   .. image:: pics/diffAbsQM12.png
      :width: 450 px
 
-  :param args: arguments parser
-  :type args: argparse
+  :param version: plot version
+  :type version: str
+  :param nomed: don't plot medium
+  :type nomed: bool
+  :param noxerr: don't plot x-errors
+  :type noxerr: bool
   """
   inDir, outDir = getWorkDirs()
-  inDir = os.path.join(inDir, args.version)
+  inDir = os.path.join(inDir, version)
   data, cocktail, medium = OrderedDict(), OrderedDict(), OrderedDict()
   for file in os.listdir(inDir):
     energy = re.compile('\d+').search(file).group()
@@ -39,7 +43,7 @@ def gp_rdiff(args):
     data_import = np.loadtxt(open(file_url, 'rb'))
     if data_type == 'data': data[energy] = data_import[data_import[:,0] < 0.8]
     elif data_type == 'cocktail': cocktail[energy] = data_import
-    elif not args.nomed: medium[energy] = data_import
+    elif not nomed: medium[energy] = data_import
   nSetsData = len(data)
 
   dataOrdered = OrderedDict()
@@ -69,7 +73,7 @@ def gp_rdiff(args):
           uDiff /= data[energy][i,2] * 2 * yunit
           dp = [
             data[energy][i,0] + xs, uDiff.nominal_value,
-            data[energy][i,2] if not args.noxerr else 0.,
+            data[energy][i,2] if not noxerr else 0.,
             data[energy][i,3] / yunit, uDiff.std_dev
           ]
           key = ' '.join([energy, 'GeV'])
@@ -81,7 +85,7 @@ def gp_rdiff(args):
             continue
           dp = [
             medium[energy][i,0] + xs, uDiff.nominal_value,
-            medium[energy][i,2] if not args.noxerr else 0.,
+            medium[energy][i,2] if not noxerr else 0.,
             0., 0. # uDiff.std_dev
           ]
           key = ' '.join([energy, 'GeV (Med.)'])
@@ -92,7 +96,7 @@ def gp_rdiff(args):
   # make plot
   nSets = len(dataOrdered)
   nSetsPlot = nSets/2 if nSets > nSetsData else nSets
-  ylabel = 'data/medium' if nSets > nSetsData and not args.nomed else 'data'
+  ylabel = 'data/medium' if nSets > nSetsData and not nomed else 'data'
   props = [
     'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i] for i in xrange(nSetsPlot)
   ]
@@ -105,17 +109,17 @@ def gp_rdiff(args):
     titles = zip_flat(dataOrdered.keys()[::2], [''] * nSetsPlot)
   labels = {
     #'{/Symbol \104}M_{ee}(39GeV) = +%g GeV/c^{2}' % xshift: [0.1, 0.9, False],
-    'BES: STAR Preliminary' if args.version == 'QM12Latest200'
+    'BES: STAR Preliminary' if version == 'QM12Latest200'
     else 'STAR Preliminary': [0.5,0.05,False],
-    '200 GeV: [arXiv:1312.7397]' if args.version == 'QM12Latest200'
+    '200 GeV: [arXiv:1312.7397]' if version == 'QM12Latest200'
     else '': [0.25,0.93,False]
   }
   make_plot(
     data = [ np.array(d) for d in dataOrdered.values()],
     properties = props, titles = titles,
     name = os.path.join(outDir, 'diffAbs%s%s%s' % (
-      args.version, 'NoMed' if args.nomed else '',
-      'NoXErr' if args.noxerr else ''
+      version, 'NoMed' if nomed else '',
+      'NoXErr' if noxerr else ''
     )),
     xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
     ylabel = '%s - (cocktail w/o {/Symbol \162}) ({/Symbol \264} 10^{-3})' % ylabel,
@@ -125,7 +129,7 @@ def gp_rdiff(args):
   )
 
   # integrated excess yield in mass ranges
-  if args.nomed or args.noxerr: return 'done'
+  if nomed or noxerr or version == 'QM12': return 'done'
   excess = {}
   for k, v in dataOrdered.iteritems():
     suffix = ''
@@ -140,7 +144,7 @@ def gp_rdiff(args):
         'with linespoints lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[1],
         ],
     titles = [ 'data - cocktail', 'medium' ],
-    name = os.path.join(outDir, 'excess%s' % args.version),
+    name = os.path.join(outDir, 'excess%s' % version),
     xlabel = '{/Symbol \326}s_{NN} (GeV)',
     ylabel = 'LMR Excess Yield for %.2f < M_{ee} < %.2f ({/Symbol \264} 10^{-3})' % (
       eRanges[1], eRanges[2]
@@ -166,4 +170,4 @@ if __name__ == '__main__':
   logging.basicConfig(
     format='%(message)s', level=getattr(logging, loglevel)
   )
-  print gp_rdiff(args)
+  print gp_rdiff(version, nomed, noxerr)

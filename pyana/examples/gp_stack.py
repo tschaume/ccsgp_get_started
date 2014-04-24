@@ -33,6 +33,7 @@ def gp_stack(version, energies, inclMed, inclFits):
   :param version: plot version / input subdir name
   :type version: str
   """
+  inclFits = (inclFits and version == 'LatestPatrickJieYi')
   shift = {
     '200': 200., '62': 15., '39': 0.5, '27': 0.01, '19': 1e-4
   } if (
@@ -55,7 +56,10 @@ def gp_stack(version, energies, inclMed, inclFits):
       energies is not None and energy not in energies
     ) else np.loadtxt(open(file_url, 'rb'))
     # fit IMR region with exp(-M/kT+C)
-    if inclFits and energies is None and (data_type == 'data' or data_type == 'cocktail'):
+    if (
+      inclFits and energies is None and
+      (data_type == 'data' or data_type == 'cocktail')
+    ):
       # data in IMR
       mask = (data_import[:,0] > rangeIMR[0]) & (data_import[:,0] < rangeIMR[1])
       dataIMR = data_import[mask]

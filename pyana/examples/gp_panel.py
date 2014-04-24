@@ -7,7 +7,7 @@ from ..ccsgp.utils import getOpts
 from ..ccsgp.config import default_colors
 
 medium_opts = 'with filledcurves lt 1 lw 4 pt 0 lc %s' % default_colors[8]
-cocktail_opts = 'with lines lc 0 lw 5 lt 1'
+cocktail_opts = 'with lines lc %s lw 5 lt 1' % default_colors[-2]
 data_opts = 'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0]
 
 def gp_panel(version, skip):
@@ -43,7 +43,7 @@ def gp_panel(version, skip):
         [ '+medium', 'cocktail', 'data' ] if len(data[k]) > 2
         else [ 'cocktail', 'data' ]
       ]) for k in sorted(data, key=float)
-    ), # 'lc 0' works here because no error plotting necessary
+    ),
     name = os.path.join(
       outDir, 'panel%s%s' % (version, 'No'+skip if skip is not None else '')
     ),
