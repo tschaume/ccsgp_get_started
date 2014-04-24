@@ -1,4 +1,4 @@
-import logging, argparse, os, sys, re, math
+import logging, argparse, os, sys, re, math, random
 import numpy as np
 from fnmatch import fnmatch
 from collections import OrderedDict
@@ -7,6 +7,7 @@ from ..ccsgp.ccsgp import make_plot
 from ..ccsgp.utils import getOpts
 from ..ccsgp.config import default_colors
 from pymodelfit import LinearModel
+from uncertainties import ufloat
 
 cocktail_style = 'with filledcurves pt 0 lc %s lw 5 lt 1' % default_colors[8]
 medium_style = 'with lines lc %s lw 5 lt 2' % default_colors[4]
@@ -40,6 +41,7 @@ def gp_stack(version, energies, inclMed, inclFits):
   dataIMRfit, cocktailIMRfit, dataTvsS = OrderedDict(), OrderedDict(), OrderedDict()
   linmod = LinearModel()
   rangeIMR = [1.15, 2.5]
+  nPtsMC = 10 # number of MC points per data point
   for filename in os.listdir(inDir):
     energy = re.compile('\d+').search(filename).group()
     data_type = re.sub('%s\.dat' % energy, '', filename)
@@ -49,15 +51,43 @@ def gp_stack(version, energies, inclMed, inclFits):
     ) else np.loadtxt(open(file_url, 'rb'))
     # fit IMR region with exp(-M/kT+C)
     if inclFits and energies is None and (data_type == 'data' or data_type == 'cocktail'):
+      # data in IMR
       mask = (data_import[:,0] > rangeIMR[0]) & (data_import[:,0] < rangeIMR[1])
       dataIMR = data_import[mask]
+      # exp fit in IMR region -> slope parameter
       mIMR, bIMR = linmod.fitErrxy(
           dataIMR[:,0], np.log10(dataIMR[:,1]), dataIMR[:,2],
           np.log10(dataIMR[:,3]) # TODO: include syst. uncertainties
       )
       slope_par = -1./mIMR
       logging.info('%s: m = %g , b = %g => T = %g' % (filename, mIMR, bIMR, slope_par))
-      #print linmod.getCov() # TODO: errors
+      # Monte-Carlo the datapoints within dx/dy -> parameter mean & std.dev.
+      if data_type == 'data':
+        # one random generator per x,y for each data point in IMR
+        rndm = OrderedDict((ax,[]) for ax in ['x','y'])
+        rndm_jump = 0
+        for i in xrange(len(dataIMR)): # for each datapoint
+          logging.info(('MC %d: x = {}, y = {}' % i).format(
+            ufloat(dataIMR[i,0], dataIMR[i,2]),
+            ufloat(dataIMR[i,1], dataIMR[i,3]) # TODO: syst. uncertainties
+          ))
+          for ax in rndm: # for each axis
+            rndm[ax].append(random.Random())
+            if ax == 'y' and i == 0: # jumpahead y-axis
+              rndm[ax][i].setstate(rndm['x'][i].getstate())
+              rndm[ax][i].jumpahead(nPtsMC)
+            if i > 0: # jumpahead within axes
+              rndm[ax][i].setstate(rndm[ax][i-1].getstate())
+              rndm[ax][i].jumpahead(nPtsMC)
+          for n in xrange(nPtsMC): # generate nPtsMC new points for current datapoint
+            xMC = rndm['x'][i].uniform(
+              dataIMR[i,0] - dataIMR[i,2], dataIMR[i,0] + dataIMR[i,2]
+            )
+            yMC = rndm['y'][i].uniform(
+              dataIMR[i,1] - dataIMR[i,3], dataIMR[i,1] + dataIMR[i,3]
+            )
+            logging.info(' %d: x = %g, y = %g' % (n, xMC, yMC))
+      # set IMR slope datapoint
       IMRfit = np.array([ [x, math.pow(10.,mIMR*x+bIMR), 0., 0., 0.] for x in rangeIMR ])
       IMRfit[:,(1,3,4)] *= shift[energy]
       if data_type == 'data': dataIMRfit[energy] = IMRfit
