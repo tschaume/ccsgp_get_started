@@ -33,6 +33,7 @@ def gp_stack(version, energies, inclMed, inclFits):
   :param version: plot version / input subdir name
   :type version: str
   """
+  inclMed = (inclMed and version != 'QM12')
   inclFits = (inclFits and version == 'LatestPatrickJieYi')
   shift = {
     '200': 200., '62': 15., '39': 0.5, '27': 0.01, '19': 1e-4
