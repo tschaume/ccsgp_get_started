@@ -15,6 +15,11 @@ dataIMRfit_style = 'with lines lc %s lw 5 lt 1' % default_colors[-2]
 cocktailIMRfit_style = 'with lines lc %s lw 5 lt 2' % default_colors[-2]
 pseudo_point = np.array([ [-1,1e-7,0,0,1] ])
 
+def truncated_gaus(r, mu, sig):
+    while 1:
+        x = r.gauss(mu, sig)
+        if x > 0: return x
+
 def gp_stack(version, energies, inclMed, inclFits):
   """example for a plot w/ stacked graphs using QM12 data (see gp_panel)
 
@@ -66,10 +71,10 @@ def gp_stack(version, energies, inclMed, inclFits):
         # one random generator per x,y for each data point in IMR
         rndm = OrderedDict((ax,[]) for ax in ['x','y'])
         rndm_jump = 0
-        for i in xrange(len(dataIMR)): # for each datapoint
+        dataMC = OrderedDict((n, []) for n in xrange(nPtsMC))
+        for i,dp in enumerate(dataIMR): # for each datapoint
           logging.info(('MC %d: x = {}, y = {}' % i).format(
-            ufloat(dataIMR[i,0], dataIMR[i,2]),
-            ufloat(dataIMR[i,1], dataIMR[i,3]) # TODO: syst. uncertainties
+            ufloat(dp[0], dp[2]), ufloat(dp[1], dp[3]) # TODO: syst. uncertainties
           ))
           for ax in rndm: # for each axis
             rndm[ax].append(random.Random())
@@ -80,13 +85,15 @@ def gp_stack(version, energies, inclMed, inclFits):
               rndm[ax][i].setstate(rndm[ax][i-1].getstate())
               rndm[ax][i].jumpahead(nPtsMC)
           for n in xrange(nPtsMC): # generate nPtsMC new points for current datapoint
-            xMC = rndm['x'][i].uniform(
-              dataIMR[i,0] - dataIMR[i,2], dataIMR[i,0] + dataIMR[i,2]
-            )
-            yMC = rndm['y'][i].uniform(
-              dataIMR[i,1] - dataIMR[i,3], dataIMR[i,1] + dataIMR[i,3]
-            )
-            logging.info(' %d: x = %g, y = %g' % (n, xMC, yMC))
+            dataMC[n].append([
+              rndm['x'][i].uniform(dp[0] - dp[2], dp[0] + dp[2]),
+              truncated_gaus(rndm['y'][i], dp[1], dp[3])
+            ])
+            logging.info(' %d: x = %g, y = %g' % (n, dataMC[n][i][0], dataMC[n][i][1]))
+        for dp in dataMC.itervalues():
+          dp = np.array(dp)
+          print linmod.fitData(dp[:,0], np.log10(dp[:,1]))
+        return 'done'
       # set IMR slope datapoint
       IMRfit = np.array([ [x, math.pow(10.,mIMR*x+bIMR), 0., 0., 0.] for x in rangeIMR ])
       IMRfit[:,(1,3,4)] *= shift[energy]
