@@ -6,10 +6,6 @@ from ..ccsgp.ccsgp import make_panel
 from ..ccsgp.utils import getOpts
 from ..ccsgp.config import default_colors
 
-medium_opts = 'with filledcurves lt 1 lw 4 pt 0 lc %s' % default_colors[8]
-cocktail_opts = 'with lines lc %s lw 5 lt 1' % default_colors[-2]
-data_opts = 'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0]
-
 def gp_panel(version, skip):
   """example for a panel plot using QM12 data (see gp_xfac)
 
@@ -32,16 +28,20 @@ def gp_panel(version, skip):
     if data_type == 'cocktail': data_import[:,2:] = 0.
     elif data_type == '+medium': data_import[:,2] = 0.
     key = getEnergy4Key(energy)
-    if key not in data: data[key] = [ data_import ]
-    else: data[key].append(data_import)
+    if key not in data: data[key] = {}
+    data[key][data_type] = data_import
+  plot_order = ['+medium', 'cocktail', 'data']
+  plot_opts = {
+    '+medium': 'with filledcurves lt 1 lw 4 pt 0 lc %s' % default_colors[8],
+    'cocktail': 'with lines lc %s lw 5 lt 1' % default_colors[-2],
+    'data': 'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0]
+  }
   make_panel(
     dpt_dict = OrderedDict(
       (' '.join([k, 'GeV']), [
-        data[k],
-        [ medium_opts, cocktail_opts, data_opts ] if len(data[k]) > 2
-        else [ cocktail_opts, data_opts],
-        [ '+medium', 'cocktail', 'data' ] if len(data[k]) > 2
-        else [ 'cocktail', 'data' ]
+        [ data[k][dt] for dt in plot_order if dt in data[k] ],
+        [ plot_opts[dt] for dt in plot_order if dt in data[k] ],
+        [ dt for dt in plot_order if dt in data[k] ]
       ]) for k in sorted(data, key=float)
     ),
     name = os.path.join(
