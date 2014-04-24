@@ -46,7 +46,7 @@ def gp_stack(version, energies, inclMed, inclFits):
   dataIMRfit, cocktailIMRfit, dataTvsS = OrderedDict(), OrderedDict(), OrderedDict()
   linmod = LinearModel()
   rangeIMR = [1.15, 2.5]
-  nPtsMC = 10 # number of MC points per data point
+  nPtsMC = 1000 # number of MC points per data point
   for filename in os.listdir(inDir):
     energy = re.compile('\d+').search(filename).group()
     data_type = re.sub('%s\.dat' % energy, '', filename)
@@ -89,11 +89,20 @@ def gp_stack(version, energies, inclMed, inclFits):
               rndm['x'][i].uniform(dp[0] - dp[2], dp[0] + dp[2]),
               truncated_gaus(rndm['y'][i], dp[1], dp[3])
             ])
-            logging.info(' %d: x = %g, y = %g' % (n, dataMC[n][i][0], dataMC[n][i][1]))
+            #logging.info(' %d: x = %g, y = %g' % (n, dataMC[n][i][0], dataMC[n][i][1]))
+        mIMRMC = []
         for dp in dataMC.itervalues():
           dp = np.array(dp)
-          print linmod.fitData(dp[:,0], np.log10(dp[:,1]))
-        return 'done'
+          mIMRMC.append([
+            linmod.fitBasic(dp[:,0], np.log10(dp[:,1]))[0][0],
+            linmod.stdData(x=dp[:,0], y=np.log10(dp[:,1]))
+          ])
+        mIMRMC = np.array(mIMRMC)
+        weights = 1./mIMRMC[:,1]
+        mIMRMC_avg = np.average(mIMRMC[:,0], weights=weights)
+        mIMRMC_var = np.average((mIMRMC[:,0]-mIMRMC_avg)**2, weights=weights)
+        umIMR = ufloat(mIMRMC_avg, math.sqrt(mIMRMC_var))
+        logging.info(('=> %g == {}' % mIMR).format(umIMR))
       # set IMR slope datapoint
       IMRfit = np.array([ [x, math.pow(10.,mIMR*x+bIMR), 0., 0., 0.] for x in rangeIMR ])
       IMRfit[:,(1,3,4)] *= shift[energy]
