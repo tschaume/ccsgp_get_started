@@ -11,8 +11,9 @@ from examples.gp_ptspec import gp_ptspec
 #from examples.gp_xfac import gp_xfac # TODO: produce dynamically in gp_rdiff
 
 versions = [
-    'QM12', 'QM12Incl39', 'QM12Latest200', 'Latest19200_PatrickQM12',
-    'LatestBingchuJoeyPatrickJieYi', 'LatestPatrickJieYi'
+    'QM12', 'QM12Incl39', 'QM12InclMed', 'QM12Latest200',
+    'Latest19200_PatrickQM12', 'LatestBingchuJoeyPatrickJieYi',
+    'LatestPatrickJieYi'
 ]
 ltf = [True, False]
 ltf_perms = [zip(x,ltf) for x in permutations(ltf, len(ltf))]
