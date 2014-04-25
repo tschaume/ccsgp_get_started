@@ -7,6 +7,7 @@ from .utils import getUArray, getEdges, getCocktailSum, enumzipEdges, getMassRan
 from ..ccsgp.ccsgp import make_plot
 from ..ccsgp.utils import getOpts, zip_flat
 from ..ccsgp.config import default_colors
+from uncertainties import ufloat
 
 def gp_rdiff(version, nomed, noxerr, diffRel):
   """example for ratio or difference plots using QM12 data (see gp_panel)
@@ -144,9 +145,54 @@ def gp_rdiff(version, nomed, noxerr, diffRel):
     ]
   )
 
+  if nomed or noxerr or version == 'QM12': return 'done'
+
+  # integrated enhancement factor
+  if diffRel:
+    enhance = {} # not used really
+    data_enhance, medium_enhance = None, None
+    print data.keys()
+    for energy in sorted(data, key=float):
+      uEnhanceData = getMassRangesSums(
+        energy, data[energy], enhance, onlyLMR = True, suffix = ''
+      )
+      CocktailLMR = getMassRangesSums(
+        energy, cocktail[energy], enhance, onlyLMR = True, suffix = '_c'
+      )
+      uEnhanceData /= CocktailLMR
+      dp = [ float(energy), uEnhanceData.nominal_value, 0, 0, uEnhanceData.std_dev ]
+      if data_enhance is None: data_enhance = [ dp ]
+      else: data_enhance.append(dp)
+      if energy in medium:
+        uEnhanceMed = getMassRangesSums(
+          energy, medium[energy], enhance, onlyLMR = True, suffix = '_m'
+        )
+        uEnhanceMed /= CocktailLMR
+        dpM = [ float(energy), uEnhanceMed.nominal_value, 0, 0, 0 ]
+        if medium_enhance is None: medium_enhance = [ dpM ]
+        else: medium_enhance.append(dpM)
+    make_plot(
+      data = [ np.array(data_enhance), np.array(medium_enhance) ],
+      properties = [
+          'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0],
+          'with linespoints lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[1],
+          ],
+      titles = [ 'data / cocktail', 'medium / cocktail' ],
+      name = os.path.join(outDir, 'enhance%s' % version),
+      xlabel = '{/Symbol \326}s_{NN} (GeV)',
+      ylabel = 'LMR Enhancement Factor for %.2f < M_{ee} < %.2f GeV/c^{2}' % (
+        eRanges[1], eRanges[2]
+      ),
+      lmargin = 0.08, xlog = True, key = ['width -4'],
+      yr = [0.5,7], xr = [15,220],
+      gpcalls = [
+        'format x "%g"',
+        'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
+      ], labels = labels
+    )
+    return 'done'
+
   # integrated excess yield in mass ranges
-  # TODO: integrated enhancement factor (if diffRel)
-  if diffRel or nomed or noxerr or version == 'QM12': return 'done'
   excess = {}
   for k, v in dataOrdered.iteritems():
     suffix = ''
@@ -160,14 +206,13 @@ def gp_rdiff(version, nomed, noxerr, diffRel):
         'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0],
         'with linespoints lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[1],
         ],
-    titles = [ 'data - cocktail', 'medium' ],
+    titles = [ 'data - cocktail', 'medium yield' ],
     name = os.path.join(outDir, 'excess%s' % version),
     xlabel = '{/Symbol \326}s_{NN} (GeV)',
     ylabel = 'LMR Excess Yield for %.2f < M_{ee} < %.2f ({/Symbol \264} 10^{-3})' % (
       eRanges[1], eRanges[2]
     ),
-    lmargin = 0.08, xlog = True, #xr = [0.2,0.76],
-    key = ['width -4'],
+    lmargin = 0.08, xlog = True, xr = [15,220], key = ['width -4'],
     yr = [0,3], gpcalls = [
       'format x "%g"',
       'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',

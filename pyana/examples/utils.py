@@ -114,6 +114,7 @@ def getMassRangesSums(energy, indata, outdata, onlyLMR = False, suffix = ""):
     key = mass_titles[i] + suffix
     if key in outdata: outdata[key].append(dp)
     else: outdata[key] = [ dp ]
+    if onlyLMR: return uSum
 
 def getEnergy4Key(energy):
   if energy == '19': return '19.6'
