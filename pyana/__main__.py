@@ -50,7 +50,8 @@ if __name__ == '__main__':
         if inDirExists('gp_rdiff', v):
             for nomed,noxerr in ltf_combs:
                 logging.info('gp_rdiff: %s %d %d' % (v, nomed, noxerr))
-                gp_rdiff(v, nomed, noxerr)
+                gp_rdiff(v, nomed, noxerr, False) # absolute
+                gp_rdiff(v, nomed, noxerr, True) # relative
     if inBaseDirExists('gp_ptspec'):
         logging.info('gp_ptspec')
         gp_ptspec()
