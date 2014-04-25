@@ -30,6 +30,8 @@ def getSubplotTitle(mn, mr):
 
 def gp_ptspec():
   """example for a 2D-panel plot (TODO)"""
+  fenergies = ['19', '27', '39', '62']
+  nen = len(fenergies)
   mee_keys = ['pi0', 'LMR', 'omega', 'phi', 'IMR', 'jpsi']
   mee_dict = OrderedDict((k,'') for k in mee_keys)
   yscale = { '62': '1e6', '39': '1e4', '27': '1e2', '19': '1.' }
@@ -67,21 +69,23 @@ def gp_ptspec():
     yvals += [v for v in data[filebase][:,1] if v > 0]
     # prepare dict for panel plot
     dpt_dict_key = getSubplotTitle(mee_name, mee_range)
-    if dpt_dict_key not in dpt_dict: dpt_dict[dpt_dict_key] = [ [], [], [] ]
-    col = len(dpt_dict[dpt_dict_key][1]) # TODO: fix colors to match between data/cocktail
-    dpt_dict[dpt_dict_key][0].append(data[filebase]) # data
-    dpt_dict[dpt_dict_key][1].append( # properties
-      'lt 1 lw 4 ps 1.5 lc %s pt 18' % (default_colors[col])
-      if data_type == 'data' else
-      'with lines lt 1 lw 4 lc %s' % (default_colors[col])
-    )
-    dpt_dict[dpt_dict_key][2].append( # legend titles
-      ' '.join([
+    if dpt_dict_key not in dpt_dict:
+        dpt_dict[dpt_dict_key] = [ [None]*(nen*2), [None]*(nen*2), [None]*(nen*2) ]
+    enidx = fenergies.index(energy)
+    dsidx = (data_type == 'data') * nen + enidx
+    dpt_dict[dpt_dict_key][0][dsidx] = data[filebase] # data
+    if data_type == 'data': # properties
+      dpt_dict[dpt_dict_key][1][dsidx] = 'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[enidx]
+    else:
+      dpt_dict[dpt_dict_key][1][dsidx] = 'with lines lt 1 lw 4 lc %s' % default_colors[enidx]
+    dpt_dict[dpt_dict_key][2][dsidx] = ' '.join([ # legend titles
         getEnergy4Key(energy), 'GeV', '{/Symbol \264} 10^{%d}' % (
           Decimal(yscale[energy]).as_tuple().exponent
         )
       ]) if data_type == 'data' else ''
-    )
+  # use mass range in dict key to sort dpt_dict with increasing mass
+  plot_key_order = dpt_dict.keys()
+  plot_key_order.sort(key=lambda x: float(x.split(':')[1].split('-')[0]))
   # sort data_avpt by energy and apply x-shift for better visibility
   for k in data_avpt: data_avpt[k].sort(key=lambda x: x[0])
   energies = [ dp[0] for dp in data_avpt[mee_keys[0]] ]
@@ -96,7 +100,7 @@ def gp_ptspec():
   # make panel plot
   yMin, yMax = 0.5*min(yvals), 3*max(yvals)
   make_panel(
-    dpt_dict = dpt_dict,
+    dpt_dict = OrderedDict((k,dpt_dict[k]) for k in plot_key_order),
     name = os.path.join(outDir, 'ptspec'),
     ylabel = '1/N@_{mb}^{evt} d^{2}N@_{ee}^{acc.}/p_{T}dp_{T}dM_{ee} (c^4/GeV^3)',
     xlabel = 'dielectron transverse momentum, p_{T} (GeV/c)',
