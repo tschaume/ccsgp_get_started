@@ -8,10 +8,7 @@ from ..ccsgp.ccsgp import make_plot
 from ..ccsgp.utils import getOpts, zip_flat
 from ..ccsgp.config import default_colors
 
-xshift = 0.01
-yunit = 1.0e-3
-
-def gp_rdiff(version, nomed, noxerr):
+def gp_rdiff(version, nomed, noxerr, diffRel):
   """example for ratio or difference plots using QM12 data (see gp_panel)
 
   - uses uncertainties package for easier error propagation and rebinning
@@ -46,9 +43,11 @@ def gp_rdiff(version, nomed, noxerr):
     elif not nomed: medium[energy] = data_import
   nSetsData = len(data)
 
+  yunit = 1.0e-3 if not diffRel else 1.
   dataOrdered = OrderedDict()
   for energy in sorted(data, key=float):
     # data & bin edges
+    # getUArray propagates systematic uncertainty!
     uData = getUArray(data[energy])
     eData = getEdges(data[energy])
     uCocktail = getUArray(cocktail[energy])
@@ -63,28 +62,37 @@ def gp_rdiff(version, nomed, noxerr):
       for i, (e0, e1) in enumzipEdges(eArr):
         logging.debug('%s/%d> %g - %g:' % (energy, l, e0, e1))
         # get cocktail sum in data bin range
+        # value+/-syst.uncert.
         uCocktailSum = getCocktailSum(e0, e1, eCocktail, uCocktail)
         # calc. difference and divide by data binwidth again
         # + set data point
-        #xs = xshift if energy == '39' else 0.
-        xs = 0. # TODO: cannot use shift when calculating excess yield based on dataOrdered
         if not l:
-          uDiff = uData[i] - uCocktailSum
-          uDiff /= data[energy][i,2] * 2 * yunit
+          uDiff = uData[i] # value+/-syst.uncert.
+          if diffRel:
+            uDiff /= uCocktailSum # value+/-syst.uncert.
+          else:
+            uDiff -= uCocktailSum
+            uDiff /= data[energy][i,2] * 2 * yunit
           dp = [
-            data[energy][i,0] + xs, uDiff.nominal_value,
+            data[energy][i,0], uDiff.nominal_value,
             data[energy][i,2] if not noxerr else 0.,
-            data[energy][i,3] / yunit, uDiff.std_dev
+            # assume 0 for statistical error on cocktail
+            data[energy][i,3]*data[energy][i,2]*2/uCocktailSum.nominal_value
+            if diffRel else data[energy][i,3]/yunit, uDiff.std_dev
           ]
           key = ' '.join([energy, 'GeV'])
         else:
-          uDiff = uMedium[i] - uCocktailSum
-          uDiff /= medium[energy][i,2] * 2 * yunit
+          uDiff = uMedium[i]
+          if diffRel:
+            uDiff /= uCocktailSum
+          else:
+            uDiff -= uCocktailSum
+            uDiff /= medium[energy][i,2] * 2 * yunit
           # cut off medium/cocktail at omega
           if medium[energy][i,0] > 0.74:
             continue
           dp = [
-            medium[energy][i,0] + xs, uDiff.nominal_value,
+            medium[energy][i,0], uDiff.nominal_value,
             medium[energy][i,2] if not noxerr else 0.,
             0., 0. # uDiff.std_dev
           ]
@@ -111,7 +119,6 @@ def gp_rdiff(version, nomed, noxerr):
     ])
     titles = zip_flat(dataOrdered.keys()[::2], [''] * nSetsPlot)
   labels = {
-    #'{/Symbol \104}M_{ee}(39GeV) = +%g GeV/c^{2}' % xshift: [0.1, 0.9, False],
     'BES: STAR Preliminary' if version == 'QM12Latest200'
     else 'STAR Preliminary': [0.5,0.05,False],
     '200 GeV: [arXiv:1312.7397]' if version == 'QM12Latest200'
@@ -120,19 +127,26 @@ def gp_rdiff(version, nomed, noxerr):
   make_plot(
     data = [ np.array(d) for d in dataOrdered.values()],
     properties = props, titles = titles,
-    name = os.path.join(outDir, 'diffAbs%s%s%s' % (
-      version, 'NoMed' if nomed else '',
-      'NoXErr' if noxerr else ''
+    name = os.path.join(outDir, 'diff%s%s%s%s' % (
+      'Rel' if diffRel else 'Abs', version,
+      'NoMed' if nomed else '', 'NoXErr' if noxerr else ''
     )),
     xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
-    ylabel = '%s - (cocktail w/o {/Symbol \162}) ({/Symbol \264} 10^{-3})' % ylabel,
-    xr = [0.2,0.76], yr = [-1,10.3], labels = labels,
+    ylabel = '%s %s (cocktail w/o {/Symbol \162})%s' % (
+      ylabel, '/' if diffRel else '-',
+      '' if diffRel else ' ({/Symbol \264} 10^{-3})'
+    ), labels = labels, ylog = True,
+    xr = [0.2,0.76], yr = [0.7,11.5] if diffRel else [-1,10.3],
     key = ['at graph 1.,1.1', 'maxrows 1', 'width -1.5'],
-    lines = { 'x=0': 'lc 0 lw 4 lt 2' }
+    lines = { ('x=1' if diffRel else 'x=0'): 'lc 0 lw 4 lt 2' },
+    gpcalls = [
+      'format y "%g"', 'ytics (""0.8,""0.9,1,2,3,4,""5,6,""7,8,""9,10)'
+    ]
   )
 
   # integrated excess yield in mass ranges
-  if nomed or noxerr or version == 'QM12': return 'done'
+  # TODO: integrated enhancement factor (if diffRel)
+  if diffRel or nomed or noxerr or version == 'QM12': return 'done'
   excess = {}
   for k, v in dataOrdered.iteritems():
     suffix = ''
@@ -167,10 +181,11 @@ if __name__ == '__main__':
   parser.add_argument("version", help="version = subdir name of input dir")
   parser.add_argument("--nomed", help="don't plot medium", action="store_true")
   parser.add_argument("--noxerr", help="no dx errors", action="store_true")
+  parser.add_argument("--diffRel", help="plot relative difference (ratio)", action="store_true")
   parser.add_argument("--log", help="show log output", action="store_true")
   args = parser.parse_args()
   loglevel = 'DEBUG' if args.log else 'WARNING'
   logging.basicConfig(
     format='%(message)s', level=getattr(logging, loglevel)
   )
-  print gp_rdiff(args.version, args.nomed, args.noxerr)
+  print gp_rdiff(args.version, args.nomed, args.noxerr, args.diffRel)
