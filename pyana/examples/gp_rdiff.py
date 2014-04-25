@@ -92,6 +92,9 @@ def gp_rdiff(version, nomed, noxerr):
         # build list of data points
         if key in dataOrdered: dataOrdered[key].append(dp)
         else: dataOrdered[key] = [ dp ]
+    if energy not in medium: # add pseudo-data for missing medium (27GeV)
+      key = ' '.join([energy, 'GeV (Med.)'])
+      dataOrdered[key] = [ [0.1,-1,0,0,0], [1,-1,0,0,0] ]
 
   # make plot
   nSets = len(dataOrdered)
@@ -170,4 +173,4 @@ if __name__ == '__main__':
   logging.basicConfig(
     format='%(message)s', level=getattr(logging, loglevel)
   )
-  print gp_rdiff(version, nomed, noxerr)
+  print gp_rdiff(args.version, args.nomed, args.noxerr)
