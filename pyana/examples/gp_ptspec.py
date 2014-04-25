@@ -104,9 +104,9 @@ def gp_ptspec():
     name = os.path.join(outDir, 'ptspec'),
     ylabel = '1/N@_{mb}^{evt} d^{2}N@_{ee}^{acc.}/p_{T}dp_{T}dM_{ee} (c^4/GeV^3)',
     xlabel = 'dielectron transverse momentum, p_{T} (GeV/c)',
-    ylog = True, xr = [0, 1.05], yr = [yMin, yMax],
+    ylog = True, xr = [0, 1.05], yr = [1e-6, 5e9],
     lmargin = 0.045, bmargin = 0.15, rmargin = 0.998,
-    key = ['bottom left', 'samplen 0.5', 'width -1'],
+    key = ['bottom left', 'samplen 0.5', 'width -1', 'opaque'],
     arrow_bar = 0.002,
   )
   # make mean pt plot
