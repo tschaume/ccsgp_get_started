@@ -136,13 +136,13 @@ def gp_rdiff(version, nomed, noxerr, diffRel):
     ylabel = '%s %s (cocktail w/o {/Symbol \162})%s' % (
       ylabel, '/' if diffRel else '-',
       '' if diffRel else ' ({/Symbol \264} 10^{-3})'
-    ), labels = labels, ylog = True,
+    ), labels = labels, ylog = diffRel,
     xr = [0.2,0.76], yr = [0.7,11.5] if diffRel else [-1,10.3],
     key = ['at graph 1.,1.1', 'maxrows 1', 'width -1.5'],
     lines = { ('x=1' if diffRel else 'x=0'): 'lc 0 lw 4 lt 2' },
     gpcalls = [
       'format y "%g"', 'ytics (""0.8,""0.9,1,2,3,4,""5,6,""7,8,""9,10)'
-    ]
+    ] if diffRel else []
   )
 
   if nomed or noxerr or version == 'QM12': return 'done'
