@@ -123,7 +123,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel):
     'BES: STAR Preliminary' if version == 'QM12Latest200'
     else 'STAR Preliminary': [0.5,0.05,False],
     '200 GeV: [arXiv:1312.7397]' if version == 'QM12Latest200'
-    else '': [0.25,0.93,False]
+    else '': [0.1,0.93,False]
   }
   make_plot(
     data = [ np.array(d) for d in dataOrdered.values()],
@@ -180,7 +180,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel):
       titles = [ 'data / cocktail', 'medium / cocktail' ],
       name = os.path.join(outDir, 'enhance%s' % version),
       xlabel = '{/Symbol \326}s_{NN} (GeV)',
-      ylabel = 'LMR Enhancement Factor for %.2f < M_{ee} < %.2f GeV/c^{2}' % (
+      ylabel = 'LMR X-Factor for %.2f < M_{ee} < %.2f GeV/c^{2}' % (
         eRanges[1], eRanges[2]
       ),
       lmargin = 0.08, xlog = True, key = ['width -4'],
