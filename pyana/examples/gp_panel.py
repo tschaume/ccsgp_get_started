@@ -50,12 +50,14 @@ def gp_panel(version, skip):
     ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
     xlabel = 'invariant dielectron mass, M_{ee} (GeV/c^{2})',
     ylog = True, xr = [0, 1.1], yr = [1e-4, 20],
-    lmargin = 0.1, bmargin = 0.15,
+    lmargin = 0.12 if version == 'LatestPatrickJieYi' else 0.1,
+    bmargin = 0.11 if version == 'LatestPatrickJieYi' else 0.15,
     arrow_length = 0.4, arrow_bar = 0.002,
     gpcalls = ['mxtics 2'] + (['label %d "" at graph 0.4,0.7' % (
       8 if skip is None else 6
     )] if version == 'QM12Latest200' else []),
-    labels = {'STAR Preliminary': [0.4,0.7,False]}
+    labels = {'STAR Preliminary': [0.4,0.7,False]},
+    layout = '3x2' if version == 'LatestPatrickJieYi' else ('%dx1' % len(data))
   )
   return 'done'
 
