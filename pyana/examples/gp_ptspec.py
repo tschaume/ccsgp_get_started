@@ -59,25 +59,39 @@ def gp_ptspec():
     )).format(avpt)) # TODO: syst. uncertainties
     # save datapoint for average pT and append to yvalsPt for yaxis range
     dp = [ float(getEnergy4Key(energy)), avpt.nominal_value, 0., avpt.std_dev, 0. ]
-    avpt_key = mee_name if data_type == 'data' else mee_name + '_c'
-    if avpt_key in data_avpt: data_avpt[avpt_key].append(dp)
-    else: data_avpt[avpt_key] = [ dp ]
-    yvalsPt.append(avpt.nominal_value)
+    avpt_key = mee_name
+    if data_type == 'cocktail': avpt_key += '_c'
+    if data_type != 'medium': # TODO: include +medium in mean_pT
+        if avpt_key in data_avpt: data_avpt[avpt_key].append(dp)
+        else: data_avpt[avpt_key] = [ dp ]
+        yvalsPt.append(avpt.nominal_value)
     # now adjust data for panel plot and append to yvals
     data[filebase][:,(1,3,4)] *= float(yscale[energy])
-    if data_type == 'cocktail': data[filebase][:,2:] = 0.
+    if data_type == 'cocktail' or data_type == 'medium':
+        data[filebase][:,2:] = 0.
     yvals += [v for v in data[filebase][:,1] if v > 0]
     # prepare dict for panel plot
     dpt_dict_key = getSubplotTitle(mee_name, mee_range)
     if dpt_dict_key not in dpt_dict:
-        dpt_dict[dpt_dict_key] = [ [None]*(nen*2), [None]*(nen*2), [None]*(nen*2) ]
+        ndsets = nen*2
+        if mee_name == 'LMR': ndsets += 2 # TODO: currently only 39/62 medium avail.
+        dpt_dict[dpt_dict_key] = [ [None]*ndsets, [None]*ndsets, [None]*ndsets ]
     enidx = fenergies.index(energy)
-    dsidx = (data_type == 'data') * nen + enidx
+    dsidx = 0
+    if data_type != 'cocktail': # data or medium
+        dsidx += nen
+        if mee_name == 'LMR': # account for medium calc
+            if data_type == 'data': dsidx += 2 + enidx
+            else: dsidx += (energy=='62')
+        else: dsidx += enidx # no medium calc avail. in this mass region
+    else: dsidx += enidx # cocktail
     dpt_dict[dpt_dict_key][0][dsidx] = data[filebase] # data
     if data_type == 'data': # properties
       dpt_dict[dpt_dict_key][1][dsidx] = 'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[enidx]
-    else:
+    elif data_type == 'cocktail':
       dpt_dict[dpt_dict_key][1][dsidx] = 'with lines lt 1 lw 4 lc %s' % default_colors[enidx]
+    else:
+      dpt_dict[dpt_dict_key][1][dsidx] = 'with lines lt 2 lw 4 lc %s' % default_colors[enidx]
     dpt_dict[dpt_dict_key][2][dsidx] = ' '.join([ # legend titles
         getEnergy4Key(energy), 'GeV', '{/Symbol \264} 10^{%d}' % (
           Decimal(yscale[energy]).as_tuple().exponent
