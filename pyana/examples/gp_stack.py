@@ -10,6 +10,7 @@ from pymodelfit import LinearModel
 from uncertainties import ufloat
 
 cocktail_style = 'with filledcurves pt 0 lc %s lw 5 lt 1' % default_colors[8]
+cocktail_style_contrib = 'with lines lc %s lw 3 lt 2' % default_colors[8]
 medium_style = 'with lines lc %s lw 5 lt 2' % default_colors[4]
 dataIMRfit_style = 'with lines lc %s lw 5 lt 1' % default_colors[-2]
 cocktailIMRfit_style = 'with lines lc %s lw 5 lt 2' % default_colors[-2]
@@ -46,13 +47,26 @@ def gp_stack(version, energies, inclMed, inclFits):
   inDir = os.path.join(inDir, version)
   data, cocktail, medium = OrderedDict(), OrderedDict(), OrderedDict()
   dataIMRfit, cocktailIMRfit, dataTvsS = OrderedDict(), OrderedDict(), OrderedDict()
+  cocktailContribs = OrderedDict()
   linmod = LinearModel()
   rangeIMR = [1.15, 2.5]
   nPtsMC = 1000 # number of MC points per data point
   for filename in os.listdir(inDir):
+    file_url = os.path.join(inDir, filename)
+    # take care of cocktail contributions first
+    if os.path.isdir(file_url):
+        for fn in os.listdir(file_url):
+            energy = re.compile('\d+').search(fn).group()
+            particle = re.sub('%s\.dat' % energy, '', fn)
+            cocktailContribs[particle] = np.loadtxt(open(
+                os.path.join(file_url, fn), 'rb'
+            ))
+            cocktailContribs[particle][:,(1,3,4)] *= shift[energy]
+            cocktailContribs[particle][:,2:] = 0
+        continue
+    # normal input files
     energy = re.compile('\d+').search(filename).group()
     data_type = re.sub('%s\.dat' % energy, '', filename)
-    file_url = os.path.join(inDir, filename)
     data_import = np.array([[-1, 1, 0, 0, 0]]) if (
       energies is not None and energy not in energies
     ) else np.loadtxt(open(file_url, 'rb'))
@@ -146,24 +160,27 @@ def gp_stack(version, energies, inclMed, inclFits):
   cocktailIMRfitOrdered = OrderedDict((k, cocktailIMRfit[k]) for k in sorted(cocktailIMRfit, key=int))
   nSetsData, nSetsCocktail, nSetsMedium = len(dataOrdered), len(cocktail), len(medium)
   nSetsDataIMRfit, nSetsCocktailIMRfit = len(dataIMRfitOrdered), len(cocktailIMRfitOrdered)
+  nSetsCocktailContribs = len(cocktailContribs)
   yr_low = 3e-7 if version == 'QM12' else 1e-10
   if version == 'Latest19200_PatrickQM12': yr_low = 1e-7
   if version == 'QM12Latest200': yr_low = 2e-6
   make_plot(
-    data = cocktailOrdered.values() + ([ pseudo_point ] if inclMed else [])
+    data = cocktailContribs.values()
+    + cocktailOrdered.values() + ([ pseudo_point ] if inclMed else [])
     + mediumOrdered.values() + [ pseudo_point ] + dataOrdered.values()
     + dataIMRfitOrdered.values() + ([ pseudo_point ] if inclFits else [])
     + cocktailIMRfitOrdered.values() + ([ pseudo_point ] if inclFits else []),
-    properties = [ cocktail_style ] * (nSetsCocktail+1) + [ medium_style ] *
-    (nSetsMedium+bool(nSetsMedium)) + [
+    properties = [ cocktail_style_contrib ] * nSetsCocktailContribs
+    + [ cocktail_style ] * (nSetsCocktail+1)
+    + [ medium_style ] * (nSetsMedium+bool(nSetsMedium)) + [
       'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i]
       for i in xrange(nSetsData)
     ] + [ dataIMRfit_style ] * (nSetsDataIMRfit+1)
     + [ cocktailIMRfit_style ] * (nSetsCocktailIMRfit+1),
-    titles = [''] * nSetsCocktail + ['Cocktail w/o {/Symbol \162}'] + [''] *
-    nSetsMedium + ['+ Medium'] * bool(nSetsMedium) + dataOrdered.keys() +
-    [''] * nSetsDataIMRfit + ['IMR fit data'] * inclFits +
-    [''] * nSetsCocktailIMRfit + ['IMR fit cock.'] * inclFits,
+    titles = [''] * (nSetsCocktailContribs+nSetsCocktail) + ['Cocktail w/o {/Symbol \162}']
+    + [''] * nSetsMedium + ['+ Medium'] * bool(nSetsMedium) + dataOrdered.keys() +
+    [''] * nSetsDataIMRfit + [''] * inclFits +
+    [''] * nSetsCocktailIMRfit + [''] * inclFits,
     name = os.path.join(outDir, 'stack%s%s%s%s' % (
       version, 'InclMed' if inclMed else '', 'InclFits' if inclFits else '',
       '_' + '-'.join(energies) if energies is not None else ''
