@@ -220,6 +220,54 @@ def gp_rdiff(version, nomed, noxerr, diffRel):
   )
   return 'done'
 
+def gp_rdiff_merged(version):
+  # merge plots for excess yields and enhancement factors if output files exist
+  inDir, outDir = getWorkDirs() # inDir not used
+  enhance_datdir = os.path.join(outDir, 'enhance%s' % version)
+  excess_datdir = os.path.join(outDir, 'excess%s' % version)
+  if os.path.exists(enhance_datdir) and os.path.exists(excess_datdir):
+      data = OrderedDict([
+          ('data - cocktail', np.loadtxt(
+              open(os.path.join(excess_datdir, 'data_cocktail.dat'), 'rb')
+          )),
+          ('data / cocktail', np.loadtxt(
+              open(os.path.join(enhance_datdir, 'data_cocktail.dat'), 'rb')
+          )),
+          ('medium yield', np.loadtxt(
+              open(os.path.join(excess_datdir, 'medium_yield.dat'), 'rb')
+          )),
+          ('medium / cocktail', np.loadtxt(
+              open(os.path.join(enhance_datdir, 'medium_cocktail.dat'), 'rb')
+          ))
+      ])
+      xshift = 1.03
+      data['data / cocktail'][:,0] *= xshift
+      data['medium / cocktail'][:,0] *= xshift
+      make_plot(
+        data = data.values(),
+        properties = [
+          'lt 1 lw 4 ps 1.5 lc %s pt %d' % (default_colors[0], 18+i) for i in xrange(2)
+        ] + [
+          'with linespoints lt 1 lw 4 ps 1.5 lc %s pt %d' % (default_colors[1], 18+i)
+          for i in xrange(2)
+        ],
+        titles = data.keys(),
+        name = os.path.join(outDir, 'enhanceexcess%s' % version),
+        xlabel = '{/Symbol \326}s_{NN} (GeV)',
+        ylabel = 'LMR Excess Yield ({/Symbol \264} 10^{-3})',
+        lmargin = 0.03, rmargin = 0.93, xlog = True,
+        xr = [15,220], key = ['width -4'], yr = [0,7],
+        labels = {
+          '%.2f < M_{ee} < %.2f GeV/c^{2}' % (eRanges[1], eRanges[2]): [0.55,0.65,False]
+        },
+        gpcalls = [
+          'format x "%g"', 'y2label "LMR Enhancement Factor" offset -0.9',
+          'y2tics nomirror offset -0.5',
+          'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
+        ],
+      )
+  return 'done'
+
 if __name__ == '__main__':
   checkSymLink()
   parser = argparse.ArgumentParser()
@@ -234,3 +282,4 @@ if __name__ == '__main__':
     format='%(message)s', level=getattr(logging, loglevel)
   )
   print gp_rdiff(args.version, args.nomed, args.noxerr, args.diffRel)
+  print gp_rdiff_merged(args.version)
