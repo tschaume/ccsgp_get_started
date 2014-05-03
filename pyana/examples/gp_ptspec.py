@@ -74,15 +74,15 @@ def gp_ptspec():
     dpt_dict_key = getSubplotTitle(mee_name, mee_range)
     if dpt_dict_key not in dpt_dict:
         ndsets = nen*2
-        if mee_name == 'LMR': ndsets += 2 # TODO: currently only 39/62 medium avail.
+        if mee_name == 'LMR': ndsets += 3 # TODO: currently only 19/39/62 medium avail.
         dpt_dict[dpt_dict_key] = [ [None]*ndsets, [None]*ndsets, [None]*ndsets ]
     enidx = fenergies.index(energy)
     dsidx = 0
     if data_type != 'cocktail': # data or medium
         dsidx += nen
         if mee_name == 'LMR': # account for medium calc
-            if data_type == 'data': dsidx += 2 + enidx
-            else: dsidx += (energy=='62')
+            if data_type == 'data': dsidx += 3 + enidx
+            else: dsidx += (energy=='19')*0 + (energy=='39')*1 + (energy=='62')*2
         else: dsidx += enidx # no medium calc avail. in this mass region
     else: dsidx += enidx # cocktail
     dpt_dict[dpt_dict_key][0][dsidx] = data[filebase] # data

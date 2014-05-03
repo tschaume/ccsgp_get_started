@@ -33,11 +33,12 @@ def gp_rdiff(version, nomed, noxerr, diffRel):
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version)
   data, cocktail, medium = OrderedDict(), OrderedDict(), OrderedDict()
-  for file in os.listdir(inDir):
-    energy = re.compile('\d+').search(file).group()
-    data_type = re.sub('%s\.dat' % energy, '', file)
+  for infile in os.listdir(inDir):
+    if infile == "cocktail_contribs": continue
+    energy = re.compile('\d+').search(infile).group()
+    data_type = re.sub('%s\.dat' % energy, '', infile)
     energy = getEnergy4Key(energy)
-    file_url = os.path.join(inDir, file)
+    file_url = os.path.join(inDir, infile)
     data_import = np.loadtxt(open(file_url, 'rb'))
     if data_type == 'data': data[energy] = data_import[data_import[:,0] < 0.8]
     elif data_type == 'cocktail': cocktail[energy] = data_import

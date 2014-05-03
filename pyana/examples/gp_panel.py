@@ -18,11 +18,12 @@ def gp_panel(version, skip):
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version)
   data = {}
-  for file in os.listdir(inDir):
-    energy = re.compile('\d+').search(file).group()
+  for infile in os.listdir(inDir):
+    if infile == "cocktail_contribs": continue
+    energy = re.compile('\d+').search(infile).group()
     if skip is not None and energy == skip: continue
-    data_type = re.sub('%s\.dat' % energy, '', file)
-    file_url = os.path.join(inDir, file)
+    data_type = re.sub('%s\.dat' % energy, '', infile)
+    file_url = os.path.join(inDir, infile)
     data_import = np.loadtxt(open(file_url, 'rb'))
     data_import = data_import[data_import[:,0] < 1.1]
     if data_type == 'cocktail': data_import[:,2:] = 0.
