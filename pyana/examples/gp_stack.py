@@ -9,17 +9,27 @@ from ..ccsgp.config import default_colors
 from pymodelfit import LinearModel
 from uncertainties import ufloat
 
-cocktail_style = 'with filledcurves pt 0 lc %s lw 5 lt 1' % default_colors[8]
-cocktail_style_contrib = 'with lines lc %s lw 3 lt 2' % default_colors[8]
-medium_style = 'with lines lc %s lw 5 lt 2' % default_colors[4]
-dataIMRfit_style = 'with lines lc %s lw 5 lt 1' % default_colors[-2]
-cocktailIMRfit_style = 'with lines lc %s lw 5 lt 2' % default_colors[-2]
+cocktail_style = 'with filledcurves pt 0 lc %s lw 4 lt 1' % default_colors[8]
+medium_style = 'with lines lc %s lw 4 lt 2' % default_colors[4]
+dataIMRfit_style = 'with lines lc %s lw 4 lt 1' % default_colors[-2]
+cocktailIMRfit_style = 'with lines lc %s lw 4 lt 2' % default_colors[-2]
 pseudo_point = np.array([ [-1,1e-7,0,0,1] ])
 
 def truncated_gaus(r, mu, sig):
     while 1:
         x = r.gauss(mu, sig)
         if x > 0: return x
+
+def particleLabel4Key(k):
+    if k == 'pion': return '{/Symbol \160}^0 {/Symbol \256} e^{+}e^{-}{/Symbol \147}'
+    if k == 'eta': return '{/Symbol \150} {/Symbol \256} e^{+}e^{-}{/Symbol \147}'
+    if k == 'etap': return '{/Symbol \150}\' {/Symbol \256} e^{+}e^{-}{/Symbol \147}'
+    if k == 'omega': return '{/Symbol \167} {/Symbol \256} e^{+}e^{-}({/Symbol \160})'
+    if k == 'phi': return '{/Symbol \146} {/Symbol \256} e^{+}e^{-}({/Symbol \150})'
+    if k == 'jpsi': return 'J/{/Symbol \171} {/Symbol \256} e^{+}e^{-}'
+    if k == 'ccbar':
+        return 'c@^{/=18-}c {/Symbol \256} D/{/Symbol \514} {/Symbol \256} e^{+}e^{-}'
+    return k
 
 def gp_stack(version, energies, inclMed, inclFits):
   """example for a plot w/ stacked graphs using QM12 data (see gp_panel)
@@ -37,7 +47,7 @@ def gp_stack(version, energies, inclMed, inclFits):
   inclMed = (inclMed and version != 'QM12')
   inclFits = (inclFits and version == 'LatestPatrickJieYi')
   shift = {
-    '200': 200., '62': 15., '39': 0.5, '27': 0.01, '19': 1e-4
+    '200': 200., '62': 15., '39': 0.5, '27': 0.01, '19': 2e-4
   } if (
     version != 'QM12' and version != 'Latest19200_PatrickQM12' and version != 'QM12Latest200'
   ) else {
@@ -61,6 +71,11 @@ def gp_stack(version, energies, inclMed, inclFits):
             cocktailContribs[particle] = np.loadtxt(open(
                 os.path.join(file_url, fn), 'rb'
             ))
+            if particle == 'omega' or particle == 'phi' or particle == 'ccbar':
+                thr = 0.95 if particle == 'omega' else 1.4
+                if particle == 'ccbar': thr = 2.6
+                mask = cocktailContribs[particle][:,0] < thr
+                cocktailContribs[particle] = cocktailContribs[particle][mask]
             cocktailContribs[particle][:,(1,3,4)] *= shift[energy]
             cocktailContribs[particle][:,2:] = 0
         continue
@@ -170,39 +185,42 @@ def gp_stack(version, energies, inclMed, inclFits):
     + mediumOrdered.values() + [ pseudo_point ] + dataOrdered.values()
     + dataIMRfitOrdered.values() + ([ pseudo_point ] if inclFits else [])
     + cocktailIMRfitOrdered.values() + ([ pseudo_point ] if inclFits else []),
-    properties = [ cocktail_style_contrib ] * nSetsCocktailContribs
-    + [ cocktail_style ] * (nSetsCocktail+1)
+    properties = [
+      'with lines lc %s lw 4 lt 1' % default_colors[i if i < 5 else i+1]
+      for i in xrange(nSetsCocktailContribs)
+    ] + [ cocktail_style ] * (nSetsCocktail+1)
     + [ medium_style ] * (nSetsMedium+bool(nSetsMedium)) + [
       'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i]
       for i in xrange(nSetsData)
     ] + [ dataIMRfit_style ] * (nSetsDataIMRfit+1)
     + [ cocktailIMRfit_style ] * (nSetsCocktailIMRfit+1),
-    titles = [''] * (nSetsCocktailContribs+nSetsCocktail) + ['Cocktail w/o {/Symbol \162}']
-    + [''] * nSetsMedium + ['+ Medium'] * bool(nSetsMedium) + dataOrdered.keys() +
-    [''] * nSetsDataIMRfit + [''] * inclFits +
-    [''] * nSetsCocktailIMRfit + [''] * inclFits,
+    titles = [ particleLabel4Key(k) for k in cocktailContribs.keys() ]
+    + [''] * nSetsCocktail + ['Cocktail w/o {/Symbol \162}']
+    + [''] * nSetsMedium + ['+ Medium'] * bool(nSetsMedium) + dataOrdered.keys()
+    + [''] * nSetsDataIMRfit + [''] * inclFits
+    + [''] * nSetsCocktailIMRfit + [''] * inclFits,
     name = os.path.join(outDir, 'stack%s%s%s%s' % (
       version, 'InclMed' if inclMed else '', 'InclFits' if inclFits else '',
       '_' + '-'.join(energies) if energies is not None else ''
     )),
     ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
     xlabel = 'invariant dielectron mass, M_{ee} (GeV/c^{2})',
-    ylog = True, xr = [0, 3.5], yr = [yr_low, 2e3],
-    lmargin = 0.09, arrow_offset = 0.8,
-    tmargin = 0.9 if version != 'QM12Latest200' else 0.99,
+    ylog = True, xr = [0, 3.5], yr = [yr_low, 3e3],
+    lmargin = 0.17, rmargin = 0.97, bmargin = 0.08, arrow_offset = 0.8,
+    #tmargin = 0.9 if version != 'QM12Latest200' else 0.99,
     key = [
       'width -8.5' if ((inclMed or inclFits) and not version == 'Latest19200_PatrickQM12')
-      else 'width -6',
-      'at graph 1.04,1.2', 'maxrows 2', 'font ",20"', 'samplen 0.3'
+      else 'width -7', #'at graph 1.0,1.1',
+      'maxrows 7', 'font ",19"', 'samplen 0.5', 'spacing 0.9'
     ] if version != 'QM12Latest200' else [
       'width -14', 'maxcols 1'
     ],
     #labels = {'BES Energies are STAR Preliminary': [0.38,0.9,False]}
     labels = {
       '{/Symbol=50 \775}': [0.64,0.81 if not inclMed else 0.75,False]
-    } if version == 'QM12Latest200' else {},
+    } if version == 'QM12Latest200' else {}, size = '10in,13in',
     #arrows = [ # example arrow
-    #  [ [2.4, 5e-5], [2.3, 1e-5], 'head filled lc 1 lw 5 lt 1 front' ],
+    #  [ [2.4, 5e-5], [2.3, 1e-5], 'head filled lc 1 lw 4 lt 1 front' ],
     #],
   )
   if inclFits:
