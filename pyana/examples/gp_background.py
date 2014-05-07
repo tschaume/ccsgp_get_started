@@ -47,20 +47,52 @@ def gp_background():
     )
     # background ratio and acc.corr.
     make_plot(
-      name = '%s/ratios%s' % (outDir, energy),
-      xr = [0,1.6], yr = [0.95,1.2],
+        name = '%s/ratios%s' % (outDir, energy),
+        xr = [0,1.6], yr = [0.95,1.2],
         data = graph_data[3:],
-      properties = [
-        'with filledcurves lt 1 lw 3 lc %s pt 0' % default_colors[i]
-        for i in xrange(2)
-      ],
-      titles = [
-        'SE_{/Symbol \\261\\261} / ME_{/Symbol \\261\\261}',
-        'f_{acc} = ME_{+-} / ME_{/Symbol \\261\\261}'
-      ],
-      xlabel = '', ylabel = '', key = [ 'width -2' ],
+        properties = [
+            'with filledcurves lt 1 lw 3 lc %s pt 0' % default_colors[i]
+            for i in xrange(2)
+        ],
+        titles = [
+            'SE_{/Symbol \\261\\261} / ME_{/Symbol \\261\\261}',
+            'f_{acc} = ME_{+-} / ME_{/Symbol \\261\\261}'
+        ],
+        xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
+        ylabel = '', key = [ 'width -2' ],
+        labels = { '%s GeV' % energy: (0.4, 0.97) }
     )
-    # TODO: signal-to-background ratio in rho/omega region vs. energy
+    # signal-to-background ratio in rho/omega region vs. energy
+    graph_data_sn = []
+    for infile in os.listdir(os.path.join(inDir, 'sn')):
+        energy = re.compile('\d+').search(infile).group()
+        file_url = os.path.join(inDir, 'sn', infile)
+        data_import = np.loadtxt(open(file_url, 'rb'))
+        mask = (data_import[:,0] > 0.3) & (data_import[:,0] < 0.75)
+        data_import = data_import[mask]
+        weights = 1./data_import[:,3]
+        sn = np.average(data_import[:,1], weights = weights)
+        sn_err = np.average((data_import[:,1]-sn)**2, weights = weights)
+        graph_data_sn.append([float(getEnergy4Key(energy)), sn, 0, sn_err, 0])
+    graph_data_sn = np.array(graph_data_sn)
+    make_plot(
+        name = '%s/SNvsEnergy' % (outDir), xr = [15,210],
+        yr = [1e-3, .11], xlog = True, ylog = True,
+        data = [ np.array([[15,0.1,0,0,0],[210,0.1,0,0,0]]), graph_data_sn ],
+        properties = [
+            'with lines lt 2 lw 4 lc 0',
+            'lt 1 lw 3 lc %s pt 18 ps 2' % default_colors[0]
+        ],
+        titles = ['']*2,
+        xlabel = '{/Symbol \326}s_{NN} (GeV)',
+        ylabel = 'S/B for 0.3 < M_{ee} < 0.75 GeV/c^{2}',
+        lmargin = 0.1, gpcalls = [
+            'nokey', 'format x "%g"',
+            'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
+        ],
+        labels = { 'p+p': (100, 0.09) }
+    )
+    return 'done'
 
 if __name__ == '__main__':
     checkSymLink()
