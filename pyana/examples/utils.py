@@ -119,6 +119,7 @@ def getMassRangesSums(indata, onlyLMR = False, suffix = "", systLMR = False):
     for i, (e0, e1) in enumzipEdges(erngs):
       if onlyLMR and i != 1: continue
       uSum = getCocktailSum(e0, e1, eInData, uInData)
+      if (not systLMR) and onlyLMR: return uSum
       logging.debug('%g - %g: %r' % (e0, e1, uSum))
       key = mass_titles[1 if systLMR else i] + suffix
       if systLMR: key += '_%s-%s' % (e0,e1)
