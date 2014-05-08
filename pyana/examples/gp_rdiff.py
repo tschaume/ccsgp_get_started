@@ -152,7 +152,6 @@ def gp_rdiff(version, nomed, noxerr, diffRel):
   if diffRel:
     enhance = {}
     data_enhance, medium_enhance = None, None
-    print data.keys()
     for energy in sorted(data, key=float):
       for systLMR in [False, True]:
         suffix = str(energy)
@@ -183,7 +182,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel):
           for k in uEnhanceData:
             uEnhanceData[k] /= uEnhanceCocktail[k]
             dp = [
-              float(energy), uEnhanceData[k].nominal_value, 0, 0, uEnhanceData[k].std_dev
+              float(energy), uEnhanceData[k].nominal_value, uEnhanceData[k].std_dev
             ]
             rngstr = k.split('_')[-1]
             data_key = 'data_' + rngstr
@@ -191,7 +190,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel):
             else: enhance[data_key].append(dp)
             if k in uEnhanceMed:
               uEnhanceMed[k] /= uEnhanceCocktail[k]
-              dpM = [ float(energy), uEnhanceMed[k].nominal_value, 0, 0, 0 ]
+              dpM = [ float(energy), uEnhanceMed[k].nominal_value ]
               med_key = 'model_' + rngstr
               if med_key not in enhance: enhance[med_key] = [ dpM ]
               else: enhance[med_key].append(dpM)
