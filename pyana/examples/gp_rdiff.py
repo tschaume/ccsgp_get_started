@@ -102,7 +102,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel):
         # build list of data points
         if key in dataOrdered: dataOrdered[key].append(dp)
         else: dataOrdered[key] = [ dp ]
-    if energy not in medium: # add pseudo-data for missing medium (27GeV)
+    if energy not in medium: # TODO add pseudo-data for missing medium (27GeV)
       key = ' '.join([energy, 'GeV (Med.)'])
       dataOrdered[key] = [ [0.1,-1,0,0,0], [1,-1,0,0,0] ]
 
@@ -150,28 +150,38 @@ def gp_rdiff(version, nomed, noxerr, diffRel):
 
   # integrated enhancement factor
   if diffRel:
-    enhance = {} # not used really
+    enhance = {}
     data_enhance, medium_enhance = None, None
     print data.keys()
     for energy in sorted(data, key=float):
-      uEnhanceData = getMassRangesSums(
-        energy, data[energy], enhance, onlyLMR = True, suffix = ''
-      )
-      CocktailLMR = getMassRangesSums(
-        energy, cocktail[energy], enhance, onlyLMR = True, suffix = '_c'
-      )
-      uEnhanceData /= CocktailLMR
-      dp = [ float(energy), uEnhanceData.nominal_value, 0, 0, uEnhanceData.std_dev ]
-      if data_enhance is None: data_enhance = [ dp ]
-      else: data_enhance.append(dp)
-      if energy in medium:
-        uEnhanceMed = getMassRangesSums(
-          energy, medium[energy], enhance, onlyLMR = True, suffix = '_m'
-        )
-        uEnhanceMed /= CocktailLMR
-        dpM = [ float(energy), uEnhanceMed.nominal_value, 0, 0, 0 ]
-        if medium_enhance is None: medium_enhance = [ dpM ]
-        else: medium_enhance.append(dpM)
+      for systLMR in [False, True]:
+        enhance.update(getMassRangesSums(
+          data[energy], onlyLMR = True, systLMR = systLMR,
+          suffix = ('%s_d%d' % (energy, systLMR))
+        ))
+        enhance.update(getMassRangesSums(
+          cocktail[energy], onlyLMR = True, systLMR = systLMR,
+          suffix = ('%s_c%d' % (energy, systLMR))
+        ))
+        if energy in medium:
+          enhance.update(getMassRangesSums(
+            medium[energy], onlyLMR = True, systLMR = systLMR,
+            suffix = ('%s_m%d' % (energy, systLMR))
+          ))
+        if not systLMR:
+          uEnhanceData = enhance['LMR%s_d0' % energy]
+          uEnhanceData /= enhance['LMR%s_c0' % energy]
+          dp = [ float(energy), uEnhanceData.nominal_value, 0, 0, uEnhanceData.std_dev ]
+          print dp
+          if data_enhance is None: data_enhance = [ dp ]
+          else: data_enhance.append(dp)
+          if energy in medium:
+            uEnhanceMed = enhance['LMR%s_m0' % energy]
+            uEnhanceMed /= enhance['LMR%s_c0' % energy]
+            dpM = [ float(energy), uEnhanceMed.nominal_value, 0, 0, 0 ]
+            print dpM
+            if medium_enhance is None: medium_enhance = [ dpM ]
+            else: medium_enhance.append(dpM)
     make_plot(
       data = [ np.array(data_enhance), np.array(medium_enhance) ],
       properties = [
@@ -197,9 +207,15 @@ def gp_rdiff(version, nomed, noxerr, diffRel):
   excess = {}
   for k, v in dataOrdered.iteritems():
     suffix = ''
-    if fnmatch(k, '*Med.*'): suffix = '_Med'
+    if fnmatch(k, '*Med.*'):
+      suffix = '_Med'
+      if energy == '27': continue # TODO
     energy = getEnergy4Key(re.compile('\d+').search(k).group())
-    getMassRangesSums(energy, np.array(v), excess, onlyLMR = True, suffix = suffix)
+    exc = getMassRangesSums(np.array(v), onlyLMR = True, suffix = suffix)
+    for key in exc:
+      dp = [ float(energy), exc[key].nominal_value, 0, 0, exc[key].std_dev ]
+      if key not in excess: excess[key] = [ dp ]
+      else: excess[key].append(dp)
   logging.debug(excess)
   make_plot(
     data = [ np.array(excess['LMR']), np.array(excess['LMR_Med']) ],

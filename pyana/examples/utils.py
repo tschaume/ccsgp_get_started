@@ -99,22 +99,31 @@ def getCocktailSum(e0, e1, eCocktail, uCocktail):
     logging.debug('    sum: {}'.format(uCocktailSum))
   return uCocktailSum
 
-def getMassRangesSums(energy, indata, outdata, onlyLMR = False, suffix = ""):
+def getMassRangesSums(indata, onlyLMR = False, suffix = "", systLMR = False):
+  eRangesSyst = [ eRanges ]
+  if systLMR:
+    step_size, nsteps, rangeOffsetsLMR = 0.05, 4, [0.15, 0.6]
+    eEdgesSyst = [ [ # all lower & upper edges for LMR syst. study
+      Decimal(str(rangeOffsetsLMR[j]+i*step_size))
+      for i in xrange(nsteps)
+    ] for j in xrange(2) ]
+    # all combos of lower and upper LMR edges
+    eRangesSyst = [ [ le, ue ] for ue in eEdgesSyst[1] for le in eEdgesSyst[0] ]
+    onlyLMR = False # flag meaningless in this case
   # combine stat. and syst. errorbars
   indata[:,4] = np.sqrt(indata[:,3] * indata[:,3] + indata[:,4] * indata[:,4])
   uInData = getUArray(indata)
   eInData = getEdges(indata)
-  for i, (e0, e1) in enumzipEdges(eRanges):
-    if onlyLMR and i != 1: continue
-    uSum = getCocktailSum(e0, e1, eInData, uInData)
-    logging.debug('%s> %g - %g: %r' % (energy, e0, e1, uSum))
-    dp = [
-      float(energy), uSum.nominal_value, 0, 0, uSum.std_dev
-    ]
-    key = mass_titles[i] + suffix
-    if key in outdata: outdata[key].append(dp)
-    else: outdata[key] = [ dp ]
-    if onlyLMR: return uSum
+  uSums = {}
+  for erngs in eRangesSyst:
+    for i, (e0, e1) in enumzipEdges(erngs):
+      if onlyLMR and i != 1: continue
+      uSum = getCocktailSum(e0, e1, eInData, uInData)
+      logging.debug('%g - %g: %r' % (e0, e1, uSum))
+      key = mass_titles[1 if systLMR else i] + suffix
+      if systLMR: key += '_%s-%s' % (e0,e1)
+      uSums[key] = uSum
+  return uSums
 
 def getEnergy4Key(energy):
   if energy == '19': return '19.6'
