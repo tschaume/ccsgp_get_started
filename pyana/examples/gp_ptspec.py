@@ -61,10 +61,10 @@ def gp_ptspec():
     dp = [ float(getEnergy4Key(energy)), avpt.nominal_value, 0., avpt.std_dev, 0. ]
     avpt_key = mee_name
     if data_type == 'cocktail': avpt_key += '_c'
-    if data_type != 'medium': # TODO: include +medium in mean_pT
-        if avpt_key in data_avpt: data_avpt[avpt_key].append(dp)
-        else: data_avpt[avpt_key] = [ dp ]
-        yvalsPt.append(avpt.nominal_value)
+    if data_type == 'medium': avpt_key += '_m'
+    if avpt_key in data_avpt: data_avpt[avpt_key].append(dp)
+    else: data_avpt[avpt_key] = [ dp ]
+    yvalsPt.append(avpt.nominal_value)
     # now adjust data for panel plot and append to yvals
     data[filebase][:,(1,3,4)] *= float(yscale[energy])
     if data_type == 'cocktail' or data_type == 'medium':
@@ -104,13 +104,13 @@ def gp_ptspec():
   for k in data_avpt: data_avpt[k].sort(key=lambda x: x[0])
   energies = [ dp[0] for dp in data_avpt[mee_keys[0]] ]
   energies.append(75.) # TODO: think of better upper limit
-  linsp = {}
-  for start,stop in zip(energies[:-1],energies[1:]):
-    linsp[start] = np.linspace(start, stop, num = 4*len(mee_keys))
-  for k in data_avpt:
-    key = k.split('_')[0]
-    for i in xrange(len(data_avpt[k])):
-      data_avpt[k][i][0] = linsp[energies[i]][mee_keys.index(key)]
+  #linsp = {}
+  #for start,stop in zip(energies[:-1],energies[1:]):
+  #  linsp[start] = np.linspace(start, stop, num = 4*len(mee_keys))
+  #for k in data_avpt:
+  #  key = k.split('_')[0]
+  #  for i in xrange(len(data_avpt[k])):
+  #    data_avpt[k][i][0] = linsp[energies[i]][mee_keys.index(key)]
   # make panel plot
   yMin, yMax = 0.5*min(yvals), 3*max(yvals)
   make_panel(
@@ -123,28 +123,70 @@ def gp_ptspec():
     key = ['bottom left', 'samplen 0.5', 'width -1', 'opaque'],
     arrow_bar = 0.002, layout = '3x2'
   )
+  #make plot for LMR spectra only
+  lmr_key = getSubplotTitle('LMR', '0.3-0.75')
+  make_plot(
+    data = dpt_dict[lmr_key][0],
+    properties = dpt_dict[lmr_key][1],
+    titles = dpt_dict[lmr_key][2],
+    name = os.path.join(outDir, 'ptspecLMR'),
+    ylabel = '1/N@_{mb}^{evt} d^{2}N@_{ee}^{acc.}/p_{T}dp_{T}dM_{ee} (c^4/GeV^3)',
+    xlabel = 'dielectron transverse momentum, p_{T} (GeV/c)',
+    ylog = True, xr = [0, 1.05], yr = [1e-4, 1e6],
+    lmargin = 0.14, bmargin = 0.08, rmargin = 0.98,
+    key = ['maxrows 2', 'samplen 0.5', 'width -1'],
+    arrow_bar = 0.002, size = '10in,13in'
+  )
   # make mean pt plot
   yMinPt, yMaxPt = 0.95*min(yvalsPt), 1.05*max(yvalsPt)
   make_plot(
     data = [ # cocktail
       np.array(data_avpt[k+'_c']) for k in mee_keys
+    ] + [ # medium
+      np.array(data_avpt['LMR_m'])
     ] + [ # data
       np.array(data_avpt[k]) for k in mee_keys
     ],
     properties = [
-     'with lines lt 2 lw 4 lc %s' % default_colors[i if i < 5 else i+1]
+     'with lines lt 1 lw 4 lc %s' % default_colors[i if i < 5 else i+1]
       for i in xrange(len(mee_keys))
+    ] + [
+     'with lines lt 2 lw 4 lc %s' % default_colors[mee_keys.index('LMR')]
     ] + [
      'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i if i < 5 else i+1]
       for i in xrange(len(mee_keys))
     ],
-    titles = [ getMeeLabel(k) for k in mee_keys ] + ['']*len(mee_keys),
+    titles = [ getMeeLabel(k) for k in mee_keys ] + ['']*(len(mee_keys)+1),
     name = os.path.join(outDir, 'meanPt'),
     xlabel = '{/Symbol \326}s_{NN} (GeV)',
-    ylabel = '{/Symbol \341}p_{T}{/Symbol \361} (GeV/c)',
+    ylabel = '{/Symbol \341}p_{T}{/Symbol \361} in STAR Acceptance (GeV/c)',
     lmargin = 0.08, xlog = True, #xr = [17,220],
     yr = [0,1.4], #yr = [yMinPt, yMaxPt],
     key = [ 'maxrows 1', 'at graph 1, 1.1' ],
+    gpcalls = [
+      'format x "%g"',
+      'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
+    ]
+  )
+  # make mean pt plot for LMR only
+  make_plot(
+    data = [
+      np.array(data_avpt['LMR_c']),
+      np.array(data_avpt['LMR_m']),
+      np.array(data_avpt['LMR'])
+    ],
+    properties = [
+     'with lines lt 1 lw 4 lc %s' % default_colors[0],
+     'with lines lt 2 lw 4 lc %s' % default_colors[0],
+     'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0]
+    ],
+    titles = [ 'cocktail', '+medium', getMeeLabel('data') ],
+    name = os.path.join(outDir, 'meanPtLMR'),
+    xlabel = '{/Symbol \326}s_{NN} (GeV)',
+    ylabel = 'LMR {/Symbol \341}p_{T}{/Symbol \361} in STAR Acceptance (GeV/c)',
+    lmargin = 0.15, xlog = True, xr = [17,220],
+    yr = [0,0.82], #yr = [yMinPt, yMaxPt],
+    key = [ 'bottom right' ]
     gpcalls = [
       'format x "%g"',
       'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
