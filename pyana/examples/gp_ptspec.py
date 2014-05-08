@@ -184,9 +184,9 @@ def gp_ptspec():
     name = os.path.join(outDir, 'meanPtLMR'),
     xlabel = '{/Symbol \326}s_{NN} (GeV)',
     ylabel = 'LMR {/Symbol \341}p_{T}{/Symbol \361} in STAR Acceptance (GeV/c)',
-    lmargin = 0.15, xlog = True, xr = [17,220],
+    lmargin = 0.15, bmargin = 0.15, xlog = True, xr = [17,220],
     yr = [0,0.82], #yr = [yMinPt, yMaxPt],
-    key = [ 'bottom right' ]
+    key = [ 'bottom right' ],
     gpcalls = [
       'format x "%g"',
       'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
