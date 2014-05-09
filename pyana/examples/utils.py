@@ -99,8 +99,11 @@ def getCocktailSum(e0, e1, eCocktail, uCocktail):
     logging.debug('    sum: {}'.format(uCocktailSum))
   return uCocktailSum
 
-def getMassRangesSums(indata, onlyLMR = False, suffix = "", systLMR = False):
-  eRangesSyst = [ eRanges ]
+def getMassRangesSums(
+  indata,  suffix = "", customRanges = None,
+  onlyLMR = False, systLMR = False, singleRange = False
+):
+  eRangesSyst = [ eRanges if customRanges is None else customRanges ]
   if systLMR:
     step_size, nsteps, rangeOffsetsLMR = 0.05, 4, [0.15, 0.6]
     eEdgesSyst = [ [ # all lower & upper edges for LMR syst. study
@@ -119,7 +122,7 @@ def getMassRangesSums(indata, onlyLMR = False, suffix = "", systLMR = False):
     for i, (e0, e1) in enumzipEdges(erngs):
       if onlyLMR and i != 1: continue
       uSum = getCocktailSum(e0, e1, eInData, uInData)
-      if (not systLMR) and onlyLMR: return uSum
+      if (not systLMR) and (onlyLMR or singleRange): return uSum
       logging.debug('%g - %g: %r' % (e0, e1, uSum))
       key = mass_titles[1 if systLMR else i] + suffix
       if systLMR: key += '_%s-%s' % (e0,e1)
