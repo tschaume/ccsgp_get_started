@@ -124,7 +124,7 @@ def gp_ptspec():
     arrow_bar = 0.002, layout = '3x2'
   )
   #make plot for LMR spectra only
-  lmr_key = getSubplotTitle('LMR', '0.3-0.75')
+  lmr_key = getSubplotTitle('LMR', '0.2-0.6')
   make_plot(
     data = dpt_dict[lmr_key][0],
     properties = dpt_dict[lmr_key][1],
@@ -185,7 +185,7 @@ def gp_ptspec():
     xlabel = '{/Symbol \326}s_{NN} (GeV)',
     ylabel = 'LMR {/Symbol \341}p_{T}{/Symbol \361} in STAR Acceptance (GeV/c)',
     lmargin = 0.15, bmargin = 0.15, xlog = True, xr = [17,220],
-    yr = [0,0.82], #yr = [yMinPt, yMaxPt],
+    yr = [0.4,1.], #yr = [yMinPt, yMaxPt],
     key = [ 'bottom right' ],
     gpcalls = [
       'format x "%g"',
