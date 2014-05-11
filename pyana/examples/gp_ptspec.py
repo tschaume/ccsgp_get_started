@@ -48,8 +48,7 @@ def gp_ptspec():
     mee_dict[mee_name] = mee_range
     data[filebase] = np.loadtxt(open(file_url, 'rb'))
     # calculate average pT first
-    probs = unp.uarray(data[filebase][:,1], data[filebase][:,3]) # dN/pTdpT
-    probs *= data[filebase][:,0] # = dN/pTdpT * pT
+    probs = unp.uarray(data[filebase][:,1], data[filebase][:,3]) # dN/pT
     probs /= umath.fsum(probs) # probabilities
     pTs = unp.uarray(data[filebase][:,0], data[filebase][:,2]) # pT
     avpt = umath.fsum(pTs*probs)
@@ -116,23 +115,23 @@ def gp_ptspec():
   make_panel(
     dpt_dict = OrderedDict((k,dpt_dict[k]) for k in plot_key_order),
     name = os.path.join(outDir, 'ptspec'),
-    ylabel = '1/N@_{mb}^{evt} d^{2}N@_{ee}^{acc.}/p_{T}dp_{T}dM_{ee} (c^4/GeV^3)',
+    ylabel = '1/N@_{mb}^{evt} d^{2}N@_{ee}^{acc.}/dp_{T}dM_{ee} (c^3/GeV^2)',
     xlabel = 'dielectron transverse momentum, p_{T} (GeV/c)',
-    ylog = True, xr = [0, 1.05], yr = [1e-6, 5e9],
+    ylog = True, xr = [0, 2.0], yr = [1e-6, 5e9],
     lmargin = 0.12, bmargin = 0.11, rmargin = 0.998,
     key = ['bottom left', 'samplen 0.5', 'width -1', 'opaque'],
     arrow_bar = 0.002, layout = '3x2'
   )
   #make plot for LMR spectra only
-  lmr_key = getSubplotTitle('LMR', '0.2-0.6')
+  lmr_key = getSubplotTitle('LMR', '0.3-0.76')
   make_plot(
     data = dpt_dict[lmr_key][0],
     properties = dpt_dict[lmr_key][1],
     titles = dpt_dict[lmr_key][2],
     name = os.path.join(outDir, 'ptspecLMR'),
-    ylabel = '1/N@_{mb}^{evt} d^{2}N@_{ee}^{acc.}/p_{T}dp_{T}dM_{ee} (c^4/GeV^3)',
+    ylabel = '1/N@_{mb}^{evt} d^{2}N@_{ee}^{acc.}/dp_{T}dM_{ee} (c^3/GeV^2)',
     xlabel = 'dielectron transverse momentum, p_{T} (GeV/c)',
-    ylog = True, xr = [0, 1.05], yr = [1e-4, 1e6],
+    ylog = True, xr = [0, 2.0], yr = [1e-4, 1e6],
     lmargin = 0.14, bmargin = 0.08, rmargin = 0.98,
     key = ['maxrows 2', 'samplen 0.5', 'width -1'],
     arrow_bar = 0.002, size = '10in,13in'
