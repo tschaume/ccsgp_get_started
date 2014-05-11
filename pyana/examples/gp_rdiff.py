@@ -9,7 +9,11 @@ from ..ccsgp.utils import getOpts, zip_flat
 from ..ccsgp.config import default_colors
 from uncertainties import ufloat
 
-def gp_rdiff(version, nomed, noxerr, diffRel):
+labels = None
+
+dNdyPi0 = { '19.6': 51.9, '27': 55.8, '39': 58.6, '62.4': 82.6, '200': 98.5 }
+
+def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   """example for ratio or difference plots using QM12 data (see gp_panel)
 
   - uses uncertainties package for easier error propagation and rebinning
@@ -120,11 +124,13 @@ def gp_rdiff(version, nomed, noxerr, diffRel):
       for i in xrange(nSetsPlot)
     ])
     titles = zip_flat(dataOrdered.keys()[::2], [''] * nSetsPlot)
+  global labels
   labels = {
     'BES: STAR Preliminary' if version == 'QM12Latest200'
-    else 'STAR Preliminary': [0.5,0.05,False],
+    else 'STAR Preliminary': [0.4,0.05,False],
     '200 GeV: [arXiv:1312.7397]' if version == 'QM12Latest200'
-    else '': [0.1,0.93,False]
+    else '': [0.4,0.12,False],
+    'LMR: %.2f < M_{ee} < %.2f GeV/c^{2}' % ( eRanges[1], eRanges[2]): [0.4,0.18,False]
   }
   make_plot(
     data = [ np.array(d) for d in dataOrdered.values()],
@@ -206,14 +212,14 @@ def gp_rdiff(version, nomed, noxerr, diffRel):
           'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0],
           'with linespoints lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[1],
           ],
-      titles = [ 'data / cocktail', 'medium / cocktail' ],
+      titles = [ 'data / cocktail', '(cocktail + in-medium yield) / cocktail' ],
       name = os.path.join(outDir, 'enhance%s' % version),
       xlabel = '{/Symbol \326}s_{NN} (GeV)',
       ylabel = 'LMR X-Factor for %.2f < M_{ee} < %.2f GeV/c^{2}' % (
         eRanges[1], eRanges[2]
       ),
       lmargin = 0.08, xlog = True, key = ['width -4'],
-      yr = [0.5,7], xr = [15,220],
+      yr = [0.5,4 if version == 'QM12Latest200' else 7], xr = [15,220],
       gpcalls = [
         'format x "%g"',
         'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
@@ -225,32 +231,47 @@ def gp_rdiff(version, nomed, noxerr, diffRel):
   excess = {}
   for k, v in dataOrdered.iteritems():
     suffix = ''
+    energy = getEnergy4Key(re.compile('\d+').search(k).group())
     if fnmatch(k, '*Med.*'):
       suffix = '_Med'
       if energy == '27': continue # TODO
-    energy = getEnergy4Key(re.compile('\d+').search(k).group())
     exc = getMassRangesSums(np.array(v), onlyLMR = True)
+    if divdNdy: exc /= dNdyPi0[energy] * 1e-2
     dp = [ float(energy), exc.nominal_value, 0, 0, exc.std_dev ]
     key = 'LMR' + suffix
     if key not in excess: excess[key] = [ dp ]
     else: excess[key].append(dp)
+  avdata = np.array(excess['LMR'])
+  avg = np.average(avdata[:,1], weights = avdata[:,4])
+  excess['LMR'].append([ 5, avg, 0, 0, excess['LMR'][-1][-1]])
+  excess['LMR'].append([ 9, avg, 0, 0, excess['LMR'][-1][-1]])
+  excess['LMR'].append([ 14, avg, 0, 0, excess['LMR'][-1][-1]])
+  excess['LMR'].append([ 18, avg, 0, 0, excess['LMR'][-1][-1]])
   logging.debug(excess)
+  graph_data = [ np.array(excess['LMR']) ]
+  props = [ 'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0] ]
+  tits = [ 'data - cocktail' ]
+  if not divdNdy:
+    graph_data.append(np.array(excess['LMR_Med']))
+    props.append([
+        'with linespoints lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[1] 
+    ])
+    tits.append('in-medium yield')
+  else:
+    labels.update(dict((str(v), [float(k)*0.9,3.8,True]) for k,v in dNdyPi0.items()))
+    labels.update({ 'dN/dy|_{/Symbol \\160^0}': [100,3.8,True]})
   make_plot(
-    data = [ np.array(excess['LMR']), np.array(excess['LMR_Med']) ],
-    properties = [
-        'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0],
-        'with linespoints lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[1],
-        ],
-    titles = [ 'data - cocktail', 'medium yield' ],
-    name = os.path.join(outDir, 'excess%s' % version),
+    data = graph_data, properties = props, titles = tits,
+    name = os.path.join(outDir, 'excess%s%s' % (version,'DivdNdy' if divdNdy else '')),
     xlabel = '{/Symbol \326}s_{NN} (GeV)',
-    ylabel = 'LMR Excess Yield for %.2f < M_{ee} < %.2f ({/Symbol \264} 10^{-3})' % (
-      eRanges[1], eRanges[2]
+    ylabel = 'LMR Excess Yield %s({/Symbol \264} 10^{-%d})' % (
+      '/ dN/dy|_{/Symbol \\160^0}  ' if divdNdy else '', 5 if divdNdy else 3
     ),
-    lmargin = 0.08, xlog = True, xr = [15,220], key = ['width -4'],
-    yr = [0,3], gpcalls = [
-      'format x "%g"',
-      'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
+    lmargin = 0.1, xlog = True, xr = [4.8,220], key = ['width -4'],
+    yr = [0,4 if version == 'QM12Latest200' else 7],
+    gpcalls = [
+      'nokey' if divdNdy else '', 'format x "%g"',
+      'xtics (5,10,20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
     ], labels = labels
   )
   return 'done'
@@ -268,16 +289,18 @@ def gp_rdiff_merged(version):
           ('data / cocktail', np.loadtxt(
               open(os.path.join(enhance_datdir, 'data_cocktail.dat'), 'rb')
           )),
-          ('medium yield', np.loadtxt(
-              open(os.path.join(excess_datdir, 'medium_yield.dat'), 'rb')
+          ('in-medium yield', np.loadtxt(
+              open(os.path.join(excess_datdir, 'in_medium_yield.dat'), 'rb')
           )),
-          ('medium / cocktail', np.loadtxt(
-              open(os.path.join(enhance_datdir, 'medium_cocktail.dat'), 'rb')
+          ('(cocktail + in-medium yield) / cocktail', np.loadtxt(
+              open(os.path.join(
+                enhance_datdir, '_cocktail_in_medium_yield_cocktail.dat'
+              ), 'rb')
           ))
       ])
       xshift = 1.03
       data['data / cocktail'][:,0] *= xshift
-      data['medium / cocktail'][:,0] *= xshift
+      data['(cocktail + in-medium yield) / cocktail'][:,0] *= xshift
       make_plot(
         data = data.values(),
         properties = [
@@ -290,11 +313,10 @@ def gp_rdiff_merged(version):
         name = os.path.join(outDir, 'enhanceexcess%s' % version),
         xlabel = '{/Symbol \326}s_{NN} (GeV)',
         ylabel = 'LMR Excess Yield ({/Symbol \264} 10^{-3})',
-        lmargin = 0.03, rmargin = 0.93, xlog = True,
-        xr = [15,220], key = ['width -4'], yr = [0,7],
-        labels = {
-          '%.2f < M_{ee} < %.2f GeV/c^{2}' % (eRanges[1], eRanges[2]): [0.55,0.65,False]
-        },
+        lmargin = 0.08, rmargin = 0.88, xlog = True,
+        xr = [17,220], key = ['width -13'],
+        yr = [0,4 if version == 'QM12Latest200' else 7],
+        labels = labels,
         gpcalls = [
           'format x "%g"', 'y2label "LMR Enhancement Factor" offset -0.9',
           'y2tics nomirror offset -0.5',
@@ -310,11 +332,12 @@ if __name__ == '__main__':
   parser.add_argument("--nomed", help="don't plot medium", action="store_true")
   parser.add_argument("--noxerr", help="no dx errors", action="store_true")
   parser.add_argument("--diffRel", help="plot relative difference (ratio)", action="store_true")
+  parser.add_argument("--divdNdy", help="divide excess plot by dNdy_pi0", action="store_true")
   parser.add_argument("--log", help="show log output", action="store_true")
   args = parser.parse_args()
   loglevel = 'DEBUG' if args.log else 'WARNING'
   logging.basicConfig(
     format='%(message)s', level=getattr(logging, loglevel)
   )
-  print gp_rdiff(args.version, args.nomed, args.noxerr, args.diffRel)
+  print gp_rdiff(args.version, args.nomed, args.noxerr, args.diffRel, args.divdNdy)
   print gp_rdiff_merged(args.version)
