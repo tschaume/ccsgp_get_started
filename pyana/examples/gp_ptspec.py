@@ -35,7 +35,7 @@ def gp_ptspec():
   #mee_keys = ['pi0', 'LMR', 'omega', 'phi', 'IMR', 'jpsi']
   mee_keys = ['LMR', ]
   mee_dict = OrderedDict((k,'') for k in mee_keys)
-  yscale = { '200': '3e4', '62': '5e3', '39': '300', '27': '15', '19': '1' }
+  yscale = { '200': '300', '62': '50', '39': '3', '27': '0.15', '19': '0.01' }
   inDir, outDir = getWorkDirs()
   data, data_avpt, dpt_dict = {}, {}, {}
   yvals, yvalsPt = [], []
@@ -96,8 +96,8 @@ def gp_ptspec():
     else:
       dpt_dict[dpt_dict_key][1][dsidx] = 'with lines lt 2 lw 4 lc %s' % default_colors[enidx]
     dpt_dict[dpt_dict_key][2][dsidx] = ' '.join([ # legend titles
-        getEnergy4Key(energy), 'GeV', '{/Symbol \264} 10^{%d}' % (
-          Decimal(yscale[energy]).as_tuple().exponent
+        getEnergy4Key(energy), 'GeV', '{/Symbol \264} %g' % (
+          Decimal(yscale[energy])#.as_tuple().exponent
         )
       ]) if data_type == 'data' else ''
   # use mass range in dict key to sort dpt_dict with increasing mass
@@ -135,9 +135,9 @@ def gp_ptspec():
     name = os.path.join(outDir, 'ptspecLMR'),
     ylabel = '1/N@_{mb}^{evt} d^{2}N@_{ee}^{acc.}/dp_{T}dM_{ee} (c^3/GeV^2)',
     xlabel = 'dielectron transverse momentum, p_{T} (GeV/c)',
-    ylog = True, xr = [0, 2.0], yr = [2e-5, 5e2],
+    ylog = True, xr = [0, 2.0], yr = [2e-7, 5],
     lmargin = 0.14, bmargin = 0.08, rmargin = 0.98, tmargin = 0.9,
-    key = ['maxrows 2', 'samplen 0.5', 'width -1', 'at graph 1.,1.1'],
+    key = ['maxrows 2', 'samplen 0.5', 'width -3', 'at graph 1.,1.1'],
     arrow_bar = 0.005, size = '10in,13in'
   )
   # make mean pt plot
