@@ -2,12 +2,13 @@ import logging, argparse, os, sys, re, math, random
 import numpy as np
 from fnmatch import fnmatch
 from collections import OrderedDict
-from .utils import getWorkDirs, checkSymLink, getEnergy4Key
+from .utils import getWorkDirs, checkSymLink, getEnergy4Key, getMassRangesSums
 from ..ccsgp.ccsgp import make_plot
 from ..ccsgp.utils import getOpts
 from ..ccsgp.config import default_colors
 from pymodelfit import LinearModel
 from uncertainties import ufloat
+from decimal import Decimal
 
 cocktail_style = 'with filledcurves pt 0 lc %s lw 4 lt 1' % default_colors[8]
 medium_style = 'with lines lc %s lw 4 lt 2' % default_colors[4]
@@ -61,6 +62,8 @@ def gp_stack(version, energies, inclMed, inclFits):
   linmod = LinearModel()
   rangeIMR = [1.15, 2.5]
   nPtsMC = 1000 # number of MC points per data point
+  cRanges = map(Decimal, ['0.', '0.1'])
+  pi0yld = {}
   for filename in os.listdir(inDir):
     file_url = os.path.join(inDir, filename)
     # take care of cocktail contributions first
@@ -148,6 +151,11 @@ def gp_stack(version, energies, inclMed, inclFits):
       dp = [ float(getEnergy4Key(energy)), slope_par, 0., slope_par_err, 0. ]
       if data_type in dataTvsS: dataTvsS[data_type].append(dp)
       else: dataTvsS[data_type] = [ dp ]
+    if data_type != '+medium':
+      pi0yld['_'.join([energy,data_type])] = getMassRangesSums(
+        np.copy(data_import), customRanges = cRanges , singleRange = True
+      )
+    # function changes syst. uncertainties of input numpy array
     # following scaling is wrong for y < 0 && shift != 1
     data_import[:,(1,3,4)] *= shift[energy]
     if fnmatch(filename, 'data*'):
@@ -162,6 +170,15 @@ def gp_stack(version, energies, inclMed, inclFits):
     elif inclMed and fnmatch(filename, '+medium*'):
       data_import[:,2:] = 0 # don't plot dx, dy1, dy2 for medium
       medium[energy] = data_import
+  # calculate data-to-cocktail scaling factors in pi0 region < 0.1 GeV/c2
+  # cocktail/data
+  scale = {}
+  for e in ['19', '27', '39', '62' ]:
+    scale[e] = (pi0yld[e+'_cocktail'] / pi0yld[e+'_data']).nominal_value
+  scale['200'] = 1.
+  for k in data: data[k][:,(1,3,4)] *= scale[k]
+  print scale
+  # ordered
   dataOrdered = OrderedDict(
     (' '.join([
       getEnergy4Key(k), 'GeV', '{/Symbol \264} %g' % shift[k],
