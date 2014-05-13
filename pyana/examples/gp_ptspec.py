@@ -8,6 +8,7 @@ from ..ccsgp.config import default_colors
 from decimal import Decimal
 import uncertainties.umath as umath
 import uncertainties.unumpy as unp
+from fnmatch import fnmatch
 
 def getMeeLabel(s):
   if s == 'pi0': return '{/Symbol \160}^0'
@@ -22,7 +23,7 @@ def splitFileName(fn):
   return (
     re.compile('\d+').search(split_arr[0]).group(),
     split_arr[1], split_arr[2],
-    re.compile('[a-z]+').search(split_arr[0]).group()
+    re.compile('(?i)[a-z]+').search(split_arr[0]).group()
   )
 
 def getSubplotTitle(mn, mr):
@@ -32,10 +33,10 @@ def gp_ptspec():
   """example for a 2D-panel plot (TODO)"""
   fenergies = ['19', '27', '39', '62']#, '200']
   nen = len(fenergies)
-  mee_keys = ['pi0', 'LMR', 'omega', 'phi', 'IMR', 'jpsi']
-  #mee_keys = ['LMR', ]
+  #mee_keys = ['pi0', 'LMR', 'omega', 'phi', 'IMR', 'jpsi']
+  mee_keys = ['LMR', ]
   mee_dict = OrderedDict((k,'') for k in mee_keys)
-  yscale = { '200': '300', '62': '50', '39': '3', '27': '0.15', '19': '0.01' }
+  yscale = { '200': '300', '62': '5000', '39': '50', '27': '0.3', '19': '0.001' }
   inDir, outDir = getWorkDirs()
   data, data_avpt, dpt_dict = {}, {}, {}
   yvals, yvalsPt = [], []
@@ -68,34 +69,42 @@ def gp_ptspec():
     avpt_key = mee_name
     if data_type == 'cocktail': avpt_key += '_c'
     if data_type == 'medium': avpt_key += '_m'
+    if data_type == 'mediumMedOnly': avpt_key += '_mMed'
+    if data_type == 'mediumQgpOnly': avpt_key += '_mQgp'
     if avpt_key in data_avpt: data_avpt[avpt_key].append(dp)
     else: data_avpt[avpt_key] = [ dp ]
     yvalsPt.append(avpt.nominal_value)
     # now adjust data for panel plot and append to yvals
     data[filebase][:,(1,3,4)] *= float(yscale[energy])
-    if data_type == 'cocktail' or data_type == 'medium':
+    if data_type == 'cocktail' or fnmatch(data_type, '*medium*'):
         data[filebase][:,2:] = 0.
     yvals += [v for v in data[filebase][:,1] if v > 0]
     # prepare dict for panel plot
     dpt_dict_key = getSubplotTitle(mee_name, mee_range)
     if dpt_dict_key not in dpt_dict:
         ndsets = nen*2
-        if mee_name == 'LMR': ndsets += 3 # TODO: currently only 19/39/62 medium avail.
+        # TODO: currently only 19/39/62 medium avail. w/ med/qgp/tot for each
+        if mee_name == 'LMR': ndsets += 3*3
         dpt_dict[dpt_dict_key] = [ [None]*ndsets, [None]*ndsets, [None]*ndsets ]
     enidx = fenergies.index(energy)
     dsidx = enidx
-    if data_type == 'medium':
-      dsidx = (energy=='19')*0 + (energy=='39')*1 + (energy=='62')*2
+    if fnmatch(data_type, '*medium*'):
+      # 19: 0-2, 39: 3-5, 62: 6-8
+      dsidx = (energy=='19')*0 + (energy=='39')*3 + (energy=='62')*6
+      dsidx += (data_type=='mediumQgpOnly')*0 + (data_type=='mediumMedOnly')*1
+      dsidx += (data_type=='medium')*2
     else:
-      dsidx += int(mee_name == 'LMR') * 3 # number of medium calc avail.
+      dsidx += int(mee_name == 'LMR') * 3 * 3 # number of medium calc avail.
     dsidx += int(data_type == 'data') * len(fenergies)
     dpt_dict[dpt_dict_key][0][dsidx] = data[filebase] # data
     if data_type == 'data': # properties
       dpt_dict[dpt_dict_key][1][dsidx] = 'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[enidx]
-    elif data_type == 'cocktail':
-      dpt_dict[dpt_dict_key][1][dsidx] = 'with lines lt 1 lw 4 lc %s' % default_colors[enidx]
+    elif data_type == 'medium':
+      dpt_dict[dpt_dict_key][1][dsidx] = 'with lines lt 1 lw 5 lc %s' % default_colors[enidx]
     else:
-      dpt_dict[dpt_dict_key][1][dsidx] = 'with lines lt 2 lw 4 lc %s' % default_colors[enidx]
+      dpt_dict[dpt_dict_key][1][dsidx] = 'with lines lt %d lw 5 lc %s' % (
+          2+(data_type=='mediumMedOnly')+(data_type=='mediumQgpOnly')*2, default_colors[enidx]
+      )
     dpt_dict[dpt_dict_key][2][dsidx] = ' '.join([ # legend titles
         getEnergy4Key(energy), 'GeV', '{/Symbol \264} %g' % (
           Decimal(yscale[energy])#.as_tuple().exponent
@@ -117,29 +126,36 @@ def gp_ptspec():
   #    data_avpt[k][i][0] = linsp[energies[i]][mee_keys.index(key)]
   # make panel plot
   yMin, yMax = 0.5*min(yvals), 3*max(yvals)
-  make_panel(
-    dpt_dict = OrderedDict((k,dpt_dict[k]) for k in plot_key_order),
-    name = os.path.join(outDir, 'ptspec'),
-    ylabel = '1/N@_{mb}^{evt} d^{2}N@_{ee}^{acc.}/dp_{T}dM_{ee} (c^3/GeV^2)',
-    xlabel = 'dielectron transverse momentum, p_{T} (GeV/c)',
-    ylog = True, xr = [0, 2.0], yr = [1e-8, 5e3],
-    lmargin = 0.12, bmargin = 0.11, rmargin = 0.998,
-    key = ['bottom left', 'samplen 0.5', 'width -1', 'opaque'],
-    arrow_bar = 0.002, layout = '3x2'
-  )
+  #make_panel(
+  #  dpt_dict = OrderedDict((k,dpt_dict[k]) for k in plot_key_order),
+  #  name = os.path.join(outDir, 'ptspec'),
+  #  ylabel = '1/N@_{mb}^{evt} d^{2}N@_{ee}^{acc.}/dp_{T}dM_{ee} (c^3/GeV^2)',
+  #  xlabel = 'dielectron transverse momentum, p_{T} (GeV/c)',
+  #  ylog = True, xr = [0, 2.0], yr = [1e-8, 5e3],
+  #  lmargin = 0.12, bmargin = 0.11, rmargin = 0.998,
+  #  key = ['bottom left', 'samplen 0.5', 'width -1', 'opaque'],
+  #  arrow_bar = 0.002, layout = '3x2'
+  #)
   #make plot for LMR spectra only
   lmr_key = getSubplotTitle('LMR', '0.4-0.76') # 0.4 not for 200 GeV! skipping above!
+  pseudo_point = np.array([[-1,0,0,0,0]])
+  model_titles = ['cocktail + model', 'model', 'in-medium', 'QGP']
+  model_props = [
+    'with lines lc %s lw 5 lt %d' % (default_colors[-2], i+1)
+    for i in xrange(len(model_titles))
+  ]
   make_plot(
-    data = dpt_dict[lmr_key][0],
-    properties = dpt_dict[lmr_key][1],
-    titles = dpt_dict[lmr_key][2],
+    data = dpt_dict[lmr_key][0] + [ pseudo_point ] * len(model_titles),
+    properties = dpt_dict[lmr_key][1] + model_props,
+    titles = dpt_dict[lmr_key][2] + model_titles,
     name = os.path.join(outDir, 'ptspecLMR'),
     ylabel = '1/N@_{mb}^{evt} d^{2}N@_{ee}^{acc.}/dp_{T}dM_{ee} (c^3/GeV^2)',
     xlabel = 'dielectron transverse momentum, p_{T} (GeV/c)',
-    ylog = True, xr = [0, 2.0], yr = [2e-7, 5],
-    lmargin = 0.14, bmargin = 0.08, rmargin = 0.98, tmargin = 0.9,
-    key = ['maxrows 2', 'samplen 0.5', 'width -3', 'at graph 1.,1.1'],
-    arrow_bar = 0.005, size = '10in,13in'
+    ylog = True, xr = [0, 2.0], yr = [1e-8, 100],
+    lmargin = 0.15, bmargin = 0.08, rmargin = 0.98, tmargin = 0.84,
+    key = ['maxrows 4', 'samplen 0.7', 'width -2', 'at graph 1.,1.2'],
+    arrow_bar = 0.005, size = '10in,13in',
+    labels = { 'stat. errors only': [0.7,0.95,False] }
   )
   # make mean pt plot
   yMinPt, yMaxPt = 0.95*min(yvalsPt), 1.05*max(yvalsPt)
