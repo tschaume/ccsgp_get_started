@@ -30,7 +30,7 @@ def getSubplotTitle(mn, mr):
 
 def gp_ptspec():
   """example for a 2D-panel plot (TODO)"""
-  fenergies = ['19', '27', '39', '62', '200']
+  fenergies = ['19', '27', '39', '62']#, '200']
   nen = len(fenergies)
   #mee_keys = ['pi0', 'LMR', 'omega', 'phi', 'IMR', 'jpsi']
   mee_keys = ['LMR', ]
@@ -48,6 +48,7 @@ def gp_ptspec():
     file_url = os.path.join(inDir, filename)
     filebase = os.path.splitext(filename)[0] # unique
     energy, mee_name, mee_range, data_type = splitFileName(filebase)
+    if energy == '200': continue
     if mee_name not in mee_keys: continue
     mee_dict[mee_name] = mee_range
     data[filebase] = np.loadtxt(open(file_url, 'rb'))
@@ -127,7 +128,7 @@ def gp_ptspec():
   #  arrow_bar = 0.002, layout = '3x2'
   #)
   #make plot for LMR spectra only
-  lmr_key = getSubplotTitle('LMR', '0.3-0.76')
+  lmr_key = getSubplotTitle('LMR', '0.4-0.76') # 0.4 not for 200 GeV! skipping above!
   make_plot(
     data = dpt_dict[lmr_key][0],
     properties = dpt_dict[lmr_key][1],
