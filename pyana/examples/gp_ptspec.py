@@ -44,11 +44,17 @@ def gp_ptspec():
     '19': 0.360245401469014, '200': 1.0, '39': 0.37353401814177617,
     '27': 0.39374082474968564, '62': 0.47675708579800646
   }
+  lmr_label = None
   for filename in os.listdir(inDir):
     # import data
     file_url = os.path.join(inDir, filename)
     filebase = os.path.splitext(filename)[0] # unique
     energy, mee_name, mee_range, data_type = splitFileName(filebase)
+    if mee_name == 'LMR':
+        mee_range_split = map(float, mee_range.split('-'))
+        lmr_label = 'LMR: %g < M_{ee} < %g GeV/c^{2}' % (
+          mee_range_split[0], mee_range_split[1]
+        )
     if energy == '200': continue
     if mee_name not in mee_keys: continue
     mee_dict[mee_name] = mee_range
@@ -139,7 +145,7 @@ def gp_ptspec():
   #make plot for LMR spectra only
   lmr_key = getSubplotTitle('LMR', '0.4-0.76') # 0.4 not for 200 GeV! skipping above!
   pseudo_point = np.array([[-1,0,0,0,0]])
-  model_titles = ['cocktail + model', 'model', 'in-medium', 'QGP']
+  model_titles = ['cocktail + model', 'cocktail', 'in-medium', 'QGP']
   model_props = [
     'with lines lc %s lw 5 lt %d' % (default_colors[-2], i+1)
     for i in xrange(len(model_titles))
@@ -155,7 +161,9 @@ def gp_ptspec():
     lmargin = 0.15, bmargin = 0.08, rmargin = 0.98, tmargin = 0.84,
     key = ['maxrows 4', 'samplen 0.7', 'width -2', 'at graph 1.,1.2'],
     arrow_bar = 0.005, size = '10in,13in',
-    labels = { 'stat. errors only': [0.7,0.95,False] }
+    labels = {
+      'stat. errors only': [0.7,0.95,False], lmr_label: [0.05,0.03,False]
+    }
   )
   # make mean pt plot
   yMinPt, yMaxPt = 0.95*min(yvalsPt), 1.05*max(yvalsPt)
