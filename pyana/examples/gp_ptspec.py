@@ -32,8 +32,8 @@ def gp_ptspec():
   """example for a 2D-panel plot (TODO)"""
   fenergies = ['19', '27', '39', '62']#, '200']
   nen = len(fenergies)
-  #mee_keys = ['pi0', 'LMR', 'omega', 'phi', 'IMR', 'jpsi']
-  mee_keys = ['LMR', ]
+  mee_keys = ['pi0', 'LMR', 'omega', 'phi', 'IMR', 'jpsi']
+  #mee_keys = ['LMR', ]
   mee_dict = OrderedDict((k,'') for k in mee_keys)
   yscale = { '200': '300', '62': '50', '39': '3', '27': '0.15', '19': '0.01' }
   inDir, outDir = getWorkDirs()
@@ -117,16 +117,16 @@ def gp_ptspec():
   #    data_avpt[k][i][0] = linsp[energies[i]][mee_keys.index(key)]
   # make panel plot
   yMin, yMax = 0.5*min(yvals), 3*max(yvals)
-  #make_panel(
-  #  dpt_dict = OrderedDict((k,dpt_dict[k]) for k in plot_key_order),
-  #  name = os.path.join(outDir, 'ptspec'),
-  #  ylabel = '1/N@_{mb}^{evt} d^{2}N@_{ee}^{acc.}/dp_{T}dM_{ee} (c^3/GeV^2)',
-  #  xlabel = 'dielectron transverse momentum, p_{T} (GeV/c)',
-  #  ylog = True, xr = [0, 2.0], yr = [1e-6, 5e9],
-  #  lmargin = 0.12, bmargin = 0.11, rmargin = 0.998,
-  #  key = ['bottom left', 'samplen 0.5', 'width -1', 'opaque'],
-  #  arrow_bar = 0.002, layout = '3x2'
-  #)
+  make_panel(
+    dpt_dict = OrderedDict((k,dpt_dict[k]) for k in plot_key_order),
+    name = os.path.join(outDir, 'ptspec'),
+    ylabel = '1/N@_{mb}^{evt} d^{2}N@_{ee}^{acc.}/dp_{T}dM_{ee} (c^3/GeV^2)',
+    xlabel = 'dielectron transverse momentum, p_{T} (GeV/c)',
+    ylog = True, xr = [0, 2.0], yr = [1e-8, 5e3],
+    lmargin = 0.12, bmargin = 0.11, rmargin = 0.998,
+    key = ['bottom left', 'samplen 0.5', 'width -1', 'opaque'],
+    arrow_bar = 0.002, layout = '3x2'
+  )
   #make plot for LMR spectra only
   lmr_key = getSubplotTitle('LMR', '0.4-0.76') # 0.4 not for 200 GeV! skipping above!
   make_plot(
