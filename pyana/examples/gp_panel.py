@@ -15,6 +15,10 @@ def gp_panel(version, skip):
   :param version: plot version / input subdir name
   :type version: str
   """
+  scale = {
+    '19': 0.360245401469014, '200': 1.0, '39': 0.37353401814177617,
+    '27': 0.39374082474968564, '62': 0.47675708579800646
+  }
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version)
   data = {}
@@ -26,6 +30,7 @@ def gp_panel(version, skip):
     file_url = os.path.join(inDir, infile)
     data_import = np.loadtxt(open(file_url, 'rb'))
     data_import = data_import[data_import[:,0] < 1.1]
+    if data_type == 'data': data_import[:,(1,3,4)] *= scale[energy]
     if data_type == 'cocktail': data_import[:,2:] = 0.
     elif data_type == '+medium': data_import[:,2] = 0.
     key = getEnergy4Key(energy)
