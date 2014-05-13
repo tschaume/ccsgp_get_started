@@ -60,15 +60,13 @@ def gp_ptspec():
     mee_dict[mee_name] = mee_range
     data[filebase] = np.loadtxt(open(file_url, 'rb'))
     if energy == '200': data[filebase][:,(1,3,4)] /= 0.5
-    if data_type == 'data': data[filebase][:,(1,3,4)] *= scale[energy]
     # calculate average pT first
+    pTs = data[filebase][:,0]
     probs = unp.uarray(data[filebase][:,1], data[filebase][:,3]) # dN/pT
     probs /= umath.fsum(probs) # probabilities
-    pTs = unp.uarray(data[filebase][:,0], data[filebase][:,2]) # pT
     avpt = umath.fsum(pTs*probs)
-    weights = data[filebase][:,1] * data[filebase][:,0]
     logging.info(('%s: {} %g' % (
-      filebase, np.average(data[filebase][:,0], weights=weights)
+      filebase, np.average(pTs, weights = data[filebase][:,1])
     )).format(avpt)) # TODO: syst. uncertainties
     # save datapoint for average pT and append to yvalsPt for yaxis range
     dp = [ float(getEnergy4Key(energy)), avpt.nominal_value, 0., avpt.std_dev, 0. ]
@@ -81,6 +79,8 @@ def gp_ptspec():
     else: data_avpt[avpt_key] = [ dp ]
     yvalsPt.append(avpt.nominal_value)
     # now adjust data for panel plot and append to yvals
+    if data_type == 'data':
+      data[filebase][:,(1,3,4)] *= scale[energy]
     data[filebase][:,(1,3,4)] *= float(yscale[energy])
     if data_type == 'cocktail' or fnmatch(data_type, '*medium*'):
         data[filebase][:,2:] = 0.
