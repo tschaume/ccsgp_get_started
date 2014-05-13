@@ -189,7 +189,7 @@ def gp_ptspec():
     xlabel = '{/Symbol \326}s_{NN} (GeV)',
     ylabel = 'LMR {/Symbol \341}p_{T}{/Symbol \361} in STAR Acceptance (GeV/c)',
     lmargin = 0.15, bmargin = 0.15, xlog = True, xr = [17,220],
-    yr = [0.4,1.], #yr = [yMinPt, yMaxPt],
+    yr = [0.15,0.95], #yr = [yMinPt, yMaxPt],
     key = [ 'bottom right' ],
     gpcalls = [
       'format x "%g"',
