@@ -5,6 +5,7 @@ from .utils import getWorkDirs, checkSymLink, getEnergy4Key
 from ..ccsgp.ccsgp import make_panel
 from ..ccsgp.utils import getOpts
 from ..ccsgp.config import default_colors
+from fnmatch import fnmatch
 
 def gp_panel(version, skip):
   """example for a panel plot using QM12 data (see gp_xfac)
@@ -32,14 +33,20 @@ def gp_panel(version, skip):
     data_import = data_import[data_import[:,0] < 1.1]
     if data_type == 'data': data_import[:,(1,3,4)] *= scale[energy]
     if data_type == 'cocktail': data_import[:,2:] = 0.
-    elif data_type == '+medium': data_import[:,2] = 0.
+    elif fnmatch(data_type, '*medium*'): data_import[:,2] = 0.
     key = getEnergy4Key(energy)
     if key not in data: data[key] = {}
-    data[key][data_type] = data_import
-  plot_order = ['+medium', 'cocktail', 'data']
+    data_type_mod = data_type
+    if data_type_mod == 'mediumMedOnly': data_type_mod = 'in-medium'
+    elif data_type_mod == 'mediumQgpOnly': data_type_mod = 'QGP'
+    elif data_type_mod == '+medium': data_type_mod = 'cocktail + model'
+    data[key][data_type_mod] = data_import
+  plot_order = ['in-medium', 'QGP', 'cocktail + model', 'cocktail', 'data']
   plot_opts = {
-    '+medium': 'with filledcurves lt 1 lw 4 pt 0 lc %s' % default_colors[8],
-    'cocktail': 'with lines lc %s lw 5 lt 1' % default_colors[-2],
+    'QGP': 'with lines lt 2 lw 5 lc %s' % default_colors[1],
+    'in-medium': 'with lines lt 2 lw 5 lc %s' % default_colors[2],
+    'cocktail + model': 'with filledcurves lt 1 lw 5 pt 0 lc %s' % default_colors[16],
+    'cocktail': 'with lines lc %s lw 5 lt 1' % default_colors[8],
     'data': 'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0]
   }
   make_panel(
@@ -62,8 +69,9 @@ def gp_panel(version, skip):
     gpcalls = ['mxtics 2'] + (['label %d "" at graph 0.4,0.7' % (
       8 if skip is None else 6
     )] if version == 'QM12Latest200' else []),
-    labels = {'STAR Preliminary': [0.4,0.7,False]},
-    layout = '3x2' if version == 'LatestPatrickJieYi' else ('%dx1' % len(data))
+    labels = {'STAR Preliminary': [0.4,0.5,False]},
+    layout = '3x2' if version == 'LatestPatrickJieYi' else ('%dx1' % len(data)),
+    key = ['width -4', 'at graph 0.95,0.85']
   )
   return 'done'
 
