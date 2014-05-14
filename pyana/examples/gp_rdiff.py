@@ -37,9 +37,13 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version)
   data, cocktail, medium = OrderedDict(), OrderedDict(), OrderedDict()
+  #scale = {
+  #  '19.6': 0.360245401469014, '200': 1.0, '39': 0.37353401814177617,
+  #  '27': 0.39374082474968564, '62.4': 0.47675708579800646
+  #}
   scale = {
-    '19.6': 0.360245401469014, '200': 1.0, '39': 0.37353401814177617,
-    '27': 0.39374082474968564, '62.4': 0.47675708579800646
+      '19': 0.4274654744079354, '200': 1.0, '39': 0.4362451929487654,
+      '27': 0.47464918475541873, '62': 0.5800852553921563
   }
   for infile in os.listdir(inDir):
     if infile == "cocktail_contribs": continue
