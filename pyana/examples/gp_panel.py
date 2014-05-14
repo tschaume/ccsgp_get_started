@@ -35,7 +35,12 @@ def gp_panel(version, skip):
     file_url = os.path.join(inDir, infile)
     data_import = np.loadtxt(open(file_url, 'rb'))
     data_import = data_import[data_import[:,0] < 1.1]
-    if data_type == 'data': data_import[:,(1,3,4)] *= scale[energy]
+    if data_type == 'data' and (
+        version == 'LatestPatrickJieYi' or (
+            version == 'QM14' and energy == '27'
+        )
+    ):
+        data_import[:,(1,3,4)] *= scale[energy]
     if data_type == 'cocktail': data_import[:,2:] = 0.
     elif fnmatch(data_type, '*medium*'): data_import[:,2] = 0.
     key = getEnergy4Key(energy)
@@ -53,6 +58,7 @@ def gp_panel(version, skip):
     'cocktail': 'with lines lc %s lw 5 lt 1' % default_colors[8],
     'data': 'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0]
   }
+  panel2D_versions = (version == 'LatestPatrickJieYi' or version == 'QM14')
   make_panel(
     dpt_dict = OrderedDict(
       (' '.join([k, 'GeV']), [
@@ -67,14 +73,14 @@ def gp_panel(version, skip):
     ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
     xlabel = 'invariant dielectron mass, M_{ee} (GeV/c^{2})',
     ylog = True, xr = [0, 1.1], yr = [1e-4, 20],
-    lmargin = 0.12 if version == 'LatestPatrickJieYi' else 0.1,
-    bmargin = 0.11 if version == 'LatestPatrickJieYi' else 0.15,
+    lmargin = 0.12 if panel2D_versions else 0.1,
+    bmargin = 0.11 if panel2D_versions else 0.15,
     arrow_length = 0.4, arrow_bar = 0.002,
     gpcalls = ['mxtics 2'] + (['label %d "" at graph 0.4,0.7' % (
       8 if skip is None else 6
     )] if version == 'QM12Latest200' else []),
     labels = {'STAR Preliminary': [0.4,0.5,False]},
-    layout = '3x2' if version == 'LatestPatrickJieYi' else ('%dx1' % len(data)),
+    layout = '3x2' if panel2D_versions else ('%dx1' % len(data)),
     key = ['width -4', 'at graph 0.95,0.85']
   )
   return 'done'

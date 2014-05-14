@@ -176,7 +176,11 @@ def gp_stack(version, energies, inclMed, inclFits):
   for e in ['19', '27', '39', '62' ]:
     scale[e] = (pi0yld[e+'_cocktail'] / pi0yld[e+'_data']).nominal_value
   scale['200'] = 1.
-  for k in data: data[k][:,(1,3,4)] *= scale[k]
+  for k in data:
+    if version == 'LatestPatrickJieYi' or (
+      version == 'QM14' and k == '27'
+    ):
+      data[k][:,(1,3,4)] *= scale[k]
   print scale
   # ordered
   dataOrdered = OrderedDict(
@@ -232,8 +236,9 @@ def gp_stack(version, energies, inclMed, inclFits):
     ] if version != 'QM12Latest200' else [
       'width -14', 'maxcols 1'
     ],
-    #labels = {'BES Energies are STAR Preliminary': [0.38,0.9,False]}
     labels = {
+      'BES: STAR Preliminary': [0.38,0.9,False],
+      '200 GeV: [arXiv:1312.7397]': [0.38,0.85,False],
       '{/Symbol=50 \775}': [0.64,0.81 if not inclMed else 0.75,False]
     } if version == 'QM12Latest200' else {}, size = '10in,13in',
     #arrows = [ # example arrow

@@ -52,8 +52,12 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     energy = getEnergy4Key(energy)
     file_url = os.path.join(inDir, infile)
     data_import = np.loadtxt(open(file_url, 'rb'))
-    if data_type == 'data':
-      #data_import[:,(1,3,4)] *= scale[energy]
+    if data_type == 'data' and (
+        version == 'LatestPatrickJieYi' or (
+            version == 'QM14' and energy == '27'
+        )
+    ):
+      data_import[:,(1,3,4)] *= scale[energy]
       data[energy] = data_import[data_import[:,0] < 0.8]
     elif data_type == 'cocktail': cocktail[energy] = data_import
     elif not nomed: medium[energy] = data_import
