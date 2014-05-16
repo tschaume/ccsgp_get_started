@@ -178,7 +178,7 @@ def gp_stack(version, energies, inclMed, inclFits):
   scale['200'] = 1.
   for k in data:
     if version == 'LatestPatrickJieYi' or (
-      version == 'QM14' and k == '27'
+      version == 'QM14' and k != '19'
     ):
       data[k][:,(1,3,4)] *= scale[k]
   print scale

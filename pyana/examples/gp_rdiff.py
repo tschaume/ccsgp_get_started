@@ -37,13 +37,13 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version)
   data, cocktail, medium = OrderedDict(), OrderedDict(), OrderedDict()
-  #scale = {
-  #  '19.6': 0.360245401469014, '200': 1.0, '39': 0.37353401814177617,
-  #  '27': 0.39374082474968564, '62.4': 0.47675708579800646
+  #scale = { # LatestPatrickJieYi
+  #    '19.6': 0.4274654744079354, '200': 1.0, '39': 0.4362451929487654,
+  #    '27': 0.47464918475541873, '62.4': 0.5800852553921563
   #}
-  scale = {
-      '19': 0.4274654744079354, '200': 1.0, '39': 0.4362451929487654,
-      '27': 0.47464918475541873, '62': 0.5800852553921563
+  scale = { # QM14
+    '19.6': 0.47144704299427165, '200': 1.0, '39': 0.7776170174498098,
+    '27': 0.47464918475541873, '62.4': 0.9173998879333009
   }
   for infile in os.listdir(inDir):
     if infile == "cocktail_contribs": continue
@@ -54,7 +54,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     data_import = np.loadtxt(open(file_url, 'rb'))
     if data_type == 'data' and (
         version == 'LatestPatrickJieYi' or (
-            version == 'QM14' and energy == '27'
+            version == 'QM14' and energy != '19'
         )
     ):
       data_import[:,(1,3,4)] *= scale[energy]
@@ -140,10 +140,10 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     titles = zip_flat(dataOrdered.keys()[::2], [''] * nSetsPlot)
   global labels
   labels = {
-    'BES: STAR Preliminary' if version == 'QM12Latest200'
+    'BES: STAR Preliminary' if version == 'QM12Latest200' or version == 'QM14'
     else 'STAR Preliminary': [0.4,0.05,False],
-    '200 GeV: [arXiv:1312.7397]' if version == 'QM12Latest200'
-    else '': [0.4,0.12,False],
+    '200 GeV: [arXiv:1312.7397]' if version == 'QM12Latest200' or version == 'QM14'
+    else '': [0.4,0.115,False],
     'LMR: %.2f < M_{ee} < %.2f GeV/c^{2}' % ( eRanges[1], eRanges[2]): [0.4,0.18,False]
   }
   make_plot(
@@ -230,7 +230,8 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       name = os.path.join(outDir, 'enhance%s' % version),
       xlabel = '{/Symbol \326}s_{NN} (GeV)', ylabel = '',
       lmargin = 0.08, xlog = True, key = ['width -4'],
-      yr = [0.5,4 if version == 'QM12Latest200' else 7], xr = [15,220],
+      yr = [0.5,4 if version == 'QM12Latest200' or version == 'QM14' else 7],
+      xr = [15,220],
       gpcalls = [
         'format x "%g"',
         'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
@@ -274,7 +275,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     name = os.path.join(outDir, 'excess%s%s' % (version,'DivdNdy' if divdNdy else '')),
     xlabel = '{/Symbol \326}s_{NN} (GeV)', ylabel = '',
     lmargin = 0.1, xlog = True, xr = [4.8,220], key = ['width -4'],
-    yr = [0,4 if version == 'QM12Latest200' else 7],
+    yr = [0,4 if version == 'QM12Latest200' or version == 'QM14' else 7],
     gpcalls = [
       'nokey' if divdNdy else '', 'format x "%g"',
       'xtics (5,10,20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',

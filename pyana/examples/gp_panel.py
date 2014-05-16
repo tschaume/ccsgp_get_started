@@ -16,13 +16,13 @@ def gp_panel(version, skip):
   :param version: plot version / input subdir name
   :type version: str
   """
-  #scale = {
-  #  '19': 0.360245401469014, '200': 1.0, '39': 0.37353401814177617,
-  #  '27': 0.39374082474968564, '62': 0.47675708579800646
+  #scale = { # LatestPatrickJieYi
+  #    '19': 0.4274654744079354, '200': 1.0, '39': 0.4362451929487654,
+  #    '27': 0.47464918475541873, '62': 0.5800852553921563
   #}
-  scale = {
-      '19': 0.4274654744079354, '200': 1.0, '39': 0.4362451929487654,
-      '27': 0.47464918475541873, '62': 0.5800852553921563
+  scale = { # QM14
+    '19': 0.47144704299427165, '200': 1.0, '39': 0.7776170174498098,
+    '27': 0.47464918475541873, '62': 0.9173998879333009
   }
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version)
@@ -37,7 +37,7 @@ def gp_panel(version, skip):
     data_import = data_import[data_import[:,0] < 1.1]
     if data_type == 'data' and (
         version == 'LatestPatrickJieYi' or (
-            version == 'QM14' and energy == '27'
+            version == 'QM14' and energy != '19'
         )
     ):
         data_import[:,(1,3,4)] *= scale[energy]
