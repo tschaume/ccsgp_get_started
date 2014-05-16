@@ -62,7 +62,12 @@ def gp_panel(version, skip):
   panel2D_versions = (version == 'LatestPatrickJieYi' or version == 'QM14')
   make_panel(
     dpt_dict = OrderedDict(
-      (' '.join([k, 'GeV']), [
+      (' '.join([k, 'GeV %s' % (
+          '{/=18 arXiv:1312.7397}'
+          if k == '200' and (
+              version == 'QM12Latest200' or version == 'QM14'
+          ) else '{/=18 STAR Preliminary}'
+      )]), [
         [ data[k][dt] for dt in plot_order if dt in data[k] ],
         [ plot_opts[dt] for dt in plot_order if dt in data[k] ],
         [ dt for dt in plot_order if dt in data[k] ]
@@ -77,10 +82,7 @@ def gp_panel(version, skip):
     lmargin = 0.12 if panel2D_versions else 0.1,
     bmargin = 0.11 if panel2D_versions else 0.15,
     arrow_length = 0.4, arrow_bar = 0.002,
-    gpcalls = ['mxtics 2'] + (['label %d "" at graph 0.4,0.7' % (
-      8 if skip is None else 6
-    )] if version == 'QM12Latest200' else []),
-    labels = {'STAR Preliminary': [0.4,0.5,False]},
+    gpcalls = ['mxtics 2'],
     layout = '3x2' if panel2D_versions else ('%dx1' % len(data)),
     key = ['width -4', 'at graph 0.95,0.85']
   )
