@@ -38,6 +38,7 @@ def gp_panel(version, skip):
     if data_type == 'data' and (
         version == 'LatestPatrickJieYi' or (
             version == 'QM14' and energy != '19'
+            and energy != '27' # skip when using Joey's dataset
         )
     ):
         data_import[:,(1,3,4)] *= scale[energy]
