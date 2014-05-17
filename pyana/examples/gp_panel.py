@@ -35,13 +35,12 @@ def gp_panel(version, skip):
     file_url = os.path.join(inDir, infile)
     data_import = np.loadtxt(open(file_url, 'rb'))
     data_import = data_import[data_import[:,0] < 1.1]
-    if data_type == 'data' and (
+    if (data_type == 'cocktail' or fnmatch(data_type, '*medium*')) and (
         version == 'LatestPatrickJieYi' or (
             version == 'QM14' and energy != '19'
-            and energy != '27' # skip when using Joey's dataset
         )
     ):
-        data_import[:,(1,3,4)] *= scale[energy]
+        data_import[:,(1,3,4)] /= scale[energy]
     if data_type == 'cocktail': data_import[:,2:] = 0.
     elif fnmatch(data_type, '*medium*'): data_import[:,2] = 0.
     key = getEnergy4Key(energy)

@@ -11,7 +11,7 @@ from uncertainties import ufloat
 
 labels = None
 
-dNdyPi0 = { '19.6': 51.9, '27': 55.8, '39': 58.6, '62.4': 82.6, '200': 98.5 }
+dNdyPi0 = { '19.6': 52.8, '27': 57.6, '39': 60.8, '62.4': 77.2, '200': 98.5 }
 
 def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   """example for ratio or difference plots using QM12 data (see gp_panel)
@@ -52,12 +52,13 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     energy = getEnergy4Key(energy)
     file_url = os.path.join(inDir, infile)
     data_import = np.loadtxt(open(file_url, 'rb'))
-    if data_type == 'data' and (
+    if (data_type == 'cocktail' or fnmatch(data_type, '*medium*')) and (
         version == 'LatestPatrickJieYi' or (
-            version == 'QM14' and energy != '19'
+            version == 'QM14' and energy != '19.6'
         )
     ):
-      data_import[:,(1,3,4)] *= scale[energy]
+      data_import[:,(1,3,4)] /= scale[energy]
+    if data_type == 'data':
       data[energy] = data_import[data_import[:,0] < 0.8]
     elif data_type == 'cocktail': cocktail[energy] = data_import
     elif not nomed: medium[energy] = data_import

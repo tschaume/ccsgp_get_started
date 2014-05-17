@@ -176,11 +176,11 @@ def gp_stack(version, energies, inclMed, inclFits):
   for e in ['19', '27', '39', '62' ]:
     scale[e] = (pi0yld[e+'_cocktail'] / pi0yld[e+'_data']).nominal_value
   scale['200'] = 1.
-  for k in data:
+  for k in cocktail:
     if version == 'LatestPatrickJieYi' or (
       version == 'QM14' and k != '19'
     ):
-      data[k][:,(1,3,4)] *= scale[k]
+      cocktail[k][:,(1,3,4)] /= scale[k]
   print scale
   # ordered
   dataOrdered = OrderedDict(

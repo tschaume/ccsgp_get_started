@@ -40,10 +40,6 @@ def gp_ptspec():
   inDir, outDir = getWorkDirs()
   data, data_avpt, dpt_dict = {}, {}, {}
   yvals, yvalsPt = [], []
-  #scale = {
-  #  '19': 0.360245401469014, '200': 1.0, '39': 0.37353401814177617,
-  #  '27': 0.39374082474968564, '62': 0.47675708579800646
-  #}
   scale = {
       '19': 0.4274654744079354, '200': 1.0, '39': 0.4362451929487654,
       '27': 0.47464918475541873, '62': 0.5800852553921563
@@ -63,6 +59,9 @@ def gp_ptspec():
     if mee_name not in mee_keys: continue
     mee_dict[mee_name] = mee_range
     data[filebase] = np.loadtxt(open(file_url, 'rb'))
+    if data_type == 'data':
+        print data[filebase]
+        data[filebase] = data[filebase][:-1] # skip mT<0.4 point
     if energy == '200': data[filebase][:,(1,3,4)] /= 0.5
     # calculate average pT first
     pTs = data[filebase][:,0]
@@ -83,8 +82,8 @@ def gp_ptspec():
     else: data_avpt[avpt_key] = [ dp ]
     yvalsPt.append(avpt.nominal_value)
     # now adjust data for panel plot and append to yvals
-    if data_type == 'data':
-      data[filebase][:,(1,3,4)] *= scale[energy]
+    if data_type == 'cocktail' or fnmatch(data_type, '*medium*'):
+      data[filebase][:,(1,3,4)] /= scale[energy]
     data[filebase][:,(1,3,4)] *= float(yscale[energy])
     if data_type == 'cocktail' or fnmatch(data_type, '*medium*'):
         data[filebase][:,2:] = 0.
