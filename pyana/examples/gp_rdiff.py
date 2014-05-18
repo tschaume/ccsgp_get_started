@@ -11,7 +11,7 @@ from uncertainties import ufloat
 
 labels = None
 
-dNdyPi0 = { '19.6': 52.8, '27': 57.6, '39': 60.8, '62.4': 77.2, '200': 98.5 }
+dNdyPi0 = { '19.6': 52.8, '27': 57.6, '39': 60.8, '62.4': 77.2, '200': 105 }
 
 def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   """example for ratio or difference plots using QM12 data (see gp_panel)
@@ -258,29 +258,46 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     if key not in excess: excess[key] = [ dp ]
     else: excess[key].append(dp)
   logging.debug(excess)
-  graph_data = [ np.array(excess['LMR']), np.array(excess['LMR_Med']) ]
+  avdata = np.array(excess['LMR'])
+  avg = np.average(avdata[:,1], weights = avdata[:,4])
+  graph_data = [
+      np.array([
+          [ 7.7, avg, 0, 0, avdata[-1][-1]],
+          [ 19.6, avg, 0, 0, avdata[-1][-1]]
+      ]),
+      np.array([
+          [ 7.7, 2*avg, 0, 0, 0], [ 19.6, avg, 0, 0, 0],
+      ]),
+      np.array(excess['LMR']),
+      #np.array(excess['LMR_Med']),
+  ]
   props = [
-    'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0],
-    'with linespoints lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[1] 
+      'with filledcurves pt 0 lc %s lw 4 lt 2' % default_colors[8],
+      'with lines lc %s lw 10 lt 2' % default_colors[3],
+      'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0],
+      #'with linespoints lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[1],
   ]
   tits = [
-      'LMR Excess Yield %s({/Symbol \264} 10^{-%d})' % (
-          '/ dN/dy|_{/Symbol \\160}  ' if divdNdy else '', 5 if divdNdy else 3
-      ),
-      'Model'
+      'BES-II extrapolation',
+      'model expectation at BES-II',
+      'data',
+      #'Model',
   ]
   if divdNdy:
-    labels.update(dict((str(v), [float(k)*0.9,3.8,True]) for k,v in dNdyPi0.items()))
-    labels.update({ 'dN/dy|_{/Symbol \\160}': [100,3.8,True]})
+    labels.update(dict((str(v), [float(k)*0.9,4.7,True]) for k,v in dNdyPi0.items()))
+    labels.update({ 'dN/dy|_{/Symbol \\160}': [100,4.7,True]})
   make_plot(
     data = graph_data, properties = props, titles = tits,
     name = os.path.join(outDir, 'excess%s%s' % (version,'DivdNdy' if divdNdy else '')),
-    xlabel = '{/Symbol \326}s_{NN} (GeV)', ylabel = '',
-    lmargin = 0.1, xlog = True, xr = [4.8,220], key = ['width -4'],
-    yr = [0,4 if version == 'QM12Latest200' or version == 'QM14' else 7],
+    xlabel = '{/Symbol \326}s_{NN} (GeV)',
+    ylabel = 'LMR Excess Yield %s({/Symbol \264} 10^{-%d})' % (
+        '/ dN/dy|_{/Symbol \\160}  ' if divdNdy else '', 5 if divdNdy else 3
+    ),
+    lmargin = 0.1, xlog = True, xr = [7,220], key = ['width -6'],
+    yr = [0,4.5 if version == 'QM12Latest200' or version == 'QM14' else 7],
     gpcalls = [
-      'nokey' if divdNdy else '', 'format x "%g"',
-      'xtics (5,10,20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
+      'format x "%g"',
+      'xtics (7,10,20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
     ], labels = labels
   )
   return 'done'
