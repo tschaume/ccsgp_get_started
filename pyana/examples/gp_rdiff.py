@@ -42,8 +42,8 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   #    '27': 0.47464918475541873, '62.4': 0.5800852553921563
   #}
   scale = { # QM14
-    '19': 0.47145048388810196, '200': 1.0, '39': 0.7776679085382481,
-    '27': 0.7026415326332122, '62': 0.9174700031778402
+    '19.6': 0.47145048388810196, '200': 1.0, '39': 0.7776679085382481,
+    '27': 0.7026415326332122, '62.4': 0.9174700031778402
   }
   for infile in os.listdir(inDir):
     if infile == "cocktail_contribs": continue
@@ -299,7 +299,7 @@ def gp_rdiff_merged(version, divdNdy):
           open(os.path.join(
               excess_datdir,
               'LMR_Excess_Yield_%s_Symbol_10_%d_.dat' % (
-                  'dN_dy___Symbol_160_0' if divdNdy else '', 5 if divdNdy else 3
+                  'dN_dy___Symbol_160' if divdNdy else '', 5 if divdNdy else 3
               )
           ), 'rb')
       )
