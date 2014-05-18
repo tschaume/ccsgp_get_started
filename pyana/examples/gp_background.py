@@ -39,10 +39,13 @@ def gp_background():
         ],
         xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
         ylabel = 'counts / %d MeV/c^{2}' % REBIN,
+        key = ['spacing 1.6'],
         labels = {
-            '%s GeV' % energy: (2.2, 5e3),
-            'NR: M_{ee} > 0.9 GeV/c^{2}': (2.2, 2e3),
-            'A_{/Symbol \\261} = 0.026813(25)': (2.2, 0.7e3)
+            '%s GeV' % energy: (1.5, 5e4),
+            'Normalization Region:': (0.1, 1e3),
+            'M_{ee} > 0.9 GeV/c^{2}': (0.1,0.3e3),
+            'relative statistical error on': (0.1, 10),
+            'normalization factor: 9.3{/Symbol \264}10^{-4}': (0.1, 4) #0.026813(25)
         },
     )
     # background ratio and acc.corr.
