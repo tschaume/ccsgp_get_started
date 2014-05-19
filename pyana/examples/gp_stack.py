@@ -10,8 +10,6 @@ from pymodelfit import LinearModel
 from uncertainties import ufloat
 from decimal import Decimal
 
-cocktail_style = 'with filledcurves pt 0 lc %s lw 4 lt 1' % default_colors[8]
-medium_style = 'with lines lc %s lw 4 lt 2' % default_colors[4]
 dataIMRfit_style = 'with lines lc %s lw 4 lt 1' % default_colors[-2]
 cocktailIMRfit_style = 'with lines lc %s lw 4 lt 2' % default_colors[-2]
 pseudo_point = np.array([ [-1,1e-7,0,0,1] ])
@@ -47,6 +45,10 @@ def gp_stack(version, energies, inclMed, inclFits):
   """
   inclMed = (inclMed and version != 'QM12')
   inclFits = (inclFits and version == 'LatestPatrickJieYi')
+  cocktail_style = 'with filledcurves pt 0 lc %s lw 4 lt 1' % default_colors[8]
+  medium_style = 'with lines lc %s lw 4 lt 2' % default_colors[4]
+  if inclMed:
+    medium_style = 'with filledcurves pt 0 lc %s lw 4 lt 2' % default_colors[4]
   shift = {
     '200': 200., '62': 15., '39': 0.5, '27': 0.01, '19': 2e-4
   } if (
@@ -162,13 +164,18 @@ def gp_stack(version, energies, inclMed, inclFits):
       data[energy] = data_import
     elif fnmatch(filename, 'cocktail*'):
       data_import[:,(2,3)] = 0 # don't plot dx,dy for cocktail
+      if inclMed and energy != '27':
+          for di in data_import:
+              if di[0] < 1.1: di[4] = 0 # don't plot dy2 for cocktail
       if energy == '19' and version == 'QM12':
         # cut off cocktail above 1.1 GeV/c^2
         cocktail[energy] = data_import[data_import[:,0] < 1.3]
       else:
         cocktail[energy] = data_import
     elif inclMed and fnmatch(filename, '+medium*'):
-      data_import[:,2:] = 0 # don't plot dx, dy1, dy2 for medium
+      data_import[:,(2,3)] = 0 # don't plot dx, dy1 for medium
+      if energy == '27':
+        data_import[:,4] = 0 # don't plotd dy2 for medium
       medium[energy] = data_import
   # calculate data-to-cocktail scaling factors in pi0 region < 0.1 GeV/c2
   # cocktail/data
@@ -176,11 +183,11 @@ def gp_stack(version, energies, inclMed, inclFits):
   for e in ['19', '27', '39', '62' ]:
     scale[e] = (pi0yld[e+'_cocktail'] / pi0yld[e+'_data']).nominal_value
   scale['200'] = 1.
-  for k in cocktail:
-    if version == 'LatestPatrickJieYi' or (
-      version == 'QM14' and k != '19'
-    ):
-      cocktail[k][:,(1,3,4)] /= scale[k]
+  if version == 'LatestPatrickJieYi' or version == 'QM14':
+    for k in cocktail:
+        if k != '19': cocktail[k][:,(1,3,4)] /= scale[k]
+    for k in medium:
+        if k != '19': medium[k][:,(1,3,4)] /= scale[k]
   print scale
   # ordered
   dataOrdered = OrderedDict(
@@ -230,9 +237,7 @@ def gp_stack(version, energies, inclMed, inclFits):
     lmargin = 0.17, rmargin = 0.97, bmargin = 0.08, arrow_offset = 0.8,
     #tmargin = 0.9 if version != 'QM12Latest200' else 0.99,
     key = [
-      'width -8.5' if ((inclMed or inclFits) and not version == 'Latest19200_PatrickQM12')
-      else 'width -7', #'at graph 1.0,1.1',
-      'maxrows 7', 'font ",19"', 'samplen 0.5', 'spacing 0.9'
+      'width -7.5', 'maxrows 7', 'font ",19"', 'samplen 0.5', 'spacing 0.9'
     ] if version != 'QM12Latest200' else [
       'width -14', 'maxcols 1'
     ],
