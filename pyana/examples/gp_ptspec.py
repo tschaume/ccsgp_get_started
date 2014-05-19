@@ -69,7 +69,7 @@ def gp_ptspec():
     probs /= umath.fsum(probs) # probabilities
     avpt = umath.fsum(pTs*probs)
     logging.info(('%s: {} %g' % (
-      filebase, np.average(pTs, weights = data[filebase][:,1])
+        filebase, np.average(pTs[:-1], weights = data[filebase][:-1,1])
     )).format(avpt)) # TODO: syst. uncertainties
     # save datapoint for average pT and append to yvalsPt for yaxis range
     dp = [ float(getEnergy4Key(energy)), avpt.nominal_value, 0., avpt.std_dev, 0. ]
@@ -216,12 +216,16 @@ def gp_ptspec():
     xlabel = '{/Symbol \326}s_{NN} (GeV)',
     ylabel = 'LMR {/Symbol \341}p_{T}{/Symbol \361} in STAR Acceptance (GeV/c)',
     lmargin = 0.15, bmargin = 0.15, xlog = True, xr = [17,220],
-    yr = [0.15,0.95], #yr = [yMinPt, yMaxPt],
+    yr = [0.4,1.02], #yr = [yMinPt, yMaxPt],
     key = [ 'bottom right' ],
     gpcalls = [
       'format x "%g"',
       'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
-    ]
+    ],
+    labels = {
+        'stat. errors only': [0.7,0.95,False], lmr_label: [0.05,0.07,False],
+        '0.4 < p_{T} < 2 GeV/c': [0.05,0.14,False]
+    }
   )
   return 'done'
 
