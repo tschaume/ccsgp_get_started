@@ -293,7 +293,8 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     ylabel = 'LMR Excess Yield %s({/Symbol \264} 10^{-%d})' % (
         '/ dN/dy|_{/Symbol \\160}  ' if divdNdy else '', 5 if divdNdy else 3
     ),
-    lmargin = 0.1, xlog = True, xr = [7,220], key = ['width -6'],
+    xlog = True, xr = [7,220], key = ['width -6'],
+    lmargin = 0.15, bmargin = 0.15, tmargin = 0.93,
     yr = [0,4.5 if version == 'QM12Latest200' or version == 'QM14' else 7],
     gpcalls = [
       'format x "%g"',
