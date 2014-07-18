@@ -50,7 +50,7 @@ def gp_stack(version, energies, inclMed, inclFits):
   if inclMed:
     medium_style = 'with filledcurves pt 0 lc %s lw 4 lt 2' % default_colors[4]
   shift = {
-    '200': 200., '62': 15., '39': 0.5, '27': 0.01, '19': 2e-4
+    '200': 200., '62': 25., '39': 2., '27': 0.02, '19': 2e-3
   } if (
     version != 'QM12' and version != 'Latest19200_PatrickQM12' and version != 'QM12Latest200'
   ) else {
@@ -60,7 +60,7 @@ def gp_stack(version, energies, inclMed, inclFits):
   inDir = os.path.join(inDir, version)
   data, cocktail, medium = OrderedDict(), OrderedDict(), OrderedDict()
   dataIMRfit, cocktailIMRfit, dataTvsS = OrderedDict(), OrderedDict(), OrderedDict()
-  cocktailContribs = OrderedDict()
+  cocktailContribs, medOnly, qgpOnly = OrderedDict(), OrderedDict(), OrderedDict()
   linmod = LinearModel()
   rangeIMR = [1.15, 2.5]
   nPtsMC = 1000 # number of MC points per data point
@@ -175,6 +175,10 @@ def gp_stack(version, energies, inclMed, inclFits):
     elif inclMed and fnmatch(filename, '+medium*'):
       data_import[:,(2,3)] = 0 # don't plot dx, dy1 for medium
       medium[energy] = data_import
+    elif inclMed and fnmatch(filename, 'medium*Only39.dat'):
+      data_import[:,2:] = 0 # don't plot any errors
+      if fnmatch(filename, '*Qgp*'): qgpOnly[energy] = data_import
+      if fnmatch(filename, '*Med*'): medOnly[energy] = data_import
   # calculate data-to-cocktail scaling factors in pi0 region < 0.1 GeV/c2
   # cocktail/data
   scale = {}
@@ -186,6 +190,10 @@ def gp_stack(version, energies, inclMed, inclFits):
         if k != '19': cocktail[k][:,(1,3,4)] /= scale[k]
     for k in medium:
         if k != '19': medium[k][:,(1,3,4)] /= scale[k]
+    for k in medOnly:
+        if k != '19': medOnly[k][:,(1,3,4)] /= scale[k]
+    for k in qgpOnly:
+        if k != '19': qgpOnly[k][:,(1,3,4)] /= scale[k]
   print scale
   # ordered
   dataOrdered = OrderedDict(
@@ -201,20 +209,24 @@ def gp_stack(version, energies, inclMed, inclFits):
   cocktailIMRfitOrdered = OrderedDict((k, cocktailIMRfit[k]) for k in sorted(cocktailIMRfit, key=int))
   nSetsData, nSetsCocktail, nSetsMedium = len(dataOrdered), len(cocktail), len(medium)
   nSetsDataIMRfit, nSetsCocktailIMRfit = len(dataIMRfitOrdered), len(cocktailIMRfitOrdered)
-  nSetsCocktailContribs = len(cocktailContribs)
-  yr_low = 3e-7 if version == 'QM12' else 1e-10
+  nSetsCocktailContribs, nSetsModelOnly = len(cocktailContribs), len(qgpOnly) + len(medOnly)
+  yr_low = 3e-7 if version == 'QM12' else 1e-8
   if version == 'Latest19200_PatrickQM12': yr_low = 1e-7
   if version == 'QM12Latest200': yr_low = 2e-6
   make_plot(
     data = cocktailContribs.values()
     + cocktailOrdered.values() + ([ pseudo_point ] if inclMed else [])
+    + qgpOnly.values() + medOnly.values()
     + mediumOrdered.values() + [ pseudo_point ] + dataOrdered.values()
     + dataIMRfitOrdered.values() + ([ pseudo_point ] if inclFits else [])
     + cocktailIMRfitOrdered.values() + ([ pseudo_point ] if inclFits else []),
     properties = [
-      'with lines lc %s lw 4 lt 1' % default_colors[i if i < 5 else i+1]
+      'with lines lc %s lw 4 lt 3' % default_colors[-i-2]
       for i in xrange(nSetsCocktailContribs)
     ] + [ cocktail_style ] * (nSetsCocktail+1)
+    + [
+      'with lines lc %s lw 4 lt 2' % default_colors[-i-16] for i in xrange(nSetsModelOnly)
+    ] * (nSetsModelOnly/2)
     + [ medium_style ] * (nSetsMedium+bool(nSetsMedium)) + [
       'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i]
       for i in xrange(nSetsData)
@@ -222,7 +234,8 @@ def gp_stack(version, energies, inclMed, inclFits):
     + [ cocktailIMRfit_style ] * (nSetsCocktailIMRfit+1),
     titles = [ particleLabel4Key(k) for k in cocktailContribs.keys() ]
     + [''] * nSetsCocktail + ['Cocktail w/o {/Symbol \162}']
-    + [''] * nSetsMedium + ['+ Medium'] * bool(nSetsMedium) + dataOrdered.keys()
+    + ['QGP', 'in-medium'] * bool(nSetsModelOnly)
+    + [''] * nSetsMedium + ['Cocktail + Model'] * bool(nSetsMedium) + dataOrdered.keys()
     + [''] * nSetsDataIMRfit + [''] * inclFits
     + [''] * nSetsCocktailIMRfit + [''] * inclFits,
     name = os.path.join(outDir, 'stack%s%s%s%s' % (
@@ -231,8 +244,8 @@ def gp_stack(version, energies, inclMed, inclFits):
     )),
     ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
     xlabel = 'invariant dielectron mass, M_{ee} (GeV/c^{2})',
-    ylog = True, xr = [0, 3.5], yr = [yr_low, 3e3],
-    lmargin = 0.17, rmargin = 0.97, bmargin = 0.08, arrow_offset = 0.8,
+    ylog = True, xr = [0, 3.2], yr = [yr_low, 1.7e3],
+    lmargin = 0.14, rmargin = 0.99, bmargin = 0.08, arrow_offset = 0.8,
     #tmargin = 0.9 if version != 'QM12Latest200' else 0.99,
     key = [
       'width -7.5', 'maxrows 7', 'font ",19"', 'samplen 0.5', 'spacing 0.9'
@@ -240,10 +253,11 @@ def gp_stack(version, energies, inclMed, inclFits):
       'width -14', 'maxcols 1'
     ],
     labels = {
-      'BES: STAR Preliminary': [0.38,0.9,False],
-      '200 GeV: [arXiv:1312.7397]': [0.38,0.85,False],
-      '{/Symbol=50 \775}': [0.64,0.81 if not inclMed else 0.75,False]
-    } if version == 'QM12Latest200' else {}, size = '10in,13in',
+      'BES: STAR Preliminary': [0.43,0.78,False],
+      '200 GeV: [arXiv:1312.7397]': [0.43,0.74,False],
+      #'{/Symbol=50 \775}': [0.64,0.81 if not inclMed else 0.75,False]
+    } if version == 'QM12Latest200' or version == 'QM14' else {},
+    size = '11in,13in',
     #arrows = [ # example arrow
     #  [ [2.4, 5e-5], [2.3, 1e-5], 'head filled lc 1 lw 4 lt 1 front' ],
     #],
