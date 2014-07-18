@@ -96,17 +96,17 @@ def gp_ptspec():
     if dpt_dict_key not in dpt_dict:
         ndsets = nen*2
         # TODO: currently only 19/39/62 medium avail. w/ med/qgp/tot for each
-        if mee_name == 'LMR': ndsets += 3*3
+        if mee_name == 'LMR': ndsets += 4*3
         dpt_dict[dpt_dict_key] = [ [None]*ndsets, [None]*ndsets, [None]*ndsets ]
     enidx = fenergies.index(energy)
     dsidx = enidx
     if fnmatch(data_type, '*medium*'):
-      # 19: 0-2, 39: 3-5, 62: 6-8
-      dsidx = (energy=='19')*0 + (energy=='39')*3 + (energy=='62')*6
+      # 19: 0-2, 27: 3-5, 39: 6-8, 62: 9-11
+      dsidx = (energy=='19')*0 + (energy=='27')*3 + (energy=='39')*6 + (energy=='62')*9
       dsidx += (data_type=='mediumQgpOnly')*0 + (data_type=='mediumMedOnly')*1
       dsidx += (data_type=='medium')*2
     else:
-      dsidx += int(mee_name == 'LMR') * 3 * 3 # number of medium calc avail.
+      dsidx += int(mee_name == 'LMR') * 4 * 3 # number of medium calc avail.
     dsidx += int(data_type == 'data') * len(fenergies)
     dpt_dict[dpt_dict_key][0][dsidx] = data[filebase] # data
     if data_type == 'data': # properties
