@@ -83,7 +83,8 @@ def gp_panel(version, skip):
     arrow_length = 0.4, arrow_bar = 0.002,
     gpcalls = ['mxtics 2'],
     layout = '3x2' if panel2D_versions else ('%dx1' % len(data)),
-    key = ['width -4', 'at graph 0.95,0.85']
+    key = ['width -4', 'at graph 0.95,0.85'],
+    size = '8in,8in'
   )
   return 'done'
 
