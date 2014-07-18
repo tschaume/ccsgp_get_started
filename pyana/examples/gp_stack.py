@@ -164,7 +164,7 @@ def gp_stack(version, energies, inclMed, inclFits):
       data[energy] = data_import
     elif fnmatch(filename, 'cocktail*'):
       data_import[:,(2,3)] = 0 # don't plot dx,dy for cocktail
-      if inclMed and energy != '27':
+      if inclMed:
           for di in data_import:
               if di[0] < 1.1: di[4] = 0 # don't plot dy2 for cocktail
       if energy == '19' and version == 'QM12':
@@ -174,8 +174,6 @@ def gp_stack(version, energies, inclMed, inclFits):
         cocktail[energy] = data_import
     elif inclMed and fnmatch(filename, '+medium*'):
       data_import[:,(2,3)] = 0 # don't plot dx, dy1 for medium
-      if energy == '27':
-        data_import[:,4] = 0 # don't plotd dy2 for medium
       medium[energy] = data_import
   # calculate data-to-cocktail scaling factors in pi0 region < 0.1 GeV/c2
   # cocktail/data
