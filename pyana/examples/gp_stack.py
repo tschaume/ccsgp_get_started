@@ -50,7 +50,7 @@ def gp_stack(version, energies, inclMed, inclFits):
   if inclMed:
     medium_style = 'with filledcurves pt 0 lc %s lw 4 lt 2' % default_colors[4]
   shift = {
-    '200': 200., '62': 25., '39': 2., '27': 0.02, '19': 2e-3
+    '200': 200., '62': 25., '39': 2., '27': 0.03, '19': 2e-3
   } if (
     version != 'QM12' and version != 'Latest19200_PatrickQM12' and version != 'QM12Latest200'
   ) else {
@@ -73,6 +73,7 @@ def gp_stack(version, energies, inclMed, inclFits):
         for fn in os.listdir(file_url):
             energy = re.compile('\d+').search(fn).group()
             particle = re.sub('%s\.dat' % energy, '', fn)
+            if version == 'QM14' and energy == '19' and particle == 'jpsi': continue
             cocktailContribs[particle] = np.loadtxt(open(
                 os.path.join(file_url, fn), 'rb'
             ))
@@ -166,19 +167,20 @@ def gp_stack(version, energies, inclMed, inclFits):
       data_import[:,(2,3)] = 0 # don't plot dx,dy for cocktail
       if inclMed:
           for di in data_import:
-              if di[0] < 1.1: di[4] = 0 # don't plot dy2 for cocktail
-      if energy == '19' and version == 'QM12':
+              if (energy != '200' and di[0] < 1.07) or (energy == '200' and di[0] < 0.95):
+                  di[4] = 0 # don't plot dy2 for cocktail
+      if energy == '19' and (version == 'QM12' or version == 'QM14'):
         # cut off cocktail above 1.1 GeV/c^2
-        cocktail[energy] = data_import[data_import[:,0] < 1.3]
+        cocktail[energy] = data_import[data_import[:,0] < 1.5]
       else:
         cocktail[energy] = data_import
     elif inclMed and fnmatch(filename, '+medium*'):
       data_import[:,(2,3)] = 0 # don't plot dx, dy1 for medium
-      medium[energy] = data_import
+      medium[energy] = data_import[data_import[:,0] < 1.07]
     elif inclMed and fnmatch(filename, 'medium*Only39.dat'):
       data_import[:,2:] = 0 # don't plot any errors
-      if fnmatch(filename, '*Qgp*'): qgpOnly[energy] = data_import
-      if fnmatch(filename, '*Med*'): medOnly[energy] = data_import
+      if fnmatch(filename, '*Qgp*'): qgpOnly[energy] = data_import[data_import[:,0] < 1.07]
+      if fnmatch(filename, '*Med*'): medOnly[energy] = data_import[data_import[:,0] < 1.07]
   # calculate data-to-cocktail scaling factors in pi0 region < 0.1 GeV/c2
   # cocktail/data
   scale = {}
@@ -210,7 +212,7 @@ def gp_stack(version, energies, inclMed, inclFits):
   nSetsData, nSetsCocktail, nSetsMedium = len(dataOrdered), len(cocktail), len(medium)
   nSetsDataIMRfit, nSetsCocktailIMRfit = len(dataIMRfitOrdered), len(cocktailIMRfitOrdered)
   nSetsCocktailContribs, nSetsModelOnly = len(cocktailContribs), len(qgpOnly) + len(medOnly)
-  yr_low = 3e-7 if version == 'QM12' else 1e-8
+  yr_low = 3e-7 if version == 'QM12' else 1e-7
   if version == 'Latest19200_PatrickQM12': yr_low = 1e-7
   if version == 'QM12Latest200': yr_low = 2e-6
   make_plot(
@@ -248,13 +250,13 @@ def gp_stack(version, energies, inclMed, inclFits):
     lmargin = 0.14, rmargin = 0.99, bmargin = 0.08, arrow_offset = 0.8,
     #tmargin = 0.9 if version != 'QM12Latest200' else 0.99,
     key = [
-      'width -7.5', 'maxrows 7', 'font ",19"', 'samplen 0.5', 'spacing 0.9'
+      'width -6.3', 'maxrows 7', 'font ",21"', 'samplen 0.5'#, 'spacing 0.9'
     ] if version != 'QM12Latest200' else [
       'width -14', 'maxcols 1'
     ],
     labels = {
-      'BES: STAR Preliminary': [0.43,0.78,False],
-      '200 GeV: [arXiv:1312.7397]': [0.43,0.74,False],
+      'BES: STAR Preliminary': [0.43,0.7,False],
+      '200 GeV: [arXiv:1312.7397]': [0.43,0.66,False],
       #'{/Symbol=50 \775}': [0.64,0.81 if not inclMed else 0.75,False]
     } if version == 'QM12Latest200' or version == 'QM14' else {},
     size = '11in,13in',
