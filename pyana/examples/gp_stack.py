@@ -236,7 +236,7 @@ def gp_stack(version, energies, inclMed, inclFits):
     + [ cocktailIMRfit_style ] * (nSetsCocktailIMRfit+1),
     titles = [ particleLabel4Key(k) for k in cocktailContribs.keys() ]
     + [''] * nSetsCocktail + ['Cocktail w/o {/Symbol \162}']
-    + ['QGP', 'in-medium'] * bool(nSetsModelOnly)
+    + ['QGP', 'in-Medium'] * bool(nSetsModelOnly)
     + [''] * nSetsMedium + ['Cocktail + Model'] * bool(nSetsMedium) + dataOrdered.keys()
     + [''] * nSetsDataIMRfit + [''] * inclFits
     + [''] * nSetsCocktailIMRfit + [''] * inclFits,
@@ -255,8 +255,8 @@ def gp_stack(version, energies, inclMed, inclFits):
       'width -14', 'maxcols 1'
     ],
     labels = {
-      'BES: STAR Preliminary': [0.43,0.7,False],
-      '200 GeV: [arXiv:1312.7397]': [0.43,0.66,False],
+      'BES: STAR Preliminary': [0.4,0.75,False],
+      '200 GeV: Phys.Rev.Lett. 113 022301': [0.4,0.71,False],
       #'{/Symbol=50 \775}': [0.64,0.81 if not inclMed else 0.75,False]
     } if version == 'QM12Latest200' or version == 'QM14' else {},
     size = '11in,13in',
