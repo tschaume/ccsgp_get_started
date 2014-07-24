@@ -144,11 +144,11 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   labels = {
     '{/=20 BES: STAR Preliminary}' if version == 'QM12Latest200' or version == 'QM14'
     else 'STAR Preliminary': [0.45,0.05,False],
-    '{/=20 200 GeV: [arXiv:1312.7397]}' if version == 'QM12Latest200' or version == 'QM14'
-    else '': [0.45,0.1,False],
+    '{/=20 200 GeV: PRL  113 022301' if version == 'QM12Latest200' or version == 'QM14'
+    else '': [0.45,0.12,False],
     '{/=20 LMR: %.2f < M_{ee} < %.2f GeV/c^{2}}' % (
         eRanges[1], eRanges[2]
-    ): [0.45,0.15,False]
+    ): [0.45,0.19,False]
   }
   make_plot(
     data = [ np.array(d) for d in dataOrdered.values()],
