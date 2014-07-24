@@ -256,7 +256,7 @@ def gp_stack(version, energies, inclMed, inclFits):
     ],
     labels = {
       'BES: STAR Preliminary': [0.4,0.75,False],
-      '200 GeV: Phys.Rev.Lett. 113 022301': [0.4,0.71,False],
+      '200 GeV: PRL 113 022301': [0.4,0.71,False],
       #'{/Symbol=50 \775}': [0.64,0.81 if not inclMed else 0.75,False]
     } if version == 'QM12Latest200' or version == 'QM14' else {},
     size = '11in,13in',
