@@ -30,7 +30,7 @@ def getSubplotTitle(mn, mr):
   return ' '.join([getMeeLabel(mn), ':', mr, ' GeV/c^{2}'])
 
 def gp_ptspec():
-  """example for a 2D-panel plot (TODO)"""
+  """example for a 2D-panel plot etc."""
   fenergies = ['19', '27', '39', '62', ]# '200']
   nen = len(fenergies)
   #mee_keys = ['pi0', 'LMR', 'omega', 'phi', 'IMR', 'jpsi']

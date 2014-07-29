@@ -50,6 +50,10 @@ Examples Module
 .. automodule:: pyana.examples.gp_rdiff
    :members:
 
+.. pyana/examples/gp_ptspec.py
+.. automodule:: pyana.examples.gp_ptspec
+   :members:
+
 .. pyana/examples/utils.py
 .. automodule:: pyana.examples.utils
    :members:

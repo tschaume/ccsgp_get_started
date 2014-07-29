@@ -23,9 +23,10 @@ Installation
 ^^^^^^^^^^^^
 
 1. `ccsgp_get_started` requires gnuplot, git, virtualenv and optionally hdf5.
-   Install these dependencies via MacPorts, for instance::
+   Install these dependencies via::
 
-     $ sudo port install gnuplot git-core py27-virtualenv [hdf5]
+     $ sudo port install gnuplot git-core py27-virtualenv [hdf5] # MacPorts
+     $ sudo apt-get install gnuplot git python-virtualenv [libhdf5-dev] # Debian/Ubuntu
 
    `hdf5` is optional but if you'd like to save your image data to HDF5, you'll
    have to install it.
@@ -40,7 +41,7 @@ Installation
      $ virtualenv-2.7 env
      $ source env/bin/activate
      $ pip install -U numpy
-     $ pip install -U -r requirements.txt
+     $ pip install -U -r requirements.txt --allow-external gnuplot-py --allow-unverified gnuplot-py
 
    Every time you start in a new terminal you have to activate the correct
    python environment by sourcing `env/bin/activate` again or instead use

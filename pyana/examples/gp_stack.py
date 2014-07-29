@@ -183,11 +183,11 @@ def gp_stack(version, energies, inclMed, inclFits):
       if fnmatch(filename, '*Med*'): medOnly[energy] = data_import[data_import[:,0] < 1.07]
   # calculate data-to-cocktail scaling factors in pi0 region < 0.1 GeV/c2
   # cocktail/data
-  scale = {}
-  for e in ['19', '27', '39', '62' ]:
-    scale[e] = (pi0yld[e+'_cocktail'] / pi0yld[e+'_data']).nominal_value
-  scale['200'] = 1.
   if version == 'LatestPatrickJieYi' or version == 'QM14':
+    scale = {}
+    for e in ['19', '27', '39', '62' ]:
+      scale[e] = (pi0yld[e+'_cocktail'] / pi0yld[e+'_data']).nominal_value
+    scale['200'] = 1.
     for k in cocktail:
         if k != '19': cocktail[k][:,(1,3,4)] /= scale[k]
     for k in medium:
@@ -196,7 +196,7 @@ def gp_stack(version, energies, inclMed, inclFits):
         if k != '19': medOnly[k][:,(1,3,4)] /= scale[k]
     for k in qgpOnly:
         if k != '19': qgpOnly[k][:,(1,3,4)] /= scale[k]
-  print scale
+    print scale
   # ordered
   dataOrdered = OrderedDict(
     (' '.join([
