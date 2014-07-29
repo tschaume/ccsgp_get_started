@@ -245,7 +245,7 @@ def gp_stack(version, energies, inclMed, inclFits):
       '_' + '-'.join(energies) if energies is not None else ''
     )),
     ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
-    xlabel = 'invariant dielectron mass, M_{ee} (GeV/c^{2})',
+    xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
     ylog = True, xr = [0, 3.2], yr = [yr_low, 1.7e3],
     lmargin = 0.14, rmargin = 0.99, bmargin = 0.08, arrow_offset = 0.8,
     #tmargin = 0.9 if version != 'QM12Latest200' else 0.99,
