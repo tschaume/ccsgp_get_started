@@ -13,6 +13,7 @@ setup(
   packages = find_packages(),
   install_requires = [
     #'h5py==2.2.1',
-    'uncertainties==2.4.4', 'gnuplot-py==1.8', 'numpy==1.8.0', 'wsgiref==0.1.2'
+    'pint==0.5.1', 'pymodelfit==0.1.2',
+    'uncertainties==2.4.4', 'gnuplot-py>=1.8', 'numpy>=1.8.0', 'wsgiref==0.1.2'
   ]
 )
