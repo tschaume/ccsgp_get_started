@@ -23,6 +23,7 @@ def particleLabel4Key(k):
     if k == 'pion': return '{/Symbol \160}^0 {/Symbol \256} e^{+}e^{-}{/Symbol \147}'
     if k == 'eta': return '{/Symbol \150} {/Symbol \256} e^{+}e^{-}{/Symbol \147}'
     if k == 'etap': return '{/Symbol \150}\' {/Symbol \256} e^{+}e^{-}{/Symbol \147}'
+    if k == 'rho': return '{/Symbol \162} {/Symbol \256} e^{+}e^{-} (vac.)'
     if k == 'omega': return '{/Symbol \167} {/Symbol \256} e^{+}e^{-}({/Symbol \160})'
     if k == 'phi': return '{/Symbol \146} {/Symbol \256} e^{+}e^{-}({/Symbol \150})'
     if k == 'jpsi': return 'J/{/Symbol \171} {/Symbol \256} e^{+}e^{-}'
@@ -50,7 +51,7 @@ def gp_stack(version, energies, inclMed, inclFits):
   if inclMed:
     medium_style = 'with filledcurves pt 0 lc %s lw 4 lt 2' % default_colors[4]
   shift = {
-    '200': 200., '62': 25., '39': 2., '27': 0.03, '19': 2e-3
+    '200': 200., '62': 25., '39': 2., '27': 0.1, '19': 5e-3
   } if (
     version != 'QM12' and version != 'Latest19200_PatrickQM12' and version != 'QM12Latest200'
   ) else {
@@ -176,11 +177,11 @@ def gp_stack(version, energies, inclMed, inclFits):
         cocktail[energy] = data_import
     elif inclMed and fnmatch(filename, '+medium*'):
       data_import[:,(2,3)] = 0 # don't plot dx, dy1 for medium
-      medium[energy] = data_import[data_import[:,0] < 1.07]
+      medium[energy] = data_import if energy != '200' else data_import[data_import[:,0] < 0.9]
     elif inclMed and fnmatch(filename, 'medium*Only39.dat'):
       data_import[:,2:] = 0 # don't plot any errors
-      if fnmatch(filename, '*Qgp*'): qgpOnly[energy] = data_import[data_import[:,0] < 1.07]
-      if fnmatch(filename, '*Med*'): medOnly[energy] = data_import[data_import[:,0] < 1.07]
+      if fnmatch(filename, '*Qgp*'): qgpOnly[energy] = data_import#[data_import[:,0] < 1.07]
+      if fnmatch(filename, '*Med*'): medOnly[energy] = data_import#[data_import[:,0] < 1.07]
   # calculate data-to-cocktail scaling factors in pi0 region < 0.1 GeV/c2
   # cocktail/data
   if version == 'LatestPatrickJieYi' or version == 'QM14':
@@ -215,6 +216,7 @@ def gp_stack(version, energies, inclMed, inclFits):
   yr_low = 3e-7 if version == 'QM12' else 1e-7
   if version == 'Latest19200_PatrickQM12': yr_low = 1e-7
   if version == 'QM12Latest200': yr_low = 2e-6
+  if version == 'LatestPatrickJieYi': yr_low = 1e-8
   make_plot(
     data = cocktailContribs.values()
     + cocktailOrdered.values() + ([ pseudo_point ] if inclMed else [])
@@ -224,7 +226,9 @@ def gp_stack(version, energies, inclMed, inclFits):
     + cocktailIMRfitOrdered.values() + ([ pseudo_point ] if inclFits else []),
     properties = [
       'with lines lc %s lw 4 lt 3' % default_colors[-i-2]
-      for i in xrange(nSetsCocktailContribs)
+      for i in xrange(nSetsCocktailContribs-1)
+    ] + [
+      'with lines lc %s lw 4 lt 3' % default_colors[0]
     ] + [ cocktail_style ] * (nSetsCocktail+1)
     + [
       'with lines lc %s lw 4 lt 2' % default_colors[-i-16] for i in xrange(nSetsModelOnly)
@@ -235,9 +239,9 @@ def gp_stack(version, energies, inclMed, inclFits):
     ] + [ dataIMRfit_style ] * (nSetsDataIMRfit+1)
     + [ cocktailIMRfit_style ] * (nSetsCocktailIMRfit+1),
     titles = [ particleLabel4Key(k) for k in cocktailContribs.keys() ]
-    + [''] * nSetsCocktail + ['Cocktail w/o {/Symbol \162}']
-    + ['QGP', 'in-Medium'] * bool(nSetsModelOnly)
-    + [''] * nSetsMedium + ['Cocktail + Model'] * bool(nSetsMedium) + dataOrdered.keys()
+    + [''] * nSetsCocktail + ['Cocktail (w/o {/Symbol \162})']
+    + ['QGP', 'HMBT'] * bool(nSetsModelOnly)
+    + [''] * nSetsMedium + ['Cocktail + HMBT'] * bool(nSetsMedium) + dataOrdered.keys()
     + [''] * nSetsDataIMRfit + [''] * inclFits
     + [''] * nSetsCocktailIMRfit + [''] * inclFits,
     name = os.path.join(outDir, 'stack%s%s%s%s' % (
@@ -246,20 +250,21 @@ def gp_stack(version, energies, inclMed, inclFits):
     )),
     ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
     xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
-    ylog = True, xr = [0, 3.2], yr = [yr_low, 1.7e3],
-    lmargin = 0.14, rmargin = 0.99, bmargin = 0.08, arrow_offset = 0.8,
+    ylog = True, xr = [0, 3.25], yr = [yr_low, 1.7e3],
+    lmargin = 0.095, rmargin = 0.995, bmargin = 0.09, arrow_offset = 0.8,
     #tmargin = 0.9 if version != 'QM12Latest200' else 0.99,
     key = [
-      'width -6.3', 'maxrows 7', 'font ",21"', 'samplen 0.5'#, 'spacing 0.9'
+      'width -6.3', 'maxrows 7', 'font ",21"', #'samplen 0.8'#, 'spacing 0.9'
     ] if version != 'QM12Latest200' else [
       'width -14', 'maxcols 1'
     ],
     labels = {
-      'BES: STAR Preliminary': [0.4,0.75,False],
-      '200 GeV: PRL 113 022301': [0.4,0.71,False],
+      'BES: STAR Preliminary': [0.05,0.9,False],
+      '200 GeV: PRL 113 022301': [0.05,0.86,False],
       #'{/Symbol=50 \775}': [0.64,0.81 if not inclMed else 0.75,False]
-    } if version == 'QM12Latest200' or version == 'QM14' else {},
-    size = '11in,13in',
+    } if version == 'QM12Latest200' or version == 'QM14' \
+      or version == 'LatestPatrickJieYi' else {},
+    size = '16in,12in',
     #arrows = [ # example arrow
     #  [ [2.4, 5e-5], [2.3, 1e-5], 'head filled lc 1 lw 4 lt 1 front' ],
     #],
