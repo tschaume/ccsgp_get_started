@@ -33,16 +33,16 @@ def gp_ptspec():
   """example for a 2D-panel plot etc."""
   fenergies = ['19', '27', '39', '62', ]# '200']
   nen = len(fenergies)
-  #mee_keys = ['pi0', 'LMR', 'omega', 'phi', 'IMR', 'jpsi']
-  mee_keys = ['LMR', ]
+  mee_keys = ['pi0', 'LMR', 'omega', 'phi', 'IMR', 'jpsi']
+  #mee_keys = ['LMR', ]
   mee_dict = OrderedDict((k,'') for k in mee_keys)
   yscale = { '200': '300', '62': '5000', '39': '50', '27': '0.3', '19': '0.001' }
   inDir, outDir = getWorkDirs()
   data, data_avpt, dpt_dict = {}, {}, {}
   yvals, yvalsPt = [], []
   scale = {
-      '19': 0.4274654744079354, '200': 1.0, '39': 0.4362451929487654,
-      '27': 0.47464918475541873, '62': 0.5800852553921563
+    '19': 1.0812324298238396, '200': 1.0, '39': 1.12093451186094,
+    '27': 1.206453891072013, '62': 1.4992194614005152
   }
   lmr_label = None
   for filename in os.listdir(inDir):
@@ -64,7 +64,7 @@ def gp_ptspec():
         data[filebase] = data[filebase][:-1] # skip mT<0.4 point
     if energy == '200': data[filebase][:,(1,3,4)] /= 0.5
     # calculate average pT first
-    mask = (data[filebase][:,0] > 0.4) & (data[filebase][:,0] < 2.)
+    mask = (data[filebase][:,0] > 0.4) & (data[filebase][:,0] < 2.2)
     avpt_data = data[filebase][mask]
     pTs = avpt_data[:,0]
     wghts = avpt_data[:,1]
@@ -85,8 +85,8 @@ def gp_ptspec():
     else: data_avpt[avpt_key] = [ dp ]
     yvalsPt.append(avpt.nominal_value)
     # now adjust data for panel plot and append to yvals
-    if data_type == 'cocktail' or fnmatch(data_type, '*medium*'):
-      data[filebase][:,(1,3,4)] /= scale[energy]
+    if data_type == 'data':
+      data[filebase][:,(1,3,4)] *= scale[energy]
     data[filebase][:,(1,3,4)] *= float(yscale[energy])
     if data_type == 'cocktail' or fnmatch(data_type, '*medium*'):
         data[filebase][:,2:] = 0.
@@ -130,113 +130,112 @@ def gp_ptspec():
   for k in data_avpt: data_avpt[k].sort(key=lambda x: x[0])
   energies = [ dp[0] for dp in data_avpt[mee_keys[0]] ]
   energies.append(215.) # TODO: think of better upper limit
-  #linsp = {}
-  #for start,stop in zip(energies[:-1],energies[1:]):
-  #  linsp[start] = np.linspace(start, stop, num = 4*len(mee_keys))
-  #for k in data_avpt:
-  #  key = k.split('_')[0]
-  #  for i in xrange(len(data_avpt[k])):
-  #    data_avpt[k][i][0] = linsp[energies[i]][mee_keys.index(key)]
+  linsp = {}
+  for start,stop in zip(energies[:-1],energies[1:]):
+    linsp[start] = np.linspace(start, stop, num = 4*len(mee_keys))
+  for k in data_avpt:
+    key = k.split('_')[0]
+    for i in xrange(len(data_avpt[k])):
+      data_avpt[k][i][0] = linsp[energies[i]][mee_keys.index(key)]
   # make panel plot
   yMin, yMax = 0.5*min(yvals), 3*max(yvals)
-  #make_panel(
-  #  dpt_dict = OrderedDict((k,dpt_dict[k]) for k in plot_key_order),
-  #  name = os.path.join(outDir, 'ptspec'),
-  #  ylabel = '1/N@_{mb}^{evt} d^{2}N@_{ee}^{acc.}/dp_{T}dM_{ee} (c^3/GeV^2)',
-  #  xlabel = 'dielectron transverse momentum, p_{T} (GeV/c)',
-  #  ylog = True, xr = [0, 2.0], yr = [1e-8, 5e3],
-  #  lmargin = 0.12, bmargin = 0.11, rmargin = 0.998,
-  #  key = ['bottom left', 'samplen 0.5', 'width -1', 'opaque'],
-  #  arrow_bar = 0.002, layout = '3x2'
-  #)
-  #make plot for LMR spectra only
-  lmr_key = getSubplotTitle('LMR', '0.4-0.76')
-  if energy == '200':
-      lmr_key = getSubplotTitle('LMR', '0.3-0.76')
-  pseudo_point = np.array([[-1,0,0,0,0]])
-  model_titles = ['Cocktail + Model', 'Cocktail', 'in-Medium', 'QGP']
-  model_props = [
-    'with lines lc %s lw 5 lt %d' % (default_colors[-2], i+1)
-    for i in xrange(len(model_titles))
-  ]
-  make_plot(
-    data = dpt_dict[lmr_key][0] + [ pseudo_point ] * len(model_titles),
-    properties = dpt_dict[lmr_key][1] + model_props,
-    titles = dpt_dict[lmr_key][2] + model_titles,
-    name = os.path.join(outDir, 'ptspecLMR'),
+  make_panel(
+    dpt_dict = OrderedDict((k,dpt_dict[k]) for k in plot_key_order),
+    name = os.path.join(outDir, 'ptspec'),
     ylabel = '1/N@_{mb}^{evt} d^{2}N@_{ee}^{acc.}/dp_{T}dM_{ee} (c^3/GeV^2)',
     xlabel = 'dielectron transverse momentum, p_{T} (GeV/c)',
-    ylog = True, xr = [0, 2.0], yr = [1e-8, 100],
-    lmargin = 0.15, bmargin = 0.08, rmargin = 0.98, tmargin = 0.84,
-    key = ['maxrows 4', 'samplen 0.7', 'width -2', 'at graph 1.,1.2'],
-    arrow_bar = 0.005, size = '10in,13in',
-    labels = {
-      'stat. errors only': [0.7,0.95,False], lmr_label: [0.05,0.03,False],
-      'STAR Preliminary': [0.05,0.07,False],
-    }
+    ylog = True, xr = [0, 2.2], yr = [1e-9, 1e4],
+    lmargin = 0.12, bmargin = 0.10, tmargin = 1., rmargin = 1.,
+    key = ['bottom left', 'samplen 0.5', 'width -2', 'opaque'],
+    arrow_bar = 0.002, layout = '3x2', size = '8in,8in'
   )
-  # make mean pt plot
-  yMinPt, yMaxPt = 0.95*min(yvalsPt), 1.05*max(yvalsPt)
+  #make plot for LMR spectra only
+  #lmr_key = getSubplotTitle('LMR', '0.4-0.76')
+  #if energy == '200':
+  #    lmr_key = getSubplotTitle('LMR', '0.3-0.76')
+  #pseudo_point = np.array([[-1,0,0,0,0]])
+  #model_titles = ['Cocktail + Model', 'Cocktail', 'in-Medium', 'QGP']
+  #model_props = [
+  #  'with lines lc %s lw 5 lt %d' % (default_colors[-2], i+1)
+  #  for i in xrange(len(model_titles))
+  #]
   #make_plot(
-  #  data = [ # cocktail
-  #    np.array(data_avpt[k+'_c']) for k in mee_keys
-  #  ] + [ # medium
-  #    np.array(data_avpt['LMR_m'])
-  #  ] + [ # data
-  #    np.array(data_avpt[k]) for k in mee_keys
-  #  ],
-  #  properties = [
-  #   'with lines lt 1 lw 4 lc %s' % default_colors[i if i < 5 else i+1]
-  #    for i in xrange(len(mee_keys))
-  #  ] + [
-  #   'with lines lt 2 lw 4 lc %s' % default_colors[mee_keys.index('LMR')]
-  #  ] + [
-  #   'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i if i < 5 else i+1]
-  #    for i in xrange(len(mee_keys))
-  #  ],
-  #  titles = [ getMeeLabel(k) for k in mee_keys ] + ['']*(len(mee_keys)+1),
-  #  name = os.path.join(outDir, 'meanPt'),
-  #  xlabel = '{/Symbol \326}s_{NN} (GeV)',
-  #  ylabel = '{/Symbol \341}p_{T}{/Symbol \361} in STAR Acceptance (GeV/c)',
-  #  lmargin = 0.08, xlog = True, xr = [17,220],
-  #  yr = [0,1.4], #yr = [yMinPt, yMaxPt],
-  #  key = [ 'maxrows 1', 'at graph 1, 1.1' ],
-  #  gpcalls = [
-  #    'format x "%g"',
-  #    'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
-  #  ]
-  #)
-  # make mean pt plot for LMR only
-  #make_plot(
-  #  data = [
-  #    #np.array(data_avpt['LMR_c']),
-  #    np.array(data_avpt['LMR_m']),
-  #    np.array(data_avpt['LMR'])
-  #  ],
-  #  properties = [
-  #   #'with lines lt 2 lw 4 lc %s' % default_colors[0],
-  #   'with lines lt 1 lw 4 lc %s' % default_colors[0],
-  #   'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0]
-  #  ],
-  #  titles = [
-  #      #'cocktail',
-  #      'model', getMeeLabel('data')
-  #  ],
-  #  name = os.path.join(outDir, 'meanPtLMR'),
-  #  xlabel = '{/Symbol \326}s_{NN} (GeV)',
-  #  ylabel = 'LMR {/Symbol \341}p_{T}{/Symbol \361} in STAR Acceptance (GeV/c)',
-  #  lmargin = 0.15, bmargin = 0.15, xlog = True, xr = [17,220],
-  #  yr = [0.4,1.02], #yr = [yMinPt, yMaxPt],
-  #  key = [ 'bottom right' ],
-  #  gpcalls = [
-  #    'format x "%g"',
-  #    'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
-  #  ],
+  #  data = dpt_dict[lmr_key][0] + [ pseudo_point ] * len(model_titles),
+  #  properties = dpt_dict[lmr_key][1] + model_props,
+  #  titles = dpt_dict[lmr_key][2] + model_titles,
+  #  name = os.path.join(outDir, 'ptspecLMR'),
+  #  ylabel = '1/N@_{mb}^{evt} d^{2}N@_{ee}^{acc.}/dp_{T}dM_{ee} (c^3/GeV^2)',
+  #  xlabel = 'dielectron transverse momentum, p_{T} (GeV/c)',
+  #  ylog = True, xr = [0, 2.0], yr = [1e-8, 100],
+  #  lmargin = 0.15, bmargin = 0.08, rmargin = 0.98, tmargin = 0.84,
+  #  key = ['maxrows 4', 'samplen 0.7', 'width -2', 'at graph 1.,1.2'],
+  #  arrow_bar = 0.005, size = '10in,13in',
   #  labels = {
-  #      'stat. errors only': [0.7,0.95,False], lmr_label: [0.05,0.07,False],
-  #      '0.4 < p_{T} < 2 GeV/c': [0.05,0.14,False]
+  #    'stat. errors only': [0.7,0.95,False], lmr_label: [0.05,0.03,False],
+  #    'STAR Preliminary': [0.05,0.07,False],
   #  }
   #)
+  # make mean pt plot
+  yMinPt, yMaxPt = 0.95*min(yvalsPt), 1.05*max(yvalsPt)
+  make_plot(
+    data = [ # cocktail
+      np.array(data_avpt[k+'_c']) for k in mee_keys
+    ] + [ # medium
+      np.array(data_avpt['LMR_m'])
+    ] + [ # data
+      np.array(data_avpt[k]) for k in mee_keys
+    ],
+    properties = [
+     'with lines lt 1 lw 4 lc %s' % default_colors[i if i < 5 else i+1]
+      for i in xrange(len(mee_keys))
+    ] + [
+     'with lines lt 2 lw 4 lc %s' % default_colors[mee_keys.index('LMR')]
+    ] + [
+     'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i if i < 5 else i+1]
+      for i in xrange(len(mee_keys))
+    ],
+    titles = [ getMeeLabel(k) for k in mee_keys ] + ['']*(len(mee_keys)+1),
+    name = os.path.join(outDir, 'meanPt'),
+    xlabel = '{/Symbol \326}s_{NN} (GeV)',
+    ylabel = '{/Symbol \341}p_{T}{/Symbol \361} in STAR Acceptance (GeV/c)',
+    xlog = True, xr = [17,220], yr = [yMinPt, yMaxPt], size = '11in,9in',
+    key = [ 'maxrows 1', 'at graph 1, 1.1' ],
+    lmargin = 0.11, bmargin = 0.11, tmargin = 1., rmargin = 1.,
+    gpcalls = [
+      'format x "%g"',
+      'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
+    ]
+  )
+  # make mean pt plot for LMR only
+  make_plot(
+    data = [
+      np.array(data_avpt['LMR_c']),
+      np.array(data_avpt['LMR_m']),
+      np.array(data_avpt['LMR'])
+    ],
+    properties = [
+     'with lines lt 2 lw 4 lc %s' % default_colors[0],
+     'with lines lt 1 lw 4 lc %s' % default_colors[0],
+     'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0]
+    ],
+    titles = [
+        'cocktail', 'HMBT', getMeeLabel('data')
+    ],
+    name = os.path.join(outDir, 'meanPtLMR'),
+    xlabel = '{/Symbol \326}s_{NN} (GeV)',
+    ylabel = 'LMR {/Symbol \341}p_{T}{/Symbol \361} in STAR Acceptance (GeV/c)',
+    lmargin = 0.17, bmargin = 0.15, tmargin = 0.95, xlog = True, xr = [17,80],
+    yr = [0.65,1.05], #yr = [yMinPt, yMaxPt],
+    key = [ 'bottom right' ],
+    gpcalls = [
+      'format x "%g"',
+      'xtics (20, 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
+    ],
+    labels = {
+        'stat. errors only': [0.7,0.95,False], lmr_label: [0.05,0.07,False],
+        '0.4 < p_{T} < 2.2 GeV/c': [0.05,0.14,False]
+    }
+  )
   return 'done'
 
 if __name__ == '__main__':
