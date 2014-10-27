@@ -59,7 +59,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     elif data_type == 'data' and version == 'LatestPatrickJieYi':
        data_import[:,(1,3,4)] *= scale[energy]
     if data_type == 'data':
-      data[energy] = data_import[data_import[:,0] < 0.8]
+      data[energy] = data_import[data_import[:,0] < 1.4]
     elif data_type == 'cocktail': cocktail[energy] = data_import
     elif not nomed: medium[energy] = data_import
   nSetsData = len(data)
@@ -110,8 +110,8 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
             uDiff -= uCocktailSum
             uDiff /= medium[energy][i,2] * 2 * yunit
           # cut off medium/cocktail at omega
-          if medium[energy][i,0] > 0.75:
-            continue
+          #if medium[energy][i,0] > 0.75:
+          #  continue
           dp = [
             medium[energy][i,0], uDiff.nominal_value,
             medium[energy][i,2] if not noxerr else 0.,
@@ -119,6 +119,8 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
           ]
           key = ' '.join([energy, 'GeV (Med.)'])
         # build list of data points
+        if dp[0] > 0.7425 and dp[0] < 0.825: continue # mask out omega region
+        if dp[0] > 0.97 and dp[0] < 1.0495: continue # mask out phi region
         if key in dataOrdered: dataOrdered[key].append(dp)
         else: dataOrdered[key] = [ dp ]
     if energy not in medium: # TODO add pseudo-data for missing medium (27GeV)
@@ -142,10 +144,10 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   labels = {
     '{BES: STAR Preliminary}' if version == 'QM12Latest200' or \
       version == 'QM14' or version == 'LatestPatrickJieYi'
-    else 'STAR Preliminary': [0.45,0.05,False],
+    else 'STAR Preliminary': [0.1,0.05,False],
     '{200 GeV: PRL 113 022301' if version == 'QM12Latest200' \
       or version == 'QM14' or version == 'LatestPatrickJieYi'
-    else '': [0.45,0.10,False],
+    else '': [0.1,0.10,False],
   }
   make_plot(
     data = [ np.array(d) for d in dataOrdered.values()],
@@ -157,10 +159,21 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
     ylabel = 'Enhancement Ratio' if diffRel else 'Excess Yield ({/Symbol \264} 10^{-3})',
     labels = labels, #ylog = diffRel,
-    xr = [0.25,0.75], yr = [0.,6.5] if diffRel else [-1,6.5],
+    xr = [0.2,1.4], yr = [0.,6.5] if diffRel else [-1,5.5],
     key = ['at graph 1.,1.1', 'maxrows 1', 'width -1.5'],
     lines = { ('x=1' if diffRel else 'x=0'): 'lc 0 lw 4 lt 2' },
-    lmargin = 0.12, bmargin = 0.12, tmargin = 0.9, size = '11in,9in',
+    gpcalls = [
+        'object 1 rectangle back fc rgb "grey" from 0.7425,%f to 0.825,%f' % (
+            1. if diffRel else 0., 6.5 if diffRel else 5.5
+        ),
+        'object 2 rectangle back fc rgb "grey" from 0.96,%f to 1.0495,%f' % (
+            1. if diffRel else 0., 6.5 if diffRel else 5.5
+        ),
+        'object 3 rectangle back fc rgb "#C6E2FF" from 0.4,%f to 0.74,%f' % (
+            1. if diffRel else 0., 6.5 if diffRel else 5.5
+        )
+    ],
+    lmargin = 0.12, bmargin = 0.12, tmargin = 0.9, rmargin = 0.98, size = '11in,9in',
   )
 
   if nomed or noxerr or version == 'QM12': return 'done'
@@ -220,7 +233,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     yr_upp = 4 if version == 'QM12Latest200' or version == 'QM14' else 7
     if version == 'LatestPatrickJieYi': yr_upp = 4.5
     labels.update({
-        '{LMR: %.2f < M_{ee} < %.2f GeV/c^{2}}' % (eRanges[1], eRanges[2]): [0.45,0.15,False]
+        '{LMR: %.2f < M_{ee} < %.2f GeV/c^{2}}' % (eRanges[1], eRanges[2]): [0.1,0.15,False]
     })
     make_plot(
       data = [ np.array(data_enhance), np.array(medium_enhance) ],
@@ -282,12 +295,12 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       'HMBT',
   ]
   yr_upp = 4.5 if version == 'QM12Latest200' or version == 'QM14' else 7
-  if version == 'LatestPatrickJieYi': yr_upp = 2.6 if divdNdy else 2.
+  if version == 'LatestPatrickJieYi': yr_upp = 2.4 if divdNdy else 2.
   if divdNdy:
     labels.update(dict((str(v), [float(k)*0.9,yr_upp*1.05,True]) for k,v in dNdyPi0.items()))
     labels.update({ 'dN/dy|_{/Symbol \\160}': [100,4.7,True]})
   labels.update({
-      '{LMR: %.2f < M_{ee} < %.2f GeV/c^{2}}' % (eRanges[1], eRanges[2]): [0.45,0.15,False]
+      '{LMR: %.2f < M_{ee} < %.2f GeV/c^{2}}' % (eRanges[1], eRanges[2]): [0.1,0.15,False]
   })
   make_plot(
     data = graph_data, properties = props, titles = tits,
