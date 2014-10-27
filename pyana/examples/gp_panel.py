@@ -29,6 +29,7 @@ def gp_panel(version, skip):
   data = {}
   for infile in os.listdir(inDir):
     if infile == "cocktail_contribs": continue
+    if infile == 'mediumDmOnly200.dat': continue
     energy = re.compile('\d+').search(infile).group()
     if skip is not None and energy == skip: continue
     data_type = re.sub('%s\.dat' % energy, '', infile)
@@ -41,7 +42,9 @@ def gp_panel(version, skip):
        data_import[:,(1,3,4)] *= scale[energy]
     if data_type == 'cocktail': data_import[:,2:] = 0.
     elif fnmatch(data_type, '*medium*'):
-       data_import = data_import if energy != '200' else data_import[data_import[:,0] < 0.9]
+       data_import = data_import[data_import[:,0] < 0.9] \
+               if energy == '200' and data_type == '+medium' \
+               else data_import
        data_import[:,2] = 0.
     key = getEnergy4Key(energy)
     if key not in data: data[key] = {}
