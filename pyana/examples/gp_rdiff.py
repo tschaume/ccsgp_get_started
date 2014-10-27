@@ -37,13 +37,13 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version)
   data, cocktail, medium = OrderedDict(), OrderedDict(), OrderedDict()
-  #scale = { # LatestPatrickJieYi
-  #    '19.6': 0.4274654744079354, '200': 1.0, '39': 0.4362451929487654,
-  #    '27': 0.47464918475541873, '62.4': 0.5800852553921563
-  #}
   scale = { # QM14 (19 GeV skip later, factor here only informational)
     '19.6': 1.0340571932983775, '200': 1.0, '39': 0.7776679085382481,
     '27': 0.6412140408244136, '62.4': 0.9174700031778402
+  }
+  scale = {
+    '19.6': 1.0812324298238396, '200': 1.0, '39': 1.12093451186094,
+    '27': 1.206453891072013, '62.4': 1.4992194614005152
   }
   for infile in os.listdir(inDir):
     if infile == "cocktail_contribs": continue
@@ -53,12 +53,11 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     energy = getEnergy4Key(energy)
     file_url = os.path.join(inDir, infile)
     data_import = np.loadtxt(open(file_url, 'rb'))
-    if (data_type == 'cocktail' or fnmatch(data_type, '*medium*')) and (
-        version == 'LatestPatrickJieYi' or (
-            version == 'QM14' and energy != '19.6'
-        )
-    ):
-      data_import[:,(1,3,4)] /= scale[energy]
+    if (data_type == 'cocktail' or fnmatch(data_type, '*medium*')) \
+       and (version == 'QM14' and energy != '19.6'):
+       data_import[:,(1,3,4)] /= scale[energy]
+    elif data_type == 'data' and version == 'LatestPatrickJieYi':
+       data_import[:,(1,3,4)] *= scale[energy]
     if data_type == 'data':
       data[energy] = data_import[data_import[:,0] < 0.8]
     elif data_type == 'cocktail': cocktail[energy] = data_import
@@ -111,7 +110,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
             uDiff -= uCocktailSum
             uDiff /= medium[energy][i,2] * 2 * yunit
           # cut off medium/cocktail at omega
-          if medium[energy][i,0] > 0.74:
+          if medium[energy][i,0] > 0.75:
             continue
           dp = [
             medium[energy][i,0], uDiff.nominal_value,
@@ -129,26 +128,24 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   # make plot
   nSets = len(dataOrdered)
   nSetsPlot = nSets/2 if nSets > nSetsData else nSets
-  ylabel = 'data/medium' if nSets > nSetsData and not nomed else 'data'
   props = [
-    'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i] for i in xrange(nSetsPlot)
+    'lt 1 lw 4 ps 2 lc %s pt 18' % default_colors[i] for i in xrange(nSetsPlot)
   ]
   titles = dataOrdered.keys()
   if nSets > nSetsData:
     props = zip_flat(props, [
-      'with filledcurves pt 0 lt 1 lw 4 lc %s' % default_colors[i]
+      'with lines lt 2 lw 4 lc %s' % default_colors[i]
       for i in xrange(nSetsPlot)
     ])
     titles = zip_flat(dataOrdered.keys()[::2], [''] * nSetsPlot)
   global labels
   labels = {
-    '{/=20 BES: STAR Preliminary}' if version == 'QM12Latest200' or version == 'QM14'
+    '{BES: STAR Preliminary}' if version == 'QM12Latest200' or \
+      version == 'QM14' or version == 'LatestPatrickJieYi'
     else 'STAR Preliminary': [0.45,0.05,False],
-    '{/=20 200 GeV: PRL  113 022301' if version == 'QM12Latest200' or version == 'QM14'
-    else '': [0.45,0.12,False],
-    '{/=20 LMR: %.2f < M_{ee} < %.2f GeV/c^{2}}' % (
-        eRanges[1], eRanges[2]
-    ): [0.45,0.19,False]
+    '{200 GeV: PRL 113 022301' if version == 'QM12Latest200' \
+      or version == 'QM14' or version == 'LatestPatrickJieYi'
+    else '': [0.45,0.10,False],
   }
   make_plot(
     data = [ np.array(d) for d in dataOrdered.values()],
@@ -158,16 +155,12 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       'NoMed' if nomed else '', 'NoXErr' if noxerr else ''
     )),
     xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
-    ylabel = '%s %s (cocktail w/o {/Symbol \162})%s' % (
-      ylabel, '/' if diffRel else '-',
-      '' if diffRel else ' ({/Symbol \264} 10^{-3})'
-    ), labels = labels, ylog = diffRel,
-    xr = [0.2,0.76], yr = [0.7,11.5] if diffRel else [-1,10.3],
+    ylabel = 'Enhancement Ratio' if diffRel else 'Excess Yield ({/Symbol \264} 10^{-3})',
+    labels = labels, #ylog = diffRel,
+    xr = [0.25,0.75], yr = [0.,6.5] if diffRel else [-1,6.5],
     key = ['at graph 1.,1.1', 'maxrows 1', 'width -1.5'],
     lines = { ('x=1' if diffRel else 'x=0'): 'lc 0 lw 4 lt 2' },
-    gpcalls = [
-      'format y "%g"', 'ytics (""0.8,""0.9,1,2,3,4,""5,6,""7,8,""9,10)'
-    ] if diffRel else []
+    lmargin = 0.12, bmargin = 0.12, tmargin = 0.9, size = '11in,9in',
   )
 
   if nomed or noxerr or version == 'QM12': return 'done'
@@ -224,19 +217,24 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     for k in sorted(enhance.keys()):
       np.savetxt(fSystLMR, enhance[k], fmt = '%g', header = k, comments = '\n\n')
     fSystLMR.close()
+    yr_upp = 4 if version == 'QM12Latest200' or version == 'QM14' else 7
+    if version == 'LatestPatrickJieYi': yr_upp = 4.5
+    labels.update({
+        '{LMR: %.2f < M_{ee} < %.2f GeV/c^{2}}' % (eRanges[1], eRanges[2]): [0.45,0.15,False]
+    })
     make_plot(
       data = [ np.array(data_enhance), np.array(medium_enhance) ],
       properties = [
           'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0],
-          'with linespoints lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[1],
+          'with lines lt 2 lw 4 lc %s' % default_colors[1],
           ],
-      titles = [ 'LMR Enhancement Factor', 'Model' ],
+      titles = [ 'data', 'HMBT' ],
       name = os.path.join(outDir, 'enhance%s' % version),
-      xlabel = '{/Symbol \326}s_{NN} (GeV)', ylabel = '',
-      lmargin = 0.08, xlog = True, key = ['width -4'],
-      yr = [0.5,4 if version == 'QM12Latest200' or version == 'QM14' else 7],
-      xr = [15,220],
-      gpcalls = [
+      xlabel = '{/Symbol \326}s_{NN} (GeV)',
+      ylabel = 'LMR Enhancement Factor',
+      xlog = True, key = ['width 2'],
+      lmargin = 0.13, bmargin = 0.12, tmargin = 0.89, size = '11in,9in',
+      yr = [0.5,yr_upp], xr = [17,220], gpcalls = [
         'format x "%g"',
         'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
       ], labels = labels
@@ -250,7 +248,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     energy = getEnergy4Key(re.compile('\d+').search(k).group())
     if fnmatch(k, '*Med.*'):
       suffix = '_Med'
-      if energy == '27': continue # TODO
+      if version != 'LatestPatrickJieYi' and energy == '27': continue # TODO
     exc = getMassRangesSums(np.array(v), onlyLMR = True)
     if divdNdy: exc /= dNdyPi0[energy] * 1e-2
     dp = [ float(energy), exc.nominal_value, 0, 0, exc.std_dev ]
@@ -269,23 +267,28 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
           [ 7.7, 2*avg, 0, 0, 0], [ 19.6, avg, 0, 0, 0],
       ]),
       np.array(excess['LMR']),
-      #np.array(excess['LMR_Med']),
+      np.array(excess['LMR_Med']),
   ]
   props = [
       'with filledcurves pt 0 lc %s lw 4 lt 2' % default_colors[8],
       'with lines lc %s lw 10 lt 2' % default_colors[3],
       'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0],
-      #'with linespoints lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[1],
+      'with lines lt 2 lw 4 lc %s' % default_colors[1],
   ]
   tits = [
       'BES-II extrapolation',
       'model expectation at BES-II',
       'data',
-      #'Model',
+      'HMBT',
   ]
+  yr_upp = 4.5 if version == 'QM12Latest200' or version == 'QM14' else 7
+  if version == 'LatestPatrickJieYi': yr_upp = 2.6 if divdNdy else 2.
   if divdNdy:
-    labels.update(dict((str(v), [float(k)*0.9,4.7,True]) for k,v in dNdyPi0.items()))
+    labels.update(dict((str(v), [float(k)*0.9,yr_upp*1.05,True]) for k,v in dNdyPi0.items()))
     labels.update({ 'dN/dy|_{/Symbol \\160}': [100,4.7,True]})
+  labels.update({
+      '{LMR: %.2f < M_{ee} < %.2f GeV/c^{2}}' % (eRanges[1], eRanges[2]): [0.45,0.15,False]
+  })
   make_plot(
     data = graph_data, properties = props, titles = tits,
     name = os.path.join(outDir, 'excess%s%s' % (version,'DivdNdy' if divdNdy else '')),
@@ -293,13 +296,12 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     ylabel = 'LMR Excess Yield %s({/Symbol \264} 10^{-%d})' % (
         '/ dN/dy|_{/Symbol \\160}  ' if divdNdy else '', 5 if divdNdy else 3
     ),
-    xlog = True, xr = [7,220], key = ['width -6'],
-    lmargin = 0.15, bmargin = 0.15, tmargin = 0.93,
-    yr = [0,4.5 if version == 'QM12Latest200' or version == 'QM14' else 7],
-    gpcalls = [
+    xlog = True, xr = [7,220], key = ['at graph 0.9,0.98', 'width -7'],
+    lmargin = 0.14, bmargin = 0.12, tmargin = 0.89, size = '11in,9in',
+    yr = [0,yr_upp], gpcalls = [
       'format x "%g"',
       'xtics (7,10,20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
-    ], labels = labels
+    ], labels = labels,
   )
   return 'done'
 
@@ -390,4 +392,4 @@ if __name__ == '__main__':
     format='%(message)s', level=getattr(logging, loglevel)
   )
   print gp_rdiff(args.version, args.nomed, args.noxerr, args.diffRel, args.divdNdy)
-  print gp_rdiff_merged(args.version,args.divdNdy)
+  #print gp_rdiff_merged(args.version,args.divdNdy)
