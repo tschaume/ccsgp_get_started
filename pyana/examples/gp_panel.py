@@ -16,13 +16,13 @@ def gp_panel(version, skip):
   :param version: plot version / input subdir name
   :type version: str
   """
-  #scale = { # LatestPatrickJieYi
-  #    '19': 0.4274654744079354, '200': 1.0, '39': 0.4362451929487654,
-  #    '27': 0.47464918475541873, '62': 0.5800852553921563
+  #scale = { # QM14 (19 GeV skip later, factor here only informational)
+  #  '19': 1.0340571932983775, '200': 1.0, '39': 0.7776679085382481,
+  #  '27': 0.6412140408244136, '62': 0.9174700031778402
   #}
-  scale = { # QM14 (19 GeV skip later, factor here only informational)
-    '19': 1.0340571932983775, '200': 1.0, '39': 0.7776679085382481,
-    '27': 0.6412140408244136, '62': 0.9174700031778402
+  scale = {
+    '19': 1.0812324298238396, '200': 1.0, '39': 1.12093451186094,
+    '27': 1.206453891072013, '62': 1.4992194614005152
   }
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version)
@@ -34,27 +34,27 @@ def gp_panel(version, skip):
     data_type = re.sub('%s\.dat' % energy, '', infile)
     file_url = os.path.join(inDir, infile)
     data_import = np.loadtxt(open(file_url, 'rb'))
-    data_import = data_import[data_import[:,0] < 1.1]
-    if (data_type == 'cocktail' or fnmatch(data_type, '*medium*')) and (
-        version == 'LatestPatrickJieYi' or (
-            version == 'QM14' and energy != '19'
-        )
-    ):
-        data_import[:,(1,3,4)] /= scale[energy]
+    if (data_type == 'cocktail' or fnmatch(data_type, '*medium*')) \
+       and (version == 'QM14' and energy != '19'):
+       data_import[:,(1,3,4)] /= scale[energy]
+    elif data_type == 'data' and version == 'LatestPatrickJieYi':
+       data_import[:,(1,3,4)] *= scale[energy]
     if data_type == 'cocktail': data_import[:,2:] = 0.
-    elif fnmatch(data_type, '*medium*'): data_import[:,2] = 0.
+    elif fnmatch(data_type, '*medium*'):
+       data_import = data_import if energy != '200' else data_import[data_import[:,0] < 0.9]
+       data_import[:,2] = 0.
     key = getEnergy4Key(energy)
     if key not in data: data[key] = {}
     data_type_mod = data_type
-    if data_type_mod == 'mediumMedOnly': data_type_mod = 'in-medium'
+    if data_type_mod == 'mediumMedOnly': data_type_mod = 'HMBT'
     elif data_type_mod == 'mediumQgpOnly': data_type_mod = 'QGP'
-    elif data_type_mod == '+medium': data_type_mod = 'cocktail + model'
+    elif data_type_mod == '+medium': data_type_mod = 'cocktail + HMBT'
     data[key][data_type_mod] = data_import
-  plot_order = ['in-medium', 'QGP', 'cocktail + model', 'cocktail', 'data']
+  plot_order = ['HMBT', 'QGP', 'cocktail + HMBT', 'cocktail', 'data']
   plot_opts = {
     'QGP': 'with lines lt 2 lw 5 lc %s' % default_colors[1],
-    'in-medium': 'with lines lt 2 lw 5 lc %s' % default_colors[2],
-    'cocktail + model': 'with filledcurves lt 1 lw 5 pt 0 lc %s' % default_colors[16],
+    'HMBT': 'with lines lt 2 lw 5 lc %s' % default_colors[2],
+    'cocktail + HMBT': 'with filledcurves lt 1 lw 5 pt 0 lc %s' % default_colors[16],
     'cocktail': 'with lines lc %s lw 5 lt 1' % default_colors[8],
     'data': 'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0]
   }
@@ -62,9 +62,10 @@ def gp_panel(version, skip):
   make_panel(
     dpt_dict = OrderedDict(
       (' '.join([k, 'GeV %s' % (
-          '{/=18 arXiv:1312.7397}'
+          '{/=18 PRL 113 022301}'
           if k == '200' and (
-              version == 'QM12Latest200' or version == 'QM14'
+              version == 'QM12Latest200' or version == 'QM14' or
+              version == 'LatestPatrickJieYi'
           ) else '{/=18 STAR Preliminary}'
       )]), [
         [ data[k][dt] for dt in plot_order if dt in data[k] ],
@@ -77,13 +78,13 @@ def gp_panel(version, skip):
     ),
     ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
     xlabel = 'invariant dielectron mass, M_{ee} (GeV/c^{2})',
-    ylog = True, xr = [0, 1.1], yr = [1e-4, 20],
+    ylog = True, xr = [0.002, 1.2], yr = [1e-4, 20],
     lmargin = 0.12 if panel2D_versions else 0.1,
     bmargin = 0.11 if panel2D_versions else 0.15,
     arrow_length = 0.4, arrow_bar = 0.002,
     gpcalls = ['mxtics 2'],
     layout = '3x2' if panel2D_versions else ('%dx1' % len(data)),
-    key = ['width -4', 'at graph 0.95,0.85'],
+    key = ['width -3', 'at graph 0.95,0.85'],
     size = '8in,8in'
   )
   return 'done'

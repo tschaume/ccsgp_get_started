@@ -184,20 +184,23 @@ def gp_stack(version, energies, inclMed, inclFits):
       if fnmatch(filename, '*Med*'): medOnly[energy] = data_import#[data_import[:,0] < 1.07]
   # calculate data-to-cocktail scaling factors in pi0 region < 0.1 GeV/c2
   # cocktail/data
-  if version == 'LatestPatrickJieYi' or version == 'QM14':
-    scale = {}
-    for e in ['19', '27', '39', '62' ]:
+  scale = {}
+  for e in ['19', '27', '39', '62' ]:
       scale[e] = (pi0yld[e+'_cocktail'] / pi0yld[e+'_data']).nominal_value
-    scale['200'] = 1.
+  scale['200'] = 1.
+  print scale
+  if version == 'QM14': # scale cocktail to data for all but 19 GeV
     for k in cocktail:
-        if k != '19': cocktail[k][:,(1,3,4)] /= scale[k]
+      if k != '19': cocktail[k][:,(1,3,4)] /= scale[k]
     for k in medium:
-        if k != '19': medium[k][:,(1,3,4)] /= scale[k]
+      if k != '19': medium[k][:,(1,3,4)] /= scale[k]
     for k in medOnly:
-        if k != '19': medOnly[k][:,(1,3,4)] /= scale[k]
+      if k != '19': medOnly[k][:,(1,3,4)] /= scale[k]
     for k in qgpOnly:
-        if k != '19': qgpOnly[k][:,(1,3,4)] /= scale[k]
-    print scale
+      if k != '19': qgpOnly[k][:,(1,3,4)] /= scale[k]
+  elif version == 'LatestPatrickJieYi': # scale data to cocktail
+    for e in ['19', '27', '39', '62' ]:
+      data[e][:,(1,3,4)] *= scale[e]
   # ordered
   dataOrdered = OrderedDict(
     (' '.join([
@@ -250,7 +253,7 @@ def gp_stack(version, energies, inclMed, inclFits):
     )),
     ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
     xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
-    ylog = True, xr = [0, 3.25], yr = [yr_low, 1.7e3],
+    ylog = True, xr = [0, 3.25], yr = [yr_low, 1.8e3],
     lmargin = 0.095, rmargin = 0.995, bmargin = 0.09, arrow_offset = 0.8,
     #tmargin = 0.9 if version != 'QM12Latest200' else 0.99,
     key = [
