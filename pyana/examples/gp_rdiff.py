@@ -173,7 +173,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
             1. if diffRel else 0., 6.5 if diffRel else 5.5
         )
     ],
-    lmargin = 0.12, bmargin = 0.12, tmargin = 0.9, rmargin = 0.98, size = '11in,9in',
+    lmargin = 0.12, bmargin = 0.12, tmargin = 0.9, rmargin = 0.98, size = '12in,9in',
   )
 
   if nomed or noxerr or version == 'QM12': return 'done'
@@ -231,25 +231,34 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       np.savetxt(fSystLMR, enhance[k], fmt = '%g', header = k, comments = '\n\n')
     fSystLMR.close()
     yr_upp = 4 if version == 'QM12Latest200' or version == 'QM14' else 7
-    if version == 'LatestPatrickJieYi': yr_upp = 4.5
+    if version == 'LatestPatrickJieYi': yr_upp = 5.5
     labels.update({
         '{LMR: %.2f < M_{ee} < %.2f GeV/c^{2}}' % (eRanges[1], eRanges[2]): [0.1,0.15,False]
     })
     make_plot(
-      data = [ np.array(data_enhance), np.array(medium_enhance) ],
+      data = [
+          np.array([[17.3,2.73,0,0.25,1.47]]),
+          np.array([[200,4.7,0,0.4,1.5]]),
+          np.array(data_enhance), np.array(medium_enhance)
+      ],
       properties = [
+          'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[1],
+          'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[4],
           'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0],
-          'with lines lt 2 lw 4 lc %s' % default_colors[1],
+          'with lines lt 1 lw 5 lc %s' % default_colors[3],
           ],
-      titles = [ 'data', 'HMBT' ],
+      titles = [ 'CERES Pb+Au', 'PHENIX Au+Au', 'STAR Au+Au', 'HMBT' ],
       name = os.path.join(outDir, 'enhance%s' % version),
       xlabel = '{/Symbol \326}s_{NN} (GeV)',
       ylabel = 'LMR Enhancement Factor',
-      xlog = True, key = ['width 2'],
-      lmargin = 0.13, bmargin = 0.12, tmargin = 0.89, size = '11in,9in',
-      yr = [0.5,yr_upp], xr = [17,220], gpcalls = [
+      xlog = True, key = [ 'at graph 0.7,0.95' ],
+      lmargin = 0.13, bmargin = 0.12, tmargin = 0.89, size = '10in,10in',
+      yr = [0.5,yr_upp], xr = [14,220], gpcalls = [
         'format x "%g"',
-        'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
+        'xtics (10, 20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
+        'boxwidth 0.03 absolute',
+        'label 50 "{/=18 0.2 < M_{ee} < 0.6 GeV/c^{2}}" at 15.5,3 tc %s rotate center' % default_colors[1],
+        'label 51 "{/=18 0.15 < M_{ee} < 0.75 GeV/c^{2}}" at 180,4.2 tc %s rotate center' % default_colors[4]
       ], labels = labels
     )
     return 'done'
@@ -274,7 +283,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   graph_data = [
       np.array([
           [ 7.7, avg, 0, 0, avdata[-1][-1]],
-          [ 19.6, avg, 0, 0, avdata[-1][-1]]
+          [ 200, avg, 0, 0, avdata[-1][-1]]
       ]),
       np.array([
           [ 7.7, 2*avg, 0, 0, 0], [ 19.6, avg, 0, 0, 0],
@@ -284,23 +293,23 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   ]
   props = [
       'with filledcurves pt 0 lc %s lw 4 lt 2' % default_colors[8],
-      'with lines lc %s lw 10 lt 2' % default_colors[3],
+      'with lines lc %s lw 8 lt 2' % default_colors[1],
       'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0],
-      'with lines lt 2 lw 4 lc %s' % default_colors[1],
+      'with lines lt 1 lw 5 lc %s' % default_colors[3],
   ]
   tits = [
-      'BES-II extrapolation',
+      'BES-I extrapolation for BES-II',
       'model expectation at BES-II',
-      'data',
+      'STAR Au+Au',
       'HMBT',
   ]
   yr_upp = 4.5 if version == 'QM12Latest200' or version == 'QM14' else 7
-  if version == 'LatestPatrickJieYi': yr_upp = 2.4 if divdNdy else 2.
+  if version == 'LatestPatrickJieYi': yr_upp = 2.5 if divdNdy else 2.
   if divdNdy:
     labels.update(dict((str(v), [float(k)*0.9,yr_upp*1.05,True]) for k,v in dNdyPi0.items()))
     labels.update({ 'dN/dy|_{/Symbol \\160}': [100,4.7,True]})
   labels.update({
-      '{LMR: %.2f < M_{ee} < %.2f GeV/c^{2}}' % (eRanges[1], eRanges[2]): [0.1,0.15,False]
+      '{LMR: %.2f < M_{ee} < %.2f GeV/c^{2}}' % (eRanges[1], eRanges[2]): [0.1,0.15,False],
   })
   make_plot(
     data = graph_data, properties = props, titles = tits,
@@ -310,10 +319,11 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
         '/ dN/dy|_{/Symbol \\160}  ' if divdNdy else '', 5 if divdNdy else 3
     ),
     xlog = True, xr = [7,220], key = ['at graph 0.9,0.98', 'width -7'],
-    lmargin = 0.14, bmargin = 0.12, tmargin = 0.89, size = '11in,9in',
+    lmargin = 0.16, bmargin = 0.12, tmargin = 0.89, size = '10in,10in',
     yr = [0,yr_upp], gpcalls = [
       'format x "%g"',
       'xtics (7,10,20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
+      'boxwidth 0.03 absolute',
     ], labels = labels,
   )
   return 'done'
