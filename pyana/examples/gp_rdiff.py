@@ -351,7 +351,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   if version == 'LatestPatrickJieYi': yr_upp = 2.5 if divdNdy else 2.
   if divdNdy:
     labels.update(dict((str(v), [float(k)*0.9,yr_upp*1.05,True]) for k,v in dNdyPi0.items()))
-    labels.update({ 'dN/dy|_{/Symbol \\160}': [100,4.7,True]})
+    labels.update({ 'dN/dy|_{/Symbol \\160}': [100,yr_upp*1.05,True]})
   labels.update({
       '{LMR: %.2f < M_{ee} < %.2f GeV/c^{2}}' % (eRanges[1], eRanges[2]): [0.4,0.15,False],
   })
