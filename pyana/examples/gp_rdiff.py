@@ -204,7 +204,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     #lines = { ('x=1' if diffRel else 'x=0'): 'lc 0 lw 4 lt 2' },
     gpcalls = gpcalls,
     lmargin = 0.12, bmargin = 0.12, tmargin = 0.9, rmargin = 0.98,
-    size = '12in,9in', arrow_length = 0.4, arrow_offset = 0.9,
+    size = '12in,9in', arrow_length = 0.4,
   )
 
   if nomed or noxerr or version == 'QM12': return 'done'
