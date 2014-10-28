@@ -1,6 +1,6 @@
-import sys, os, itertools, inspect, logging
+import sys, os, itertools, inspect, logging, math
 import numpy as np
-from uncertainties import unumpy as unp
+from uncertainties import ufloat
 from uncertainties.umath import fsum
 from decimal import Decimal
 mass_titles = [ 'pi0', 'LMR', 'omphi', 'IMR' ]
@@ -35,8 +35,23 @@ def getWorkDirs():
 
 def getUArray(npArr):
   """uncertainty array multiplied by binwidth (col2 = dx)"""
-  # propagates systematic uncertainty!
-  return unp.uarray(npArr[:,1], npArr[:,4]) * npArr[:,2] * 2
+  ufloats = []
+  for dp in npArr:
+      u = ufloat(dp[1], dp[3], 'stat')
+      v = ufloat(dp[1], dp[4], 'syst')
+      r = (u+v)/2.*dp[2]*2.
+      ufloats.append(r)
+      # NOTE: center value ok, but both error contribs half!
+      # see getErrorComponent()
+  return np.array(ufloats)
+
+def getErrorComponent(result, tag):
+    """get total error contribution for component with specific tag"""
+    return math.sqrt(sum(
+        (error*2)**2
+        for (var, error) in result.error_components().items()
+        if var.tag == tag
+    ))
 
 def getEdges(npArr):
   """get np array of bin edges"""
@@ -105,7 +120,7 @@ def getMassRangesSums(
 ):
   eRangesSyst = [ eRanges if customRanges is None else customRanges ]
   if systLMR:
-    step_size, nsteps, rangeOffsetsLMR = 0.05, 4, [0.15, 0.6]
+    step_size, nsteps, rangeOffsetsLMR = 0.05, 6, [0.15, 0.5]
     eEdgesSyst = [ [ # all lower & upper edges for LMR syst. study
       Decimal(str(rangeOffsetsLMR[j]+i*step_size))
       for i in xrange(nsteps)
@@ -113,8 +128,6 @@ def getMassRangesSums(
     # all combos of lower and upper LMR edges
     eRangesSyst = [ [ le, ue ] for ue in eEdgesSyst[1] for le in eEdgesSyst[0] ]
     onlyLMR = False # flag meaningless in this case
-  # combine stat. and syst. errorbars
-  indata[:,4] = np.sqrt(indata[:,3] * indata[:,3] + indata[:,4] * indata[:,4])
   uInData = getUArray(indata)
   eInData = getEdges(indata)
   uSums = {}

@@ -4,6 +4,7 @@ from fnmatch import fnmatch
 from collections import OrderedDict
 from .utils import getWorkDirs, checkSymLink, eRanges, getEnergy4Key
 from .utils import getUArray, getEdges, getCocktailSum, enumzipEdges, getMassRangesSums
+from .utils import getErrorComponent
 from ..ccsgp.ccsgp import make_plot
 from ..ccsgp.utils import getOpts, zip_flat
 from ..ccsgp.config import default_colors
@@ -78,7 +79,8 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   dataOrdered = OrderedDict()
   for energy in sorted(data, key=float):
     # data & bin edges
-    # getUArray propagates systematic uncertainty!
+    # getUArray propagates stat/syst errors separately internally but
+    # errors need to be doubled to retrieve correct errors
     uData = getUArray(data[energy])
     eData = getEdges(data[energy])
     uCocktail = getUArray(cocktail[energy])
@@ -93,23 +95,22 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       for i, (e0, e1) in enumzipEdges(eArr):
         logging.debug('%s/%d> %g - %g:' % (energy, l, e0, e1))
         # get cocktail sum in data bin range
-        # value+/-syst.uncert.
+        # value+/-0.5*tot.uncert.
         uCocktailSum = getCocktailSum(e0, e1, eCocktail, uCocktail)
         # calc. difference and divide by data binwidth again
         # + set data point
         if not l:
-          uDiff = uData[i] # value+/-syst.uncert.
+          uDiff = uData[i] # value+/-0.5*tot.uncert.
           if diffRel:
-            uDiff /= uCocktailSum # value+/-syst.uncert.
+            uDiff /= uCocktailSum # value+/-0.5*tot.uncert.
           else:
             uDiff -= uCocktailSum
             uDiff /= data[energy][i,2] * 2 * yunit
           dp = [
             data[energy][i,0], uDiff.nominal_value,
             data[energy][i,2] if not noxerr else 0.,
-            # assume 0 for statistical error on cocktail
-            data[energy][i,3]*data[energy][i,2]*2/uCocktailSum.nominal_value
-            if diffRel else data[energy][i,3]/yunit, uDiff.std_dev
+            getErrorComponent(uDiff, 'stat'),
+            getErrorComponent(uDiff, 'syst')
           ]
           key = ' '.join([energy, 'GeV'])
         else:
@@ -119,13 +120,10 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
           else:
             uDiff -= uCocktailSum
             uDiff /= medium[energy][i,2] * 2 * yunit
-          # cut off medium/cocktail at omega
-          #if medium[energy][i,0] > 0.75:
-          #  continue
           dp = [
             medium[energy][i,0], uDiff.nominal_value,
             medium[energy][i,2] if not noxerr else 0.,
-            0., 0. # uDiff.std_dev
+            0., 0. # both errors included in data points
           ]
           key = ' '.join([energy, 'GeV (Med.)'])
         # build list of data points
@@ -233,7 +231,11 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
           )
         if not systLMR: # uEnhance's are ufloats
           uEnhanceData /= uEnhanceCocktail
-          dp = [ float(energy), uEnhanceData.nominal_value, 0, 0, uEnhanceData.std_dev ]
+          dp = [
+              float(energy), uEnhanceData.nominal_value, 0,
+              getErrorComponent(uEnhanceData, 'stat'),
+              getErrorComponent(uEnhanceData, 'syst')
+          ]
           if data_enhance is None: data_enhance = [ dp ]
           else: data_enhance.append(dp)
           if energy in medium:
@@ -245,7 +247,9 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
           for k in uEnhanceData:
             uEnhanceData[k] /= uEnhanceCocktail[k]
             dp = [
-              float(energy), uEnhanceData[k].nominal_value, uEnhanceData[k].std_dev
+              float(energy), uEnhanceData[k].nominal_value,
+              getErrorComponent(uEnhanceData[k], 'stat'),
+              getErrorComponent(uEnhanceData[k], 'syst')
             ]
             rngstr = k.split('_')[-1]
             data_key = 'data_' + rngstr
@@ -285,7 +289,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       xlabel = '{/Symbol \326}s_{NN} (GeV)',
       ylabel = 'LMR Enhancement Factor',
       xlog = True, key = [ 'at graph 0.7,0.98' ],
-      lmargin = 0.13, bmargin = 0.12, tmargin = 0.89, size = '10in,10in',
+      lmargin = 0.15, bmargin = 0.12, tmargin = 0.89, size = '10in,10in',
       yr = [1.,yr_upp], xr = [14,220], gpcalls = [
         'format x "%g"',
         'xtics (10, 20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
@@ -307,13 +311,16 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     if fnmatch(k, '*QgpVac.*'): suffix = '_QgpVac'
     exc = getMassRangesSums(np.array(v), onlyLMR = True)
     if divdNdy: exc /= dNdyPi0[energy] * 1e-2
-    dp = [ float(energy), exc.nominal_value, 0, 0, exc.std_dev ]
+    dp = [
+        float(energy), exc.nominal_value, 0,
+        getErrorComponent(exc, 'stat'), getErrorComponent(exc, 'syst')
+    ]
     key = 'LMR' + suffix
     if key not in excess: excess[key] = [ dp ]
     else: excess[key].append(dp)
   logging.debug(excess)
   avdata = np.array(excess['LMR'])
-  avg = np.average(avdata[:,1], weights = avdata[:,4])
+  avg = np.average(avdata[:,1], weights = avdata[:,3])
   graph_data = [
       np.array([
           [ 7.7, avg, 0, 0, avdata[-1][-1]],
