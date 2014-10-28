@@ -243,7 +243,7 @@ def gp_stack(version, energies, inclMed, inclFits):
     titles = [ particleLabel4Key(k) for k in cocktailContribs.keys() ]
     + [''] * nSetsCocktail + ['Cocktail (w/o {/Symbol \162})']
     + ['QGP', 'HMBT'] * bool(nSetsModelOnly)
-    + [''] * nSetsMedium + ['Cocktail + HMBT'] * bool(nSetsMedium) + dataOrdered.keys()
+    + [''] * nSetsMedium + ['Cock. + HMBT + QGP'] * bool(nSetsMedium) + dataOrdered.keys()
     + [''] * nSetsDataIMRfit + [''] * inclFits
     + [''] * nSetsCocktailIMRfit + [''] * inclFits,
     name = os.path.join(outDir, 'stack%s%s%s%s' % (

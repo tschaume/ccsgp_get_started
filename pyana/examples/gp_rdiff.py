@@ -36,7 +36,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   """
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version)
-  data, cocktail, medium = OrderedDict(), OrderedDict(), OrderedDict()
+  data, cocktail, medium, qgpvac = OrderedDict(), OrderedDict(), OrderedDict(), OrderedDict()
   #scale = { # QM14 (19 GeV skip later, factor here only informational)
   #  '19.6': 1.0340571932983775, '200': 1.0, '39': 0.7776679085382481,
   #  '27': 0.6412140408244136, '62.4': 0.9174700031778402
@@ -46,6 +46,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     '39': 1.12093451186094, '27': 1.206453891072013,
     '62.4': 1.4992194614005152
   }
+  yunit = 1.0e-3 if not diffRel else 1.
   for infile in os.listdir(inDir):
     if infile == "cocktail_contribs": continue
     if fnmatch(infile, '*vacRho*'): continue
@@ -60,13 +61,16 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
        data_import[:,(1,3,4)] /= scale[energy]
     elif data_type == 'data' and version == 'LatestPatrickJieYi':
        data_import[:,(1,3,4)] *= scale[energy]
-    data_import = data_import[data_import[:,0] < 1.4]
+    data_import = data_import[data_import[:,0] < 1.0]
     if data_type == 'data': data[energy] = data_import
     elif data_type == 'cocktail': cocktail[energy] = data_import
+    elif not diffRel and data_type == 'qgp+vac':
+        if noxerr: data_import[:,2] = 0.
+        data_import[:,1] /= yunit
+        qgpvac[energy] = data_import[data_import[:,0] < 0.763]
     elif not nomed: medium[energy] = data_import
   nSetsData = len(data)
 
-  yunit = 1.0e-3 if not diffRel else 1.
   dataOrdered = OrderedDict()
   for energy in sorted(data, key=float):
     # data & bin edges
@@ -128,20 +132,26 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     if energy not in medium: # TODO add pseudo-data for missing medium (27GeV)
       key = ' '.join([energy, 'GeV (Med.)'])
       dataOrdered[key] = [ [0.1,-1,0,0,0], [1,-1,0,0,0] ]
+    if energy in qgpvac:
+      dataOrdered[' '.join([energy, 'GeV (QgpVac.)'])] = qgpvac[energy]
 
   # make plot
   nSets = len(dataOrdered)
-  nSetsPlot = nSets/2 if nSets > nSetsData else nSets
+  nCats = 2 if diffRel else 3
+  nSetsPlot = nSets/nCats if nSets > nSetsData else nSets
   props = [
     'lt 1 lw 4 ps 2 lc %s pt 18' % default_colors[i] for i in xrange(nSetsPlot)
   ]
   titles = dataOrdered.keys()
   if nSets > nSetsData:
-    props = zip_flat(props, [
-      'with lines lt 2 lw 4 lc %s' % default_colors[i]
-      for i in xrange(nSetsPlot)
+    props = zip_flat(props, *[
+        [
+            'with lines lt %d lw 4 lc %s' % (j+1, default_colors[i])
+            for i in xrange(nSetsPlot)
+        ]
+        for j in xrange(nCats-1)
     ])
-    titles = zip_flat(dataOrdered.keys()[::2], [''] * nSetsPlot)
+    titles = zip_flat(dataOrdered.keys()[::nCats], *[ [''] * nSetsPlot for j in xrange(nCats-1) ])
   global labels
   labels = {
     '{BES: STAR Preliminary}' if version == 'QM12Latest200' or \
@@ -151,6 +161,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       or version == 'QM14' or version == 'LatestPatrickJieYi'
     else '': [0.1,0.10,False],
   }
+  yr = [0.,6.5] if diffRel else [-1,7.]
   make_plot(
     data = [ np.array(d) for d in dataOrdered.values()],
     properties = props, titles = titles,
@@ -161,18 +172,18 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
     ylabel = 'Enhancement Ratio' if diffRel else 'Excess Yield ({/Symbol \264} 10^{-3})',
     labels = labels, #ylog = diffRel,
-    xr = [0.2,1.4], yr = [0.,6.5] if diffRel else [-1,6.5],
+    xr = [0.27,1.0], yr = yr,
     key = ['at graph 1.,1.1', 'maxrows 1', 'width -1.5'],
     lines = { ('x=1' if diffRel else 'x=0'): 'lc 0 lw 4 lt 2' },
     gpcalls = [
         'object 1 rectangle back fc rgb "grey" from 0.7425,%f to 0.825,%f' % (
-            1. if diffRel else 0., 6.5 if diffRel else 6.5
+            1. if diffRel else 0., yr[1]
         ),
         'object 2 rectangle back fc rgb "grey" from 0.96,%f to 1.0495,%f' % (
-            1. if diffRel else 0., 6.5 if diffRel else 6.5
+            1. if diffRel else 0., yr[1]
         ),
         'object 3 rectangle back fc rgb "#C6E2FF" from 0.4,%f to 0.74,%f' % (
-            1. if diffRel else 0., 6.5 if diffRel else 6.5
+            1. if diffRel else 0., yr[1]
         )
     ],
     lmargin = 0.12, bmargin = 0.12, tmargin = 0.9, rmargin = 0.98, size = '12in,9in',
@@ -245,15 +256,15 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       ],
       properties = [
           'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[1],
-          'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[4],
+          'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[3],
           'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0],
-          'with lines lt 1 lw 5 lc %s' % default_colors[3],
+          'with lines lt 1 lw 5 lc %s' % default_colors[4],
           ],
-      titles = [ 'CERES Pb+Au', 'PHENIX Au+Au', 'STAR Au+Au', 'HMBT' ],
+      titles = [ 'CERES Pb+Au', 'PHENIX Au+Au', 'STAR Au+Au', 'HMBT + QGP' ],
       name = os.path.join(outDir, 'enhance%s' % version),
       xlabel = '{/Symbol \326}s_{NN} (GeV)',
       ylabel = 'LMR Enhancement Factor',
-      xlog = True, key = [ 'at graph 0.7,0.95' ],
+      xlog = True, key = [ 'at graph 0.7,0.98' ],
       lmargin = 0.13, bmargin = 0.12, tmargin = 0.89, size = '10in,10in',
       yr = [0.5,yr_upp], xr = [14,220], gpcalls = [
         'format x "%g"',
@@ -273,6 +284,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     if fnmatch(k, '*Med.*'):
       suffix = '_Med'
       if version != 'LatestPatrickJieYi' and energy == '27': continue # TODO
+    if fnmatch(k, '*QgpVac.*'): suffix = '_QgpVac'
     exc = getMassRangesSums(np.array(v), onlyLMR = True)
     if divdNdy: exc /= dNdyPi0[energy] * 1e-2
     dp = [ float(energy), exc.nominal_value, 0, 0, exc.std_dev ]
@@ -292,18 +304,21 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       ]),
       np.array(excess['LMR']),
       np.array(excess['LMR_Med']),
+      np.array(excess['LMR_QgpVac']),
   ]
   props = [
       'with filledcurves pt 0 lc %s lw 4 lt 2' % default_colors[8],
       'with lines lc %s lw 8 lt 2' % default_colors[1],
       'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0],
-      'with lines lt 1 lw 5 lc %s' % default_colors[3],
+      'with lines lt 1 lw 5 lc %s' % default_colors[4],
+      'with lines lt 1 lw 5 lc %s' % default_colors[6],
   ]
   tits = [
       'BES-I extrapolation for BES-II',
       'model expectation at BES-II',
       'STAR Au+Au',
-      'HMBT',
+      'HMBT + QGP',
+      'Vacuum + QGP',
   ]
   yr_upp = 4.5 if version == 'QM12Latest200' or version == 'QM14' else 7
   if version == 'LatestPatrickJieYi': yr_upp = 2.5 if divdNdy else 2.

@@ -51,18 +51,19 @@ def gp_panel(version, skip):
     key = getEnergy4Key(energy)
     if key not in data: data[key] = {}
     data_type_mod = data_type
-    if data_type_mod == 'mediumMedOnly': data_type_mod = 'HMBT'
+    if data_type_mod == 'cocktail': data_type_mod = 'Cocktail'
+    elif data_type_mod == 'mediumMedOnly': data_type_mod = 'HMBT'
     elif data_type_mod == 'mediumQgpOnly': data_type_mod = 'QGP'
-    elif data_type_mod == '+medium': data_type_mod = 'cocktail + HMBT'
+    elif data_type_mod == '+medium': data_type_mod = 'Cock. + HMBT + QGP'
     elif data_type_mod == 'vacRho': data_type_mod = vacRhoTitle
     data[key][data_type_mod] = data_import
-  plot_order = ['cocktail', vacRhoTitle, 'QGP', 'HMBT', 'cocktail + HMBT', 'data']
+  plot_order = ['Cocktail', vacRhoTitle, 'QGP', 'HMBT', 'Cock. + HMBT + QGP', 'data']
   plot_opts = {
     vacRhoTitle: 'with lines lt 2 lw 5 lc %s' % default_colors[6],
     'QGP': 'with lines lt 2 lw 5 lc %s' % default_colors[1],
     'HMBT': 'with lines lt 2 lw 5 lc %s' % default_colors[2],
-    'cocktail + HMBT': 'with filledcurves lt 1 lw 5 pt 0 lc %s' % default_colors[16],
-    'cocktail': 'with lines lc %s lw 5 lt 1' % default_colors[8],
+    'Cock. + HMBT + QGP': 'with filledcurves lt 1 lw 5 pt 0 lc %s' % default_colors[16],
+    'Cocktail': 'with lines lc %s lw 5 lt 1' % default_colors[8],
     'data': 'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0]
   }
   panel2D_versions = (version == 'LatestPatrickJieYi' or version == 'QM14')
@@ -94,7 +95,7 @@ def gp_panel(version, skip):
         'object 50 rectangle back fc rgb "#C6E2FF" from 0.4,1e-4 to 0.74,2e-2'
     ],
     layout = '3x2' if panel2D_versions else ('%dx1' % len(data)),
-    key = ['width -3', 'at graph 0.95,0.85'],
+    key = ['width -2', 'at graph 0.95,0.85'],
     key_subplot_id = 5, size = '8in,8in'
   )
   return 'done'
