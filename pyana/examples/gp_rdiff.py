@@ -146,13 +146,13 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   nCats = 2 if diffRel else 3
   nSetsPlot = nSets/nCats if nSets > nSetsData else nSets
   props = [
-    'lt 1 lw 4 ps 2 lc %s pt 18' % default_colors[i] for i in xrange(nSetsPlot)
+    'lt 1 lw 6 ps 3 lc %s pt 18' % default_colors[i] for i in xrange(nSetsPlot)
   ]
   titles = dataOrdered.keys()
   if nSets > nSetsData:
     props = zip_flat(props, *[
         [
-            'with lines lt %d lw 4 lc %s' % (j+1, default_colors[i])
+            'with lines lt %d lw 6 lc %s' % (j+1, default_colors[i])
             for i in xrange(nSetsPlot)
         ]
         for j in xrange(nCats-1)
@@ -168,14 +168,15 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     else '': [0.4,0.05,False],
   }
   yr = [1.,40] if diffRel else [0.15,1e3]
-  shift = {
-      '19': 1., '27': 3., '39': 10., '62': 30., '200': 100.
-  } if not diffRel else {
-      '19': 1., '27': 2., '39': 4., '62': 8., '200': 15.
-  }
-  for k,d in dataOrdered.iteritems():
-      energy = re.compile('\d+').search(k).group()
-      d[:,(1,3,4)] *= shift[energy]
+  if noxerr:
+      shift = {
+          '19': 1., '27': 3., '39': 10., '62': 30., '200': 100.
+      } if not diffRel else {
+          '19': 1., '27': 2., '39': 4., '62': 8., '200': 15.
+      }
+      for k,d in dataOrdered.iteritems():
+          energy = re.compile('\d+').search(k).group()
+          d[:,(1,3,4)] *= shift[energy]
   gpcalls = [
       'object 1 rectangle back fc rgb "grey" from 0.7425,%f to 0.825,%f' % \
       (1.7 if diffRel else 0.5, yr[1]),
@@ -263,9 +264,9 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       np.savetxt(fSystLMR, enhance[k], fmt = '%g', header = k, comments = '\n\n')
     fSystLMR.close()
     yr_upp = 4 if version == 'QM12Latest200' or version == 'QM14' else 7
-    if version == 'LatestPatrickJieYi': yr_upp = 5.5
+    if version == 'LatestPatrickJieYi': yr_upp = 5.2
     labels.update({
-        '{LMR: %.2f < M_{ee} < %.2f GeV/c^{2}}' % (eRanges[1], eRanges[2]): [0.1,0.15,False]
+        '{LMR: %.2f < M_{ee} < %.2f GeV/c^{2}}' % (eRanges[1], eRanges[2]): [0.4,0.15,False]
     })
     make_plot(
       data = [
@@ -274,10 +275,10 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
           np.array(data_enhance), np.array(medium_enhance)
       ],
       properties = [
-          'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[1],
-          'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[3],
-          'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0],
-          'with lines lt 1 lw 5 lc %s' % default_colors[4],
+          'lt 1 lw 6 ps 3 lc %s pt 18' % default_colors[1],
+          'lt 1 lw 6 ps 3 lc %s pt 18' % default_colors[3],
+          'lt 1 lw 6 ps 3 lc %s pt 18' % default_colors[0],
+          'with lines lt 1 lw 6 lc %s' % default_colors[4],
           ],
       titles = [ 'CERES Pb+Au', 'PHENIX Au+Au', 'STAR Au+Au', 'HMBT + QGP' ],
       name = os.path.join(outDir, 'enhance%s' % version),
@@ -285,12 +286,12 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       ylabel = 'LMR Enhancement Factor',
       xlog = True, key = [ 'at graph 0.7,0.98' ],
       lmargin = 0.13, bmargin = 0.12, tmargin = 0.89, size = '10in,10in',
-      yr = [0.5,yr_upp], xr = [14,220], gpcalls = [
+      yr = [1.,yr_upp], xr = [14,220], gpcalls = [
         'format x "%g"',
         'xtics (10, 20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
         'boxwidth 0.03 absolute',
         'label 50 "{/=18 0.2 < M_{ee} < 0.6 GeV/c^{2}}" at 15.5,3 tc %s rotate center' % default_colors[1],
-        'label 51 "{/=18 0.15 < M_{ee} < 0.75 GeV/c^{2}}" at 180,4.2 tc %s rotate center' % default_colors[4]
+        'label 51 "{/=18 0.15 < M_{ee} < 0.75 GeV/c^{2}}" at 180,4.2 tc %s rotate center' % default_colors[3]
       ], labels = labels
     )
     return 'done'
@@ -326,11 +327,11 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       np.array(excess['LMR_QgpVac']),
   ]
   props = [
-      'with filledcurves pt 0 lc %s lw 4 lt 2' % default_colors[8],
+      'with filledcurves pt 0 lc %s lw 6 lt 2' % default_colors[8],
       'with lines lc %s lw 8 lt 2' % default_colors[1],
-      'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0],
-      'with lines lt 1 lw 5 lc %s' % default_colors[4],
-      'with lines lt 1 lw 5 lc %s' % default_colors[6],
+      'lt 1 lw 6 ps 3 lc %s pt 18' % default_colors[0],
+      'with lines lt 1 lw 6 lc %s' % default_colors[4],
+      'with lines lt 1 lw 6 lc %s' % default_colors[6],
   ]
   tits = [
       'BES-I extrapolation for BES-II',
@@ -345,7 +346,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     labels.update(dict((str(v), [float(k)*0.9,yr_upp*1.05,True]) for k,v in dNdyPi0.items()))
     labels.update({ 'dN/dy|_{/Symbol \\160}': [100,4.7,True]})
   labels.update({
-      '{LMR: %.2f < M_{ee} < %.2f GeV/c^{2}}' % (eRanges[1], eRanges[2]): [0.1,0.15,False],
+      '{LMR: %.2f < M_{ee} < %.2f GeV/c^{2}}' % (eRanges[1], eRanges[2]): [0.4,0.15,False],
   })
   make_plot(
     data = graph_data, properties = props, titles = tits,
@@ -356,7 +357,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     ),
     xlog = True, xr = [7,220], key = ['at graph 0.9,0.98', 'width -7'],
     lmargin = 0.16, bmargin = 0.12, tmargin = 0.89, size = '10in,10in',
-    yr = [0,yr_upp], gpcalls = [
+    yr = [0.3,yr_upp], gpcalls = [
       'format x "%g"',
       'xtics (7,10,20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
       'boxwidth 0.03 absolute',
@@ -414,13 +415,13 @@ def gp_rdiff_merged(version, divdNdy):
       make_plot(
         data = data.values(),
         properties = [
-            'with filledcurves pt 0 lc %s lw 4 lt 2' % default_colors[8]
+            'with filledcurves pt 0 lc %s lw 6 lt 2' % default_colors[8]
         ] + [
             'with lines lc %s lw 10 lt 2' % default_colors[3]
         ] + [
-          'lt 1 lw 4 ps 1.5 lc %s pt %d' % (default_colors[i], 18+i) for i in xrange(1) #2
+          'lt 1 lw 6 ps 1.5 lc %s pt %d' % (default_colors[i], 18+i) for i in xrange(1) #2
         ] + [
-          'with lines lt %d lw 4 lc %s' % (i+2, default_colors[i]) for i in xrange(1) #2
+          'with lines lt %d lw 6 lc %s' % (i+2, default_colors[i]) for i in xrange(1) #2
         ],
         titles = data.keys(),
         name = os.path.join(outDir, 'enhanceexcess%s' % version),
