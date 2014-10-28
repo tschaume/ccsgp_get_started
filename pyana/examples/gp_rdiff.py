@@ -37,16 +37,18 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version)
   data, cocktail, medium = OrderedDict(), OrderedDict(), OrderedDict()
-  scale = { # QM14 (19 GeV skip later, factor here only informational)
-    '19.6': 1.0340571932983775, '200': 1.0, '39': 0.7776679085382481,
-    '27': 0.6412140408244136, '62.4': 0.9174700031778402
-  }
+  #scale = { # QM14 (19 GeV skip later, factor here only informational)
+  #  '19.6': 1.0340571932983775, '200': 1.0, '39': 0.7776679085382481,
+  #  '27': 0.6412140408244136, '62.4': 0.9174700031778402
+  #}
   scale = {
-    '19.6': 1.0812324298238396, '200': 1.0, '39': 1.12093451186094,
-    '27': 1.206453891072013, '62.4': 1.4992194614005152
+    '19.6': 1.0812324298238396, '200': 1.1051002240771077,
+    '39': 1.12093451186094, '27': 1.206453891072013,
+    '62.4': 1.4992194614005152
   }
   for infile in os.listdir(inDir):
     if infile == "cocktail_contribs": continue
+    if fnmatch(infile, '*vacRho*'): continue
     energy = re.compile('\d+').search(infile).group()
     data_type = re.sub('%s\.dat' % energy, '', infile)
     if fnmatch(data_type, 'medium*Only'): continue
@@ -58,8 +60,8 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
        data_import[:,(1,3,4)] /= scale[energy]
     elif data_type == 'data' and version == 'LatestPatrickJieYi':
        data_import[:,(1,3,4)] *= scale[energy]
-    if data_type == 'data':
-      data[energy] = data_import[data_import[:,0] < 1.4]
+    data_import = data_import[data_import[:,0] < 1.4]
+    if data_type == 'data': data[energy] = data_import
     elif data_type == 'cocktail': cocktail[energy] = data_import
     elif not nomed: medium[energy] = data_import
   nSetsData = len(data)
@@ -159,18 +161,18 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
     ylabel = 'Enhancement Ratio' if diffRel else 'Excess Yield ({/Symbol \264} 10^{-3})',
     labels = labels, #ylog = diffRel,
-    xr = [0.2,1.4], yr = [0.,6.5] if diffRel else [-1,5.5],
+    xr = [0.2,1.4], yr = [0.,6.5] if diffRel else [-1,6.5],
     key = ['at graph 1.,1.1', 'maxrows 1', 'width -1.5'],
     lines = { ('x=1' if diffRel else 'x=0'): 'lc 0 lw 4 lt 2' },
     gpcalls = [
         'object 1 rectangle back fc rgb "grey" from 0.7425,%f to 0.825,%f' % (
-            1. if diffRel else 0., 6.5 if diffRel else 5.5
+            1. if diffRel else 0., 6.5 if diffRel else 6.5
         ),
         'object 2 rectangle back fc rgb "grey" from 0.96,%f to 1.0495,%f' % (
-            1. if diffRel else 0., 6.5 if diffRel else 5.5
+            1. if diffRel else 0., 6.5 if diffRel else 6.5
         ),
         'object 3 rectangle back fc rgb "#C6E2FF" from 0.4,%f to 0.74,%f' % (
-            1. if diffRel else 0., 6.5 if diffRel else 5.5
+            1. if diffRel else 0., 6.5 if diffRel else 6.5
         )
     ],
     lmargin = 0.12, bmargin = 0.12, tmargin = 0.9, rmargin = 0.98, size = '12in,9in',

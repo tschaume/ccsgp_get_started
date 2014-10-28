@@ -21,12 +21,14 @@ def gp_panel(version, skip):
   #  '27': 0.6412140408244136, '62': 0.9174700031778402
   #}
   scale = {
-    '19': 1.0812324298238396, '200': 1.0, '39': 1.12093451186094,
-    '27': 1.206453891072013, '62': 1.4992194614005152
+    '19': 1.0812324298238396, '200': 1.1051002240771077,
+    '39': 1.12093451186094, '27': 1.206453891072013,
+    '62': 1.4992194614005152
   }
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version)
   data = {}
+  vacRhoTitle = '{/Symbol \162}/{/Symbol \167} {/Symbol \256} e^{+}e^{-} (vac.)'
   for infile in os.listdir(inDir):
     if infile == "cocktail_contribs": continue
     if infile == 'mediumDmOnly200.dat': continue
@@ -41,7 +43,7 @@ def gp_panel(version, skip):
     elif data_type == 'data' and version == 'LatestPatrickJieYi':
        data_import[:,(1,3,4)] *= scale[energy]
     if data_type == 'cocktail': data_import[:,2:] = 0.
-    elif fnmatch(data_type, '*medium*'):
+    elif fnmatch(data_type, '*medium*') or data_type == 'vacRho':
        data_import = data_import[data_import[:,0] < 0.9] \
                if energy == '200' and data_type == '+medium' \
                else data_import
@@ -52,9 +54,11 @@ def gp_panel(version, skip):
     if data_type_mod == 'mediumMedOnly': data_type_mod = 'HMBT'
     elif data_type_mod == 'mediumQgpOnly': data_type_mod = 'QGP'
     elif data_type_mod == '+medium': data_type_mod = 'cocktail + HMBT'
+    elif data_type_mod == 'vacRho': data_type_mod = vacRhoTitle
     data[key][data_type_mod] = data_import
-  plot_order = ['HMBT', 'QGP', 'cocktail + HMBT', 'cocktail', 'data']
+  plot_order = ['cocktail', vacRhoTitle, 'QGP', 'HMBT', 'cocktail + HMBT', 'data']
   plot_opts = {
+    vacRhoTitle: 'with lines lt 2 lw 5 lc %s' % default_colors[6],
     'QGP': 'with lines lt 2 lw 5 lc %s' % default_colors[1],
     'HMBT': 'with lines lt 2 lw 5 lc %s' % default_colors[2],
     'cocktail + HMBT': 'with filledcurves lt 1 lw 5 pt 0 lc %s' % default_colors[16],
@@ -81,14 +85,17 @@ def gp_panel(version, skip):
     ),
     ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
     xlabel = 'invariant dielectron mass, M_{ee} (GeV/c^{2})',
-    ylog = True, xr = [0.002, 1.2], yr = [1e-4, 20],
+    ylog = True, xr = [0.05, 1.1], yr = [1e-4, 0.5],
     lmargin = 0.12 if panel2D_versions else 0.1,
     bmargin = 0.11 if panel2D_versions else 0.15,
     arrow_length = 0.4, arrow_bar = 0.002,
-    gpcalls = ['mxtics 2'],
+    gpcalls = [
+        'mxtics 2',
+        'object 50 rectangle back fc rgb "#C6E2FF" from 0.4,1e-4 to 0.74,2e-2'
+    ],
     layout = '3x2' if panel2D_versions else ('%dx1' % len(data)),
     key = ['width -3', 'at graph 0.95,0.85'],
-    size = '8in,8in'
+    key_subplot_id = 5, size = '8in,8in'
   )
   return 'done'
 
