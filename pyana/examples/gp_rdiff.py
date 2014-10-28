@@ -52,6 +52,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     if fnmatch(infile, '*vacRho*'): continue
     energy = re.compile('\d+').search(infile).group()
     data_type = re.sub('%s\.dat' % energy, '', infile)
+    if diffRel and data_type == 'qgp+vac': continue
     if fnmatch(data_type, 'medium*Only'): continue
     energy = getEnergy4Key(energy)
     file_url = os.path.join(inDir, infile)
@@ -61,13 +62,16 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
        data_import[:,(1,3,4)] /= scale[energy]
     elif data_type == 'data' and version == 'LatestPatrickJieYi':
        data_import[:,(1,3,4)] *= scale[energy]
-    data_import = data_import[data_import[:,0] < 1.0]
+    if version == 'LatestPatrickJieYi':
+       data_import = data_import[(data_import[:,0] > 0.15) & (data_import[:,0] < 1.0)]
     if data_type == 'data': data[energy] = data_import
     elif data_type == 'cocktail': cocktail[energy] = data_import
     elif not diffRel and data_type == 'qgp+vac':
         if noxerr: data_import[:,2] = 0.
         data_import[:,1] /= yunit
-        qgpvac[energy] = data_import[data_import[:,0] < 0.763]
+        qgpvac[energy] = data_import[
+            (data_import[:,0] < 0.7425) | (data_import[:,0] > 0.825)
+        ]
     elif not nomed: medium[energy] = data_import
   nSetsData = len(data)
 
@@ -127,11 +131,13 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
         # build list of data points
         if dp[0] > 0.7425 and dp[0] < 0.825: continue # mask out omega region
         if dp[0] > 0.97 and dp[0] < 1.0495: continue # mask out phi region
-        if key in dataOrdered: dataOrdered[key].append(dp)
-        else: dataOrdered[key] = [ dp ]
+        if key in dataOrdered:
+            dataOrdered[key] = np.vstack([dataOrdered[key], dp])
+        else:
+            dataOrdered[key] = np.array([ dp ])
     if energy not in medium: # TODO add pseudo-data for missing medium (27GeV)
       key = ' '.join([energy, 'GeV (Med.)'])
-      dataOrdered[key] = [ [0.1,-1,0,0,0], [1,-1,0,0,0] ]
+      dataOrdered[key] = np.array([ [0.1,-1,0,0,0], [1,-1,0,0,0] ])
     if energy in qgpvac:
       dataOrdered[' '.join([energy, 'GeV (QgpVac.)'])] = qgpvac[energy]
 
@@ -156,14 +162,36 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   labels = {
     '{BES: STAR Preliminary}' if version == 'QM12Latest200' or \
       version == 'QM14' or version == 'LatestPatrickJieYi'
-    else 'STAR Preliminary': [0.1,0.05,False],
+    else 'STAR Preliminary': [0.4,0.10,False],
     '{200 GeV: PRL 113 022301' if version == 'QM12Latest200' \
       or version == 'QM14' or version == 'LatestPatrickJieYi'
-    else '': [0.1,0.10,False],
+    else '': [0.4,0.05,False],
   }
-  yr = [0.,6.5] if diffRel else [-1,7.]
+  yr = [1.,40] if diffRel else [0.15,1e3]
+  shift = {
+      '19': 1., '27': 3., '39': 10., '62': 30., '200': 100.
+  } if not diffRel else {
+      '19': 1., '27': 2., '39': 4., '62': 8., '200': 15.
+  }
+  for k,d in dataOrdered.iteritems():
+      energy = re.compile('\d+').search(k).group()
+      d[:,(1,3,4)] *= shift[energy]
+  gpcalls = [
+      'object 1 rectangle back fc rgb "grey" from 0.7425,%f to 0.825,%f' % \
+      (1.7 if diffRel else 0.5, yr[1]),
+      'object 2 rectangle back fc rgb "grey" from 0.96,%f to 1.0495,%f' % \
+      (1.7 if diffRel else 0.5, yr[1]),
+      'object 3 rectangle back fc rgb "#C6E2FF" from 0.4,%f to 0.74,%f' % \
+      (1.7 if diffRel else 0.5, yr[1]),
+      'boxwidth 0.01 absolute',
+  ]
+  if diffRel:
+      gpcalls += [
+          'format y "%g"',
+          'ytics (1, 2,"" 3,"" 4,5,"" 6,"" 7,"" 8,"" 9, 10, 20, 40)',
+      ]
   make_plot(
-    data = [ np.array(d) for d in dataOrdered.values()],
+    data = dataOrdered.values(),
     properties = props, titles = titles,
     name = os.path.join(outDir, 'diff%s%s%s%s' % (
       'Rel' if diffRel else 'Abs', version,
@@ -171,22 +199,13 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     )),
     xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
     ylabel = 'Enhancement Ratio' if diffRel else 'Excess Yield ({/Symbol \264} 10^{-3})',
-    labels = labels, #ylog = diffRel,
-    xr = [0.27,1.0], yr = yr,
+    labels = labels, ylog = True,
+    xr = [0.27,0.97], yr = yr,
     key = ['at graph 1.,1.1', 'maxrows 1', 'width -1.5'],
-    lines = { ('x=1' if diffRel else 'x=0'): 'lc 0 lw 4 lt 2' },
-    gpcalls = [
-        'object 1 rectangle back fc rgb "grey" from 0.7425,%f to 0.825,%f' % (
-            1. if diffRel else 0., yr[1]
-        ),
-        'object 2 rectangle back fc rgb "grey" from 0.96,%f to 1.0495,%f' % (
-            1. if diffRel else 0., yr[1]
-        ),
-        'object 3 rectangle back fc rgb "#C6E2FF" from 0.4,%f to 0.74,%f' % (
-            1. if diffRel else 0., yr[1]
-        )
-    ],
-    lmargin = 0.12, bmargin = 0.12, tmargin = 0.9, rmargin = 0.98, size = '12in,9in',
+    #lines = { ('x=1' if diffRel else 'x=0'): 'lc 0 lw 4 lt 2' },
+    gpcalls = gpcalls,
+    lmargin = 0.12, bmargin = 0.12, tmargin = 0.9, rmargin = 0.98,
+    size = '12in,9in', arrow_length = 0.4, arrow_offset = 0.9,
   )
 
   if nomed or noxerr or version == 'QM12': return 'done'
