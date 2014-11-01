@@ -76,6 +76,10 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     elif not nomed: medium[energy] = data_import
   nSetsData = len(data)
 
+  shift = { '19.6': '1e0', '27': '1e1', '39': '1e2', '62.4': '1e3', '200': '1e4'
+  } if not diffRel else {
+      '19.6': '1', '27': '8', '39': '50', '62.4': '200', '200': '900'
+  }
   dataOrdered = OrderedDict()
   for energy in sorted(data, key=float):
     # data & bin edges
@@ -113,6 +117,12 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
             getErrorComponent(uDiff, 'syst')
           ]
           key = ' '.join([energy, 'GeV'])
+          if noxerr:
+              if diffRel:
+                  key += ' {/Symbol \264} %s' % shift[energy]
+              else:
+                  expon = shift[energy].split('e')[1]
+                  key += ' {/Symbol \264} 10^{%s}' % expon
         else:
           uDiff = uMedium[i]
           if diffRel:
@@ -144,7 +154,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   nCats = 2 if diffRel else 3
   nSetsPlot = nSets/nCats if nSets > nSetsData else nSets
   props = [
-    'lt 1 lw 6 ps 3 lc %s pt 18' % default_colors[i] for i in xrange(nSetsPlot)
+    'lt 1 lw 6 ps 2.5 lc %s pt 18' % default_colors[i] for i in xrange(nSetsPlot)
   ]
   titles = dataOrdered.keys()
   if nSets > nSetsData:
@@ -160,21 +170,16 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   labels = {
     '{BES: STAR Preliminary}' if version == 'QM12Latest200' or \
       version == 'QM14' or version == 'LatestPatrickJieYi'
-    else 'STAR Preliminary': [0.4,0.10,False],
+    else 'STAR Preliminary': [0.4 if diffRel else 0.2,0.09,False],
     '{200 GeV: PRL 113 022301' if version == 'QM12Latest200' \
       or version == 'QM14' or version == 'LatestPatrickJieYi'
-    else '': [0.4,0.05,False],
+    else '': [0.4 if diffRel else 0.2,0.04,False],
   }
-  yr = [1.,40] if diffRel else [0.15,1e3]
+  yr = [.6,2.5e3] if diffRel else [0.05,1e5]
   if noxerr:
-      shift = {
-          '19': 1., '27': 3., '39': 10., '62': 30., '200': 100.
-      } if not diffRel else {
-          '19': 1., '27': 2., '39': 4., '62': 8., '200': 15.
-      }
       for k,d in dataOrdered.iteritems():
-          energy = re.compile('\d+').search(k).group()
-          d[:,(1,3,4)] *= shift[energy]
+          energy = getEnergy4Key(re.compile('\d+').search(k).group())
+          d[:,(1,3,4)] *= float(shift[energy])
   gpcalls = [
       'object 1 rectangle back fc rgb "grey" from 0.7425,%f to 0.825,%f' % \
       (1.7 if diffRel else 0.5, yr[1]),
@@ -184,27 +189,42 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       (1.7 if diffRel else 0.5, yr[1]),
       'boxwidth 0.01 absolute',
   ]
-  if diffRel:
-      gpcalls += [
-          'format y "%g"',
-          'ytics (1, 2,"" 3,"" 4,5,"" 6,"" 7,"" 8,"" 9, 10, 20, 40)',
-      ]
+  #if diffRel:
+  #    gpcalls += [
+  #        'format y "%g"',
+  #        'ytics (1, 2,"" 3,"" 4,5,"" 6,"" 7,"" 8,"" 9, 10, 20, 40)',
+  #    ]
+  hline = 1. if diffRel else .5
+  lines = dict(
+      (('x=%g' % (hline*float(shift[energy]))), 'lc 0 lw 6 lt 3')
+      for energy in shift
+  )
+  pseudo_point = np.array([[-1,1,0,0,0]])
   make_plot(
-    data = dataOrdered.values(),
-    properties = props, titles = titles,
+    data = dataOrdered.values() + [
+        pseudo_point, pseudo_point, pseudo_point
+    ],
+    properties = props + [
+        'with lines lt %d lw 6 lc 0' % (lt+1)
+        for lt in xrange(3)
+    ],
+    titles = titles + [
+        'HMBT + QGP', 'Vac. + QGP',
+        '%g%s' % (hline, ' {/Symbol \264} 10^{-3}' if not diffRel else '')
+    ],
     name = os.path.join(outDir, 'diff%s%s%s%s' % (
       'Rel' if diffRel else 'Abs', version,
       'NoMed' if nomed else '', 'NoXErr' if noxerr else ''
     )),
     xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
-    ylabel = 'Enhancement Ratio' if diffRel else 'Excess Yield ({/Symbol \264} 10^{-3})',
+    ylabel = 'Enhancement Ratio' if diffRel else 'Excess Yield ({/Symbol \264} 10^{-3} (GeV/c^2)^{-1})',
     labels = labels, ylog = True,
     xr = [0.27,0.97], yr = yr,
-    key = ['at graph 1.,1.1', 'maxrows 1', 'width -1.5'],
-    #lines = { ('x=1' if diffRel else 'x=0'): 'lc 0 lw 4 lt 2' },
+    key = ['at graph 1.,1.17', 'maxrows 3', 'width -2'],
+    lines = lines if noxerr else {},
     gpcalls = gpcalls,
-    lmargin = 0.12, bmargin = 0.12, tmargin = 0.9, rmargin = 0.98,
-    size = '12in,9in', arrow_length = 0.4,
+    lmargin = 0.15, bmargin = 0.08, tmargin = 0.86, rmargin = 0.98,
+    size = '10in,13in', #arrow_length = 0.4,
   )
 
   if nomed or noxerr or version == 'QM12': return 'done'
@@ -279,9 +299,9 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
           np.array(data_enhance), np.array(medium_enhance)
       ],
       properties = [
-          'lt 1 lw 6 ps 3 lc %s pt 18' % default_colors[1],
-          'lt 1 lw 6 ps 3 lc %s pt 18' % default_colors[3],
-          'lt 1 lw 6 ps 3 lc %s pt 18' % default_colors[0],
+          'lt 1 lw 6 ps 2.5 lc %s pt 18' % default_colors[1],
+          'lt 1 lw 6 ps 2.5 lc %s pt 18' % default_colors[3],
+          'lt 1 lw 6 ps 2.5 lc %s pt 18' % default_colors[0],
           'with lines lt 1 lw 6 lc %s' % default_colors[4],
           ],
       titles = [ 'CERES Pb+Au', 'PHENIX Au+Au', 'STAR Au+Au', 'HMBT + QGP' ],
@@ -336,7 +356,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   props = [
       'with filledcurves pt 0 lc %s lw 6 lt 2' % default_colors[8],
       'with lines lc %s lw 8 lt 2' % default_colors[1],
-      'lt 1 lw 6 ps 3 lc %s pt 18' % default_colors[0],
+      'lt 1 lw 6 ps 2.5 lc %s pt 18' % default_colors[0],
       'with lines lt 1 lw 6 lc %s' % default_colors[4],
       'with lines lt 1 lw 6 lc %s' % default_colors[6],
   ]
@@ -359,7 +379,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     data = graph_data, properties = props, titles = tits,
     name = os.path.join(outDir, 'excess%s%s' % (version,'DivdNdy' if divdNdy else '')),
     xlabel = '{/Symbol \326}s_{NN} (GeV)',
-    ylabel = 'LMR Excess Yield %s({/Symbol \264} 10^{-%d})' % (
+    ylabel = 'LMR Excess Yield %s({/Symbol \264} 10^{-%d} (GeV/c^2)^{-1}))' % (
         '/ dN/dy|_{/Symbol \\160}  ' if divdNdy else '', 5 if divdNdy else 3
     ),
     xlog = True, xr = [7,220], key = ['at graph 0.9,0.98', 'width -7'],
@@ -378,7 +398,7 @@ def gp_rdiff_merged(version, divdNdy):
   enhance_datdir = os.path.join(outDir, 'enhance%s' % version)
   excess_datdir = os.path.join(outDir, 'excess%s%s' % (version,'DivdNdy' if divdNdy else ''))
   print enhance_datdir, excess_datdir
-  weird_key = 'LMR Excess Yield %s({/Symbol \264} 10^{-%d})' % (
+  weird_key = 'LMR Excess Yield %s({/Symbol \264} 10^{-%d} (GeV/c^2)^{-1}))' % (
       '/ dN/dy|_{/Symbol \\160}  ' if divdNdy else '', 5 if divdNdy else 3
   )
   if os.path.exists(enhance_datdir) and os.path.exists(excess_datdir):

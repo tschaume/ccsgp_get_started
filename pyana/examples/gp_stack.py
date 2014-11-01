@@ -252,7 +252,7 @@ def gp_stack(version, energies, inclMed, inclFits):
     )),
     ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
     xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
-    ylog = True, xr = [0, 3.25], yr = [yr_low, 1.8e3],
+    ylog = True, xr = [0, 3.25], yr = [yr_low, 1.9e3],
     lmargin = 0.095, rmargin = 0.995, bmargin = 0.09, arrow_offset = 0.8,
     #tmargin = 0.9 if version != 'QM12Latest200' else 0.99,
     key = [
