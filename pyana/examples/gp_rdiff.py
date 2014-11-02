@@ -37,7 +37,8 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   """
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version)
-  data, cocktail, medium, qgpvac = OrderedDict(), OrderedDict(), OrderedDict(), OrderedDict()
+  data, cocktail, medium, qgpvac, vacrho = \
+          OrderedDict(), OrderedDict(), OrderedDict(), OrderedDict(), OrderedDict()
   #scale = { # QM14 (19 GeV skip later, factor here only informational)
   #  '19.6': 1.0340571932983775, '200': 1.0, '39': 0.7776679085382481,
   #  '27': 0.6412140408244136, '62.4': 0.9174700031778402
@@ -50,10 +51,9 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   yunit = 1.0e-3 if not diffRel else 1.
   for infile in os.listdir(inDir):
     if infile == "cocktail_contribs": continue
-    if fnmatch(infile, '*vacRho*'): continue
     energy = re.compile('\d+').search(infile).group()
     data_type = re.sub('%s\.dat' % energy, '', infile)
-    if diffRel and data_type == 'qgp+vac': continue
+    if diffRel and (data_type == 'qgp+vac' or data_type == 'vacRho'): continue
     if fnmatch(data_type, 'medium*Only'): continue
     energy = getEnergy4Key(energy)
     file_url = os.path.join(inDir, infile)
@@ -70,12 +70,16 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
             data_import = data_import[data_import[:,0] < 1.0]
     if data_type == 'data': data[energy] = data_import
     elif data_type == 'cocktail': cocktail[energy] = data_import
-    elif not diffRel and data_type == 'qgp+vac':
+    elif not diffRel and (data_type == 'qgp+vac' or data_type == 'vacRho'):
         if noxerr: data_import[:,2] = 0.
         data_import[:,1] /= yunit
-        qgpvac[energy] = data_import[
-            (data_import[:,0] < 0.7425) | (data_import[:,0] > 0.825)
-        ]
+        mask = (data_import[:,0] < 0.7425) | (data_import[:,0] > 0.825)
+        if data_type == 'qgp+vac':
+            qgpvac[energy] = data_import[mask]
+        elif data_type == 'vacRho':
+            vacrho[energy] = data_import[
+                mask & (data_import[:,0] > 0.35) & (data_import[:,1] > 0.01)
+            ]
     elif not nomed: medium[energy] = data_import
   nSetsData = len(data)
 
@@ -151,10 +155,12 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       dataOrdered[key] = np.array([ [0.1,-1,0,0,0], [1,-1,0,0,0] ])
     if energy in qgpvac:
       dataOrdered[' '.join([energy, 'GeV (QgpVac.)'])] = qgpvac[energy]
+    if energy in vacrho:
+      dataOrdered[' '.join([energy, 'GeV (VacRho.)'])] = vacrho[energy]
 
   # make plot
   nSets = len(dataOrdered)
-  nCats = 2 if diffRel else 3
+  nCats = 2 if diffRel else 4
   nSetsPlot = nSets/nCats if nSets > nSetsData else nSets
   props = [
     'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i]
@@ -200,20 +206,20 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   #    ]
   hline = 1. if diffRel else .5
   lines = dict(
-      (('x=%g' % (hline*float(shift[energy]))), 'lc 0 lw 4 lt 3')
+      (('x=%g' % (hline*float(shift[energy]))), 'lc rgb \"black\" lw 4 lt 4')
       for energy in shift
   )
   pseudo_point = np.array([[-1,1,0,0,0]])
   make_plot(
     data = dataOrdered.values() + [
-        pseudo_point, pseudo_point, pseudo_point
+        pseudo_point, pseudo_point, pseudo_point, pseudo_point
     ],
     properties = props + [
-        'with lines lt %d lw 4 lc 0' % (lt+1)
-        for lt in xrange(3)
+        'with lines lt %d lw 4 lc rgb \"black\"' % (lt+1)
+        for lt in xrange(nCats)
     ],
     titles = titles + [
-        'HMBT + QGP', 'Vac. + QGP',
+        'HMBT + QGP', 'Vac. + QGP', 'Vacuum',
         '%g%s' % (hline, ' {/Symbol \264} 10^{-3}' if not diffRel else '')
     ],
     name = os.path.join(outDir, 'diff%s%s%s%s' % (
