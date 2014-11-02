@@ -64,7 +64,10 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     elif data_type == 'data' and version == 'LatestPatrickJieYi':
        data_import[:,(1,3,4)] *= scale[energy]
     if version == 'LatestPatrickJieYi':
-       data_import = data_import[(data_import[:,0] > 0.15) & (data_import[:,0] < 1.0)]
+        if data_type == 'data':
+            data_import = data_import[(data_import[:,0] > 0.14) & (data_import[:,0] < 1.0)]
+        else:
+            data_import = data_import[data_import[:,0] < 1.0]
     if data_type == 'data': data[energy] = data_import
     elif data_type == 'cocktail': cocktail[energy] = data_import
     elif not diffRel and data_type == 'qgp+vac':
@@ -81,7 +84,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       '19.6': '1', '27': '8', '39': '50', '62.4': '200', '200': '900'
   }
   dataOrdered = OrderedDict()
-  for energy in sorted(data, key=float):
+  for energy in sorted(data, key=float, reverse=True):
     # data & bin edges
     # getUArray propagates stat/syst errors separately internally but
     # errors need to be doubled to retrieve correct errors
@@ -154,14 +157,15 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   nCats = 2 if diffRel else 3
   nSetsPlot = nSets/nCats if nSets > nSetsData else nSets
   props = [
-    'lt 1 lw 6 ps 2.5 lc %s pt 18' % default_colors[i] for i in xrange(nSetsPlot)
+    'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i]
+      for i in reversed(range(nSetsPlot))
   ]
   titles = dataOrdered.keys()
   if nSets > nSetsData:
     props = zip_flat(props, *[
         [
-            'with lines lt %d lw 6 lc %s' % (j+1, default_colors[i])
-            for i in xrange(nSetsPlot)
+            'with lines lt %d lw 4 lc %s' % (j+1, default_colors[i])
+            for i in reversed(range(nSetsPlot))
         ]
         for j in xrange(nCats-1)
     ])
@@ -175,7 +179,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       or version == 'QM14' or version == 'LatestPatrickJieYi'
     else '': [0.4 if diffRel else 0.2,0.04,False],
   }
-  yr = [.6,2.5e3] if diffRel else [0.05,1e5]
+  yr = [.6,2.5e3] if diffRel else [0.05,1.5e5]
   if noxerr:
       for k,d in dataOrdered.iteritems():
           energy = getEnergy4Key(re.compile('\d+').search(k).group())
@@ -196,7 +200,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   #    ]
   hline = 1. if diffRel else .5
   lines = dict(
-      (('x=%g' % (hline*float(shift[energy]))), 'lc 0 lw 6 lt 3')
+      (('x=%g' % (hline*float(shift[energy]))), 'lc 0 lw 4 lt 3')
       for energy in shift
   )
   pseudo_point = np.array([[-1,1,0,0,0]])
@@ -205,7 +209,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
         pseudo_point, pseudo_point, pseudo_point
     ],
     properties = props + [
-        'with lines lt %d lw 6 lc 0' % (lt+1)
+        'with lines lt %d lw 4 lc 0' % (lt+1)
         for lt in xrange(3)
     ],
     titles = titles + [
@@ -219,12 +223,12 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
     ylabel = 'Enhancement Ratio' if diffRel else 'Excess Yield ({/Symbol \264} 10^{-3} (GeV/c^2)^{-1})',
     labels = labels, ylog = True,
-    xr = [0.27,0.97], yr = yr,
-    key = ['at graph 1.,1.17', 'maxrows 3', 'width -2'],
+    xr = [0.18,0.97], yr = yr,
+    key = ['at graph 1.,1.17', 'maxrows 3', 'width -3', 'samplen 0.8'],
     lines = lines if noxerr else {},
     gpcalls = gpcalls,
-    lmargin = 0.15, bmargin = 0.08, tmargin = 0.86, rmargin = 0.98,
-    size = '10in,13in', #arrow_length = 0.4,
+    lmargin = 0.17, bmargin = 0.1, tmargin = 0.86, rmargin = 0.98,
+    size = '9in,11in', arrow_offset = 0.9, #arrow_length = 0.4,
   )
 
   if nomed or noxerr or version == 'QM12': return 'done'
@@ -299,10 +303,10 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
           np.array(data_enhance), np.array(medium_enhance)
       ],
       properties = [
-          'lt 1 lw 6 ps 2.5 lc %s pt 18' % default_colors[1],
-          'lt 1 lw 6 ps 2.5 lc %s pt 18' % default_colors[3],
-          'lt 1 lw 6 ps 2.5 lc %s pt 18' % default_colors[0],
-          'with lines lt 1 lw 6 lc %s' % default_colors[4],
+          'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[1],
+          'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[3],
+          'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0],
+          'with lines lt 1 lw 4 lc %s' % default_colors[4],
           ],
       titles = [ 'CERES Pb+Au', 'PHENIX Au+Au', 'STAR Au+Au', 'HMBT + QGP' ],
       name = os.path.join(outDir, 'enhance%s' % version),
@@ -354,11 +358,11 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       np.array(excess['LMR_QgpVac']),
   ]
   props = [
-      'with filledcurves pt 0 lc %s lw 6 lt 2' % default_colors[8],
+      'with filledcurves pt 0 lc %s lw 4 lt 2' % default_colors[8],
       'with lines lc %s lw 8 lt 2' % default_colors[1],
-      'lt 1 lw 6 ps 2.5 lc %s pt 18' % default_colors[0],
-      'with lines lt 1 lw 6 lc %s' % default_colors[4],
-      'with lines lt 1 lw 6 lc %s' % default_colors[6],
+      'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0],
+      'with lines lt 1 lw 4 lc %s' % default_colors[4],
+      'with lines lt 1 lw 4 lc %s' % default_colors[6],
   ]
   tits = [
       'BES-I extrapolation for BES-II',
@@ -442,13 +446,13 @@ def gp_rdiff_merged(version, divdNdy):
       make_plot(
         data = data.values(),
         properties = [
-            'with filledcurves pt 0 lc %s lw 6 lt 2' % default_colors[8]
+            'with filledcurves pt 0 lc %s lw 4 lt 2' % default_colors[8]
         ] + [
             'with lines lc %s lw 10 lt 2' % default_colors[3]
         ] + [
-          'lt 1 lw 6 ps 1.5 lc %s pt %d' % (default_colors[i], 18+i) for i in xrange(1) #2
+          'lt 1 lw 4 ps 1.5 lc %s pt %d' % (default_colors[i], 18+i) for i in xrange(1) #2
         ] + [
-          'with lines lt %d lw 6 lc %s' % (i+2, default_colors[i]) for i in xrange(1) #2
+          'with lines lt %d lw 4 lc %s' % (i+2, default_colors[i]) for i in xrange(1) #2
         ],
         titles = data.keys(),
         name = os.path.join(outDir, 'enhanceexcess%s' % version),
