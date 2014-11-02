@@ -312,18 +312,18 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
           'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[1],
           'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[3],
           'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0],
-          'with lines lt 1 lw 4 lc %s' % default_colors[4],
+          'with lines lt 2 lw 4 lc %s' % default_colors[-1],
           ],
       titles = [ 'CERES Pb+Au', 'PHENIX Au+Au', 'STAR Au+Au', 'HMBT + QGP' ],
       name = os.path.join(outDir, 'enhance%s' % version),
       xlabel = '{/Symbol \326}s_{NN} (GeV)',
       ylabel = 'LMR Enhancement Factor',
-      xlog = True, key = [ 'at graph 0.7,0.98' ],
+      xlog = True, key = [ 'at graph 0.7,0.98', 'nobox' ],
       lmargin = 0.15, bmargin = 0.12, tmargin = 0.89, size = '10in,10in',
-      yr = [1.,yr_upp], xr = [14,220], gpcalls = [
+      yr = [0.5,yr_upp], xr = [14,220], gpcalls = [
         'format x "%g"',
         'xtics (10, 20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
-        'boxwidth 0.03 absolute',
+        'boxwidth 0.025 absolute',
         'label 50 "{/=18 0.2 < M_{ee} < 0.6 GeV/c^{2}}" at 15.5,3 tc %s rotate center' % default_colors[1],
         'label 51 "{/=18 0.15 < M_{ee} < 0.75 GeV/c^{2}}" at 180,4.2 tc %s rotate center' % default_colors[3]
       ], labels = labels
@@ -339,6 +339,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       suffix = '_Med'
       if version != 'LatestPatrickJieYi' and energy == '27': continue # TODO
     if fnmatch(k, '*QgpVac.*'): suffix = '_QgpVac'
+    if fnmatch(k, '*VacRho.*'): suffix = '_VacRho'
     exc = getMassRangesSums(np.array(v), onlyLMR = True)
     if divdNdy: exc /= dNdyPi0[energy] * 1e-2
     dp = [
@@ -362,13 +363,15 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       np.array(excess['LMR']),
       np.array(excess['LMR_Med']),
       np.array(excess['LMR_QgpVac']),
+      np.array(excess['LMR_VacRho']),
   ]
   props = [
       'with filledcurves pt 0 lc %s lw 4 lt 2' % default_colors[8],
       'with lines lc %s lw 8 lt 2' % default_colors[1],
       'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0],
-      'with lines lt 1 lw 4 lc %s' % default_colors[4],
-      'with lines lt 1 lw 4 lc %s' % default_colors[6],
+      'with lines lt 2 lw 4 lc %s' % default_colors[-1],
+      'with lines lt 3 lw 4 lc %s' % default_colors[-1],
+      'with lines lt 4 lw 4 lc %s' % default_colors[-1],
   ]
   tits = [
       'BES-I extrapolation for BES-II',
@@ -376,9 +379,10 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       'STAR Au+Au',
       'HMBT + QGP',
       'Vacuum + QGP',
+      'Vacuum',
   ]
   yr_upp = 4.5 if version == 'QM12Latest200' or version == 'QM14' else 7
-  if version == 'LatestPatrickJieYi': yr_upp = 2.5 if divdNdy else 2.
+  if version == 'LatestPatrickJieYi': yr_upp = 2.6 if divdNdy else 2.
   if divdNdy:
     labels.update(dict((str(v), [float(k)*0.9,yr_upp*1.05,True]) for k,v in dNdyPi0.items()))
     labels.update({ 'dN/dy|_{/Symbol \\160}': [100,yr_upp*1.05,True]})
@@ -392,12 +396,12 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     ylabel = 'LMR Excess Yield %s({/Symbol \264} 10^{-%d} (GeV/c^2)^{-1}))' % (
         '/ dN/dy|_{/Symbol \\160}  ' if divdNdy else '', 5 if divdNdy else 3
     ),
-    xlog = True, xr = [7,220], key = ['at graph 0.9,0.98', 'width -7'],
+    xlog = True, xr = [7,220], key = ['at graph 0.83,0.98', 'width -7', 'nobox'],
     lmargin = 0.16, bmargin = 0.12, tmargin = 0.89, size = '10in,10in',
-    yr = [0.3,yr_upp], gpcalls = [
+    yr = [0,yr_upp], gpcalls = [
       'format x "%g"',
       'xtics (7,10,20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
-      'boxwidth 0.03 absolute',
+      'boxwidth 0.025 absolute',
     ], labels = labels,
   )
   return 'done'
