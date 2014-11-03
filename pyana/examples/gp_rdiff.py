@@ -53,7 +53,6 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     if infile == "cocktail_contribs": continue
     energy = re.compile('\d+').search(infile).group()
     data_type = re.sub('%s\.dat' % energy, '', infile)
-    if diffRel and (data_type == 'qgp+vac' or data_type == 'vacRho'): continue
     if fnmatch(data_type, 'medium*Only'): continue
     energy = getEnergy4Key(energy)
     file_url = os.path.join(inDir, infile)
@@ -70,16 +69,15 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
             data_import = data_import[data_import[:,0] < 1.0]
     if data_type == 'data': data[energy] = data_import
     elif data_type == 'cocktail': cocktail[energy] = data_import
-    elif not diffRel and (data_type == 'qgp+vac' or data_type == 'vacRho'):
-        if noxerr: data_import[:,2] = 0.
+    elif data_type == 'qgp+vac' or data_type == 'vacRho':
         data_import[:,1] /= yunit
         mask = (data_import[:,0] < 0.7425) | (data_import[:,0] > 0.825)
         if data_type == 'qgp+vac':
-            qgpvac[energy] = data_import[mask]
+            qgpvac[energy] = data_import[mask] if not diffRel else data_import
         elif data_type == 'vacRho':
             vacrho[energy] = data_import[
                 mask & (data_import[:,0] > 0.35) & (data_import[:,1] > 0.01)
-            ]
+            ] if not diffRel else data_import
     elif not nomed: medium[energy] = data_import
   nSetsData = len(data)
 
@@ -101,6 +99,14 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       uMedium = getUArray(medium[energy])
       eMedium = getEdges(medium[energy])
       loop.append(eMedium)
+    if energy in qgpvac and diffRel:
+      uQgpVac = getUArray(qgpvac[energy])
+      eQgpVac = getEdges(qgpvac[energy])
+      loop.append(eQgpVac)
+    if energy in vacrho and diffRel:
+      uVacRho = getUArray(vacrho[energy])
+      eVacRho = getEdges(vacrho[energy])
+      loop.append(eVacRho)
     # loop data/medium bins
     for l, eArr in enumerate(loop):
       for i, (e0, e1) in enumzipEdges(eArr):
@@ -110,7 +116,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
         uCocktailSum = getCocktailSum(e0, e1, eCocktail, uCocktail)
         # calc. difference and divide by data binwidth again
         # + set data point
-        if not l:
+        if l == 0:
           uDiff = uData[i] # value+/-0.5*tot.uncert.
           if diffRel:
             uDiff /= uCocktailSum # value+/-0.5*tot.uncert.
@@ -130,7 +136,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
               else:
                   expon = shift[energy].split('e')[1]
                   key += ' {/Symbol \264} 10^{%s}' % expon
-        else:
+        elif l == 1:
           uDiff = uMedium[i]
           if diffRel:
             uDiff /= uCocktailSum
@@ -143,6 +149,26 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
             0., 0. # both errors included in data points
           ]
           key = ' '.join([energy, 'GeV (Med.)'])
+        elif l == 2:
+          # only done if diffRel
+          uDiff = uQgpVac[i]
+          uDiff /= uCocktailSum
+          dp = [
+            qgpvac[energy][i,0], uDiff.nominal_value+1.,
+            qgpvac[energy][i,2] if not noxerr else 0.,
+            0., 0. # both errors included in data points
+          ]
+          key = ' '.join([energy, 'GeV (QgpVac.)'])
+        elif l == 3:
+          # only done if diffRel
+          uDiff = uVacRho[i]
+          uDiff /= uCocktailSum
+          dp = [
+            vacrho[energy][i,0], uDiff.nominal_value+1.,
+            vacrho[energy][i,2] if not noxerr else 0.,
+            0., 0. # both errors included in data points
+          ]
+          key = ' '.join([energy, 'GeV (VacRho.)'])
         # build list of data points
         if dp[0] > 0.7425 and dp[0] < 0.825: continue # mask out omega region
         if dp[0] > 0.97 and dp[0] < 1.0495: continue # mask out phi region
@@ -153,14 +179,15 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     if energy not in medium: # TODO add pseudo-data for missing medium (27GeV)
       key = ' '.join([energy, 'GeV (Med.)'])
       dataOrdered[key] = np.array([ [0.1,-1,0,0,0], [1,-1,0,0,0] ])
-    if energy in qgpvac:
-      dataOrdered[' '.join([energy, 'GeV (QgpVac.)'])] = qgpvac[energy]
-    if energy in vacrho:
-      dataOrdered[' '.join([energy, 'GeV (VacRho.)'])] = vacrho[energy]
+    if not diffRel:
+      if energy in qgpvac:
+        dataOrdered[' '.join([energy, 'GeV (QgpVac.)'])] = qgpvac[energy]
+      if energy in vacrho:
+        dataOrdered[' '.join([energy, 'GeV (VacRho.)'])] = vacrho[energy]
 
   # make plot
   nSets = len(dataOrdered)
-  nCats = 2 if diffRel else 4
+  nCats = 4
   nSetsPlot = nSets/nCats if nSets > nSetsData else nSets
   props = [
     'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i]
@@ -242,7 +269,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   # integrated enhancement factor
   if diffRel:
     enhance = {}
-    data_enhance, medium_enhance = None, None
+    data_enhance, medium_enhance, qgpvac_enhance, vacrho_enhance = None, None, None, None
     for energy in sorted(data, key=float):
       for systLMR in [False, True]:
         suffix = str(energy)
@@ -259,6 +286,16 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
             medium[energy], onlyLMR = True,
             systLMR = systLMR, suffix = suffix
           )
+        if energy in qgpvac:
+          uEnhanceQgpVac = getMassRangesSums(
+            qgpvac[energy], onlyLMR = True,
+            systLMR = systLMR, suffix = suffix
+          )
+        if energy in vacrho:
+          uEnhanceVacRho = getMassRangesSums(
+            vacrho[energy], onlyLMR = True,
+            systLMR = systLMR, suffix = suffix
+          )
         if not systLMR: # uEnhance's are ufloats
           uEnhanceData /= uEnhanceCocktail
           dp = [
@@ -273,6 +310,16 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
             dpM = [ float(energy), uEnhanceMed.nominal_value, 0, 0, 0 ]
             if medium_enhance is None: medium_enhance = [ dpM ]
             else: medium_enhance.append(dpM)
+          if energy in qgpvac:
+            uEnhanceQgpVac /= uEnhanceCocktail
+            dpM = [ float(energy), uEnhanceQgpVac.nominal_value+1., 0, 0, 0 ]
+            if qgpvac_enhance is None: qgpvac_enhance = [ dpM ]
+            else: qgpvac_enhance.append(dpM)
+          if energy in vacrho:
+            uEnhanceVacRho /= uEnhanceCocktail
+            dpM = [ float(energy), uEnhanceVacRho.nominal_value+1., 0, 0, 0 ]
+            if vacrho_enhance is None: vacrho_enhance = [ dpM ]
+            else: vacrho_enhance.append(dpM)
         else: # uEnhance's are dicts of ufloats
           for k in uEnhanceData:
             uEnhanceData[k] /= uEnhanceCocktail[k]
@@ -291,6 +338,18 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
               med_key = 'model_' + rngstr
               if med_key not in enhance: enhance[med_key] = [ dpM ]
               else: enhance[med_key].append(dpM)
+            if k in uEnhanceQgpVac:
+              uEnhanceQgpVac[k] /= uEnhanceCocktail[k]
+              dpM = [ float(energy), uEnhanceQgpVac[k].nominal_value+1. ]
+              qgpvac_key = 'qgpvac_' + rngstr
+              if qgpvac_key not in enhance: enhance[qgpvac_key] = [ dpM ]
+              else: enhance[qgpvac_key].append(dpM)
+            if k in uEnhanceVacRho:
+              uEnhanceVacRho[k] /= uEnhanceCocktail[k]
+              dpM = [ float(energy), uEnhanceVacRho[k].nominal_value+1. ]
+              vacrho_key = 'vacrho_' + rngstr
+              if vacrho_key not in enhance: enhance[vacrho_key] = [ dpM ]
+              else: enhance[vacrho_key].append(dpM)
     xfacs = os.path.join(outDir, 'xfacs%s.dat' % version)
     if os.path.exists(xfacs): os.remove(xfacs)
     fSystLMR = open(xfacs, 'ab')
@@ -306,15 +365,21 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       data = [
           np.array([[17.3,2.73,0,0.25,1.47]]),
           np.array([[200,4.7,0,0.4,1.5]]),
-          np.array(data_enhance), np.array(medium_enhance)
+          np.array(data_enhance), np.array(medium_enhance),
+          np.array(qgpvac_enhance), np.array(vacrho_enhance)
       ],
       properties = [
           'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[1],
           'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[3],
           'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0],
           'with lines lt 2 lw 4 lc %s' % default_colors[-1],
-          ],
-      titles = [ 'CERES Pb+Au', 'PHENIX Au+Au', 'STAR Au+Au', 'HMBT + QGP' ],
+          'with lines lt 3 lw 4 lc %s' % default_colors[-1],
+          'with lines lt 4 lw 4 lc %s' % default_colors[-1],
+      ],
+      titles = [
+          'CERES Pb+Au', 'PHENIX Au+Au', 'STAR Au+Au',
+          'HMBT + QGP', 'Vacuum + QGP', 'Vacuum'
+      ],
       name = os.path.join(outDir, 'enhance%s' % version),
       xlabel = '{/Symbol \326}s_{NN} (GeV)',
       ylabel = 'LMR Enhancement Factor',
@@ -355,7 +420,10 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   graph_data = [
       np.array([
           [ 7.7, avg, 0, 0, avdata[-1][-1]],
-          [ 200, avg, 0, 0, avdata[-1][-1]]
+          [ 19.6, avg, 0, 0, avdata[-1][-1]]
+      ]),
+      np.array([
+          [ 19.6, avg, 0, 0, 0], [ 200., avg, 0, 0, 0]
       ]),
       np.array([
           [ 7.7, 2*avg, 0, 0, 0], [ 19.6, avg, 0, 0, 0],
@@ -367,6 +435,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   ]
   props = [
       'with filledcurves pt 0 lc %s lw 4 lt 2' % default_colors[8],
+      'with lines lc %s lw 4 lt 2' % default_colors[8],
       'with lines lc %s lw 8 lt 2' % default_colors[1],
       'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0],
       'with lines lt 2 lw 4 lc %s' % default_colors[-1],
@@ -374,7 +443,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       'with lines lt 4 lw 4 lc %s' % default_colors[-1],
   ]
   tits = [
-      'BES-I extrapolation for BES-II',
+      'BES-I extrapolation for BES-II', '',
       'model expectation at BES-II',
       'STAR Au+Au',
       'HMBT + QGP',
