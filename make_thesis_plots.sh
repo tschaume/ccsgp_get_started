@@ -1,12 +1,12 @@
 #!/bin/bash
 
-python -m pyana.examples.gp_stack --log --med LatestPatrickJieYi
-python -m pyana.examples.gp_panel --log LatestPatrickJieYi
-python -m pyana.examples.gp_rdiff --log --noxerr LatestPatrickJieYi
-python -m pyana.examples.gp_rdiff --log --diffRel --noxerr LatestPatrickJieYi
-python -m pyana.examples.gp_rdiff --log --diffRel LatestPatrickJieYi
-python -m pyana.examples.gp_rdiff --log --divdNdy LatestPatrickJieYi
-python -m pyana.examples.gp_ptspec --log
+python -m pyana.examples.gp_stack --med LatestPatrickJieYi
+python -m pyana.examples.gp_panel LatestPatrickJieYi
+python -m pyana.examples.gp_rdiff --noxerr LatestPatrickJieYi
+python -m pyana.examples.gp_rdiff --diffRel --noxerr LatestPatrickJieYi
+python -m pyana.examples.gp_rdiff --diffRel LatestPatrickJieYi
+python -m pyana.examples.gp_rdiff --divdNdy LatestPatrickJieYi
+python -m pyana.examples.gp_ptspec
 open \
   pyanaDir/examples/gp_stack/output/stackLatestPatrickJieYiInclMed.pdf \
   pyanaDir/examples/gp_panel/output/panelLatestPatrickJieYi.pdf \

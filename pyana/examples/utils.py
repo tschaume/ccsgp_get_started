@@ -4,7 +4,7 @@ from uncertainties import ufloat
 from uncertainties.umath import fsum
 from decimal import Decimal
 mass_titles = [ 'pi0', 'LMR', 'omphi', 'IMR' ]
-eRanges = np.array([ Decimal(str(e)) for e in [ 0, 0.4, 0.74, 1.1, 3. ] ])
+eRanges = np.array([ Decimal(str(e)) for e in [ 0, 0.4, 0.75, 1.1, 3. ] ])
 
 def checkSymLink():
   """check for symbolic link to input directory"""

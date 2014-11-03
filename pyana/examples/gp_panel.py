@@ -92,7 +92,7 @@ def gp_panel(version, skip):
     arrow_length = 0.4, arrow_bar = 0.002,
     gpcalls = [
         'mxtics 2',
-        'object 50 rectangle back fc rgb "#C6E2FF" from 0.4,1e-4 to 0.74,2e-2'
+        'object 50 rectangle back fc rgb "#C6E2FF" from 0.4,1e-4 to 0.75,2e-2'
     ],
     layout = '3x2' if panel2D_versions else ('%dx1' % len(data)),
     key = ['width -2', 'at graph 0.95,0.85'],
