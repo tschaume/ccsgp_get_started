@@ -28,7 +28,7 @@ def gp_panel(version, skip):
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version)
   data = {}
-  vacRhoTitle = '{/Symbol \162}/{/Symbol \167} {/Symbol \256} e^{+}e^{-} (vac.)'
+  vacRhoTitle = '{/Symbol \162}/{/Symbol \167} (VacSF+FB+FO)'
   for infile in os.listdir(inDir):
     if infile == "cocktail_contribs": continue
     if infile == 'mediumDmOnly200.dat': continue

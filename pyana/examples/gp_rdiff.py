@@ -37,7 +37,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   """
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version)
-  data, cocktail, medium, qgpvac, vacrho = \
+  data, cocktail, medium, rhofo, vacrho = \
           OrderedDict(), OrderedDict(), OrderedDict(), OrderedDict(), OrderedDict()
   #scale = { # QM14 (19 GeV skip later, factor here only informational)
   #  '19.6': 1.0340571932983775, '200': 1.0, '39': 0.7776679085382481,
@@ -67,11 +67,12 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
             data_import = data_import[data_import[:,0] < 1.0]
     if data_type == 'data': data[energy] = data_import
     elif data_type == 'cocktail': cocktail[energy] = data_import
-    elif data_type == 'qgp+vac' or data_type == 'vacRho' or data_type == 'medium':
-        if noxerr and not diffRel: data_import[:,2] = 0.
+    elif data_type == 'rho' or data_type == 'vacRho' or data_type == 'medium':
+        if noxerr and not diffRel: data_import[:,2:] = 0.
         data_import[:,1] /= yunit
-        if data_type == 'qgp+vac':
-            qgpvac[energy] = data_import
+        if data_type == 'rho':
+            mask = data_import[:,1] > 0.1
+            rhofo[energy] = data_import if diffRel else data_import[mask]
         elif data_type == 'vacRho':
             mask = (data_import[:,0] > 0.35) & (data_import[:,1] > 0.01)
             vacrho[energy] = data_import if diffRel else data_import[mask]
@@ -97,10 +98,10 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       uMedium = getUArray(medium[energy])
       eMedium = getEdges(medium[energy])
       loop.append(eMedium)
-    if energy in qgpvac and diffRel:
-      uQgpVac = getUArray(qgpvac[energy])
-      eQgpVac = getEdges(qgpvac[energy])
-      loop.append(eQgpVac)
+    if energy in rhofo and diffRel:
+      uRho = getUArray(rhofo[energy])
+      eRho = getEdges(rhofo[energy])
+      loop.append(eRho)
     if energy in vacrho and diffRel:
       uVacRho = getUArray(vacrho[energy])
       eVacRho = getEdges(vacrho[energy])
@@ -112,6 +113,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
         # get cocktail sum in data bin range
         # value+/-0.5*tot.uncert.
         uCocktailSum = getCocktailSum(e0, e1, eCocktail, uCocktail)
+        if uCocktailSum == 0.: continue
         # calc. difference and divide by data binwidth again
         # + set data point
         if l == 0:
@@ -146,14 +148,14 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
           key = ' '.join([energy, 'GeV (Med.)'])
         elif l == 2:
           # only done if diffRel
-          uDiff = uQgpVac[i]
+          uDiff = uRho[i]
           uDiff /= uCocktailSum
           dp = [
-            qgpvac[energy][i,0], uDiff.nominal_value+1.,
-            qgpvac[energy][i,2] if not noxerr else 0.,
+            rhofo[energy][i,0], uDiff.nominal_value+1.,
+            rhofo[energy][i,2] if not noxerr else 0.,
             0., 0. # both errors included in data points
           ]
-          key = ' '.join([energy, 'GeV (QgpVac.)'])
+          key = ' '.join([energy, 'GeV (RhoFO.)'])
         elif l == 3:
           # only done if diffRel
           uDiff = uVacRho[i]
@@ -175,8 +177,8 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     if not diffRel:
       if energy in medium:
         dataOrdered[' '.join([energy, 'GeV (Med.)'])] = medium[energy]
-      if energy in qgpvac:
-        dataOrdered[' '.join([energy, 'GeV (QgpVac.)'])] = qgpvac[energy]
+      if energy in rhofo:
+        dataOrdered[' '.join([energy, 'GeV (RhoFO.)'])] = rhofo[energy]
       if energy in vacrho:
         dataOrdered[' '.join([energy, 'GeV (VacRho.)'])] = vacrho[energy]
 
@@ -238,7 +240,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
         for lt in xrange(nCats)
     ],
     titles = titles + [
-        'HMBT + QGP', 'Vac. + QGP', 'Vacuum',
+        'HMBT + QGP', 'BW/FO-{/Symbol \162}', '{/Symbol \162}/{/Symbol \167} VacSF+FB+FO',
         '%g%s' % (hline, ' {/Symbol \264} 10^{-3}' if not diffRel else '')
     ],
     name = os.path.join(outDir, 'diff%s%s%s%s' % (
@@ -247,9 +249,9 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     )),
     xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
     ylabel = 'Enhancement Ratio' if diffRel else 'Excess Yield ({/Symbol \264} 10^{-3} (GeV/c^2)^{-1})',
-    labels = labels, ylog = True,
-    xr = [0.18,0.97], yr = yr,
-    key = ['at graph 1.05,1.17', 'maxrows 3', 'width -3', 'nobox'],
+    #labels = labels,
+    xr = [0.18,0.97], yr = yr, ylog = True,
+    key = ['at graph 0.96,1.17', 'maxrows 3', 'width -4', 'nobox', 'samplen 0.9'],
     lines = lines if noxerr else {},
     gpcalls = gpcalls,
     lmargin = 0.17, bmargin = 0.1, tmargin = 0.86, rmargin = 0.98,
@@ -261,7 +263,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   # integrated enhancement factor
   if diffRel:
     enhance = {}
-    data_enhance, medium_enhance, qgpvac_enhance, vacrho_enhance = None, None, None, None
+    data_enhance, medium_enhance, rhofo_enhance, vacrho_enhance = None, None, None, None
     for energy in sorted(data, key=float):
       for systLMR in [False, True]:
         suffix = str(energy)
@@ -278,9 +280,9 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
             medium[energy], onlyLMR = True,
             systLMR = systLMR, suffix = suffix
           )
-        if energy in qgpvac:
-          uEnhanceQgpVac = getMassRangesSums(
-            qgpvac[energy], onlyLMR = True,
+        if energy in rhofo:
+          uEnhanceRhoFO = getMassRangesSums(
+            rhofo[energy], onlyLMR = True,
             systLMR = systLMR, suffix = suffix
           )
         if energy in vacrho:
@@ -302,11 +304,11 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
             dpM = [ float(energy), uEnhanceMed.nominal_value+1., 0, 0, 0 ]
             if medium_enhance is None: medium_enhance = [ dpM ]
             else: medium_enhance.append(dpM)
-          if energy in qgpvac:
-            uEnhanceQgpVac /= uEnhanceCocktail
-            dpM = [ float(energy), uEnhanceQgpVac.nominal_value+1., 0, 0, 0 ]
-            if qgpvac_enhance is None: qgpvac_enhance = [ dpM ]
-            else: qgpvac_enhance.append(dpM)
+          if energy in rhofo:
+            uEnhanceRhoFO /= uEnhanceCocktail
+            dpM = [ float(energy), uEnhanceRhoFO.nominal_value+1., 0, 0, 0 ]
+            if rhofo_enhance is None: rhofo_enhance = [ dpM ]
+            else: rhofo_enhance.append(dpM)
           if energy in vacrho:
             uEnhanceVacRho /= uEnhanceCocktail
             dpM = [ float(energy), uEnhanceVacRho.nominal_value+1., 0, 0, 0 ]
@@ -330,12 +332,12 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
               med_key = 'model_' + rngstr
               if med_key not in enhance: enhance[med_key] = [ dpM ]
               else: enhance[med_key].append(dpM)
-            if k in uEnhanceQgpVac:
-              uEnhanceQgpVac[k] /= uEnhanceCocktail[k]
-              dpM = [ float(energy), uEnhanceQgpVac[k].nominal_value+1. ]
-              qgpvac_key = 'qgpvac_' + rngstr
-              if qgpvac_key not in enhance: enhance[qgpvac_key] = [ dpM ]
-              else: enhance[qgpvac_key].append(dpM)
+            if k in uEnhanceRhoFO:
+              uEnhanceRhoFO[k] /= uEnhanceCocktail[k]
+              dpM = [ float(energy), uEnhanceRhoFO[k].nominal_value+1. ]
+              rhofo_key = 'rhofo_' + rngstr
+              if rhofo_key not in enhance: enhance[rhofo_key] = [ dpM ]
+              else: enhance[rhofo_key].append(dpM)
             if k in uEnhanceVacRho:
               uEnhanceVacRho[k] /= uEnhanceCocktail[k]
               dpM = [ float(energy), uEnhanceVacRho[k].nominal_value+1. ]
@@ -361,7 +363,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
           np.array(enhance['data_0.15-0.75']),
           np.array(enhance['data_0.4-0.75']),
           np.array(medium_enhance),
-          np.array(qgpvac_enhance), np.array(vacrho_enhance)
+          np.array(rhofo_enhance), np.array(vacrho_enhance)
       ],
       properties = [
           'lt 1 lw 4 ps 2 lc rgb "white" pt 19',
@@ -378,7 +380,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       titles = [
           'CERES Pb+Au', 'PHENIX Au+Au', 'STAR Au+Au',
           '', '', '', '',
-          'HMBT + QGP', 'Vacuum + QGP', 'Vacuum'
+          'HMBT + QGP', 'BW/FO-{/Symbol \162}', '{/Symbol \162}/{/Symbol \167} VacSF+FB+FO',
       ],
       name = os.path.join(outDir, 'enhance%s' % version),
       xlabel = '{/Symbol \326}s_{NN} (GeV)',
@@ -393,7 +395,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
         'label 51 "{/=18 0.15 < M_{ee} < 0.75 GeV/c^{2}}" at 180,4.2 tc %s rotate center' % default_colors[3],
         'label 52 "{/=18 0.4 < M_{ee} < 0.75 GeV/c^{2}}" at 30,3.7 tc %s rotate by -30' % default_colors[0],
         'label 53 "{/=18 0.15 < M_{ee} < 0.75 GeV/c^{2}}" at 50,1.2 tc %s' % default_colors[4]
-      ], labels = labels
+      ], #labels = labels
     )
     return 'done'
 
@@ -405,7 +407,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     if fnmatch(k, '*Med.*'):
       suffix = '_Med'
       if version != 'LatestPatrickJieYi' and energy == '27': continue # TODO
-    if fnmatch(k, '*QgpVac.*'): suffix = '_QgpVac'
+    if fnmatch(k, '*RhoFO.*'): suffix = '_RhoFO'
     if fnmatch(k, '*VacRho.*'): suffix = '_VacRho'
     exc = getMassRangesSums(np.array(v), onlyLMR = True)
     if divdNdy: exc /= dNdyPi0[energy] * 1e-2
@@ -432,8 +434,8 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       ]),
       np.array(excess['LMR']),
       np.array(excess['LMR_Med']),
-      np.array(excess['LMR_QgpVac']),
       np.array(excess['LMR_VacRho']),
+      np.array(excess['LMR_RhoFO']),
   ]
   props = [
       'with filledcurves pt 0 lc %s lw 4 lt 2' % default_colors[8],
@@ -446,10 +448,10 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   ]
   tits = [
       'BES-I extrapolation', '', 'model expectation', 'STAR Au+Au',
-      'HMBT + QGP', 'Vacuum + QGP', 'Vacuum',
+      'HMBT + QGP', '{/Symbol \162}/{/Symbol \167} VacSF+FB+FO', 'BW/FO-{/Symbol \162}',
   ]
   yr_upp = 4.5 if version == 'QM12Latest200' or version == 'QM14' else 7
-  if version == 'LatestPatrickJieYi': yr_upp = 2.7 if divdNdy else 2.
+  if version == 'LatestPatrickJieYi': yr_upp = 3 if divdNdy else 2.
   if divdNdy:
     labels.update(dict((str(v), [float(k)*0.9,yr_upp*1.05,True]) for k,v in dNdyPi0.items()))
     labels.update({ 'dN/dy|_{/Symbol \\160}': [100,yr_upp*1.05,True]})
@@ -464,14 +466,14 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
         '/ dN/dy|_{/Symbol \\160}  ' if divdNdy else '', 5 if divdNdy else 3
     ),
     xlog = True, xr = [7,220],
-    key = ['at graph 1.1,0.98', 'width -3', 'nobox', 'maxrows 3'],
+    key = ['at graph 1.05,0.98', 'width -3', 'nobox', 'maxrows 3'],
     lmargin = 0.16, bmargin = 0.12, tmargin = 0.89, size = '10in,10in',
-    yr = [0.45,yr_upp], gpcalls = [
+    yr = [0,yr_upp], gpcalls = [
       'format x "%g"',
       'xtics (7,10,20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
       'boxwidth 0.025 absolute',
       'label 52 "{/=18 0.4 < M_{ee} < 0.75 GeV/c^{2}}" at 60,0.55 tc %s' % default_colors[0],
-    ], labels = labels,
+    ], #labels = labels,
   )
   return 'done'
 
@@ -539,7 +541,7 @@ def gp_rdiff_merged(version, divdNdy):
         lmargin = 0.02, rmargin = 0.99, xlog = True,
         xr = [7,220], key = ['width -10'],#, 'font ",18"', 'spacing 0.9'],
         yr = [0.,5 if version == 'QM12Latest200' or version == 'QM14' else 7],
-        labels = labels,
+        #labels = labels,
         gpcalls = [
           'format x "%g"',
           'xtics (7,10,20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',

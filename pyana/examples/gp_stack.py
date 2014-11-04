@@ -23,7 +23,7 @@ def particleLabel4Key(k):
     if k == 'pion': return '{/Symbol \160}^0 {/Symbol \256} e^{+}e^{-}{/Symbol \147}'
     if k == 'eta': return '{/Symbol \150} {/Symbol \256} e^{+}e^{-}{/Symbol \147}'
     if k == 'etap': return '{/Symbol \150}\' {/Symbol \256} e^{+}e^{-}{/Symbol \147}'
-    if k == 'rho': return '{/Symbol \162}/{/Symbol \167} {/Symbol \256} e^{+}e^{-} (vac.)'
+    if k == 'rho': return '{/Symbol \162} {/Symbol \256} e^{+}e^{-}'
     if k == 'omega': return '{/Symbol \167} {/Symbol \256} e^{+}e^{-}({/Symbol \160})'
     if k == 'phi': return '{/Symbol \146} {/Symbol \256} e^{+}e^{-}({/Symbol \150})'
     if k == 'jpsi': return 'J/{/Symbol \171} {/Symbol \256} e^{+}e^{-}'
@@ -230,7 +230,7 @@ def gp_stack(version, energies, inclMed, inclFits):
       'with lines lc %s lw 4 lt 3' % default_colors[-i-2]
       for i in xrange(nSetsCocktailContribs-1)
     ] + [
-      'with lines lc %s lw 4 lt 2' % default_colors[0]
+      'with lines lc %s lw 4 lt 3' % default_colors[0]
     ] + [ cocktail_style ] * (nSetsCocktail+1)
     + [
       'with lines lc %s lw 4 lt 2' % default_colors[-i-16] for i in xrange(nSetsModelOnly)

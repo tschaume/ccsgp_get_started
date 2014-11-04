@@ -60,7 +60,7 @@ def gp_ptspec():
     mee_dict[mee_name] = mee_range
     data[filebase] = np.loadtxt(open(file_url, 'rb'))
     if data_type == 'data':
-        print data[filebase]
+        #print data[filebase]
         data[filebase] = data[filebase][:-1] # skip mT<0.4 point
     if energy == '200': data[filebase][:,(1,3,4)] /= 0.5
     # calculate average pT first
@@ -176,66 +176,66 @@ def gp_ptspec():
   #  }
   #)
   # make mean pt plot
-  yMinPt, yMaxPt = 0.95*min(yvalsPt), 1.05*max(yvalsPt)
-  make_plot(
-    data = [ # cocktail
-      np.array(data_avpt[k+'_c']) for k in mee_keys
-    ] + [ # medium
-      np.array(data_avpt['LMR_m'])
-    ] + [ # data
-      np.array(data_avpt[k]) for k in mee_keys
-    ],
-    properties = [
-     'with lines lt 1 lw 4 lc %s' % default_colors[i if i < 5 else i+1]
-      for i in xrange(len(mee_keys))
-    ] + [
-     'with lines lt 2 lw 4 lc %s' % default_colors[mee_keys.index('LMR')]
-    ] + [
-     'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i if i < 5 else i+1]
-      for i in xrange(len(mee_keys))
-    ],
-    titles = [ getMeeLabel(k) for k in mee_keys ] + ['']*(len(mee_keys)+1),
-    name = os.path.join(outDir, 'meanPt'),
-    xlabel = '{/Symbol \326}s_{NN} (GeV)',
-    ylabel = '{/Symbol \341}p_{T}{/Symbol \361} in STAR Acceptance (GeV/c)',
-    xlog = True, xr = [17,220], yr = [yMinPt, yMaxPt], size = '11in,9in',
-    key = [ 'maxrows 1', 'at graph 1, 1.1' ],
-    lmargin = 0.11, bmargin = 0.11, tmargin = 1., rmargin = 1.,
-    gpcalls = [
-      'format x "%g"',
-      'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
-    ]
-  )
-  # make mean pt plot for LMR only
-  make_plot(
-    data = [
-      np.array(data_avpt['LMR_c']),
-      np.array(data_avpt['LMR_m']),
-      np.array(data_avpt['LMR'])
-    ],
-    properties = [
-     'with lines lt 2 lw 4 lc %s' % default_colors[0],
-     'with lines lt 1 lw 4 lc %s' % default_colors[0],
-     'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0]
-    ],
-    titles = [
-        'cocktail', 'HMBT', getMeeLabel('data')
-    ],
-    name = os.path.join(outDir, 'meanPtLMR'),
-    xlabel = '{/Symbol \326}s_{NN} (GeV)',
-    ylabel = 'LMR {/Symbol \341}p_{T}{/Symbol \361} in STAR Acceptance (GeV/c)',
-    lmargin = 0.17, bmargin = 0.15, tmargin = 0.95, xlog = True, xr = [17,80],
-    yr = [0.65,1.05], #yr = [yMinPt, yMaxPt],
-    key = [ 'bottom right' ],
-    gpcalls = [
-      'format x "%g"',
-      'xtics (20, 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
-    ],
-    labels = {
-        'stat. errors only': [0.7,0.95,False], lmr_label: [0.05,0.07,False],
-        '0.4 < p_{T} < 2.2 GeV/c': [0.05,0.14,False]
-    }
-  )
+  #yMinPt, yMaxPt = 0.95*min(yvalsPt), 1.05*max(yvalsPt)
+  #make_plot(
+  #  data = [ # cocktail
+  #    np.array(data_avpt[k+'_c']) for k in mee_keys
+  #  ] + [ # medium
+  #    np.array(data_avpt['LMR_m'])
+  #  ] + [ # data
+  #    np.array(data_avpt[k]) for k in mee_keys
+  #  ],
+  #  properties = [
+  #   'with lines lt 1 lw 4 lc %s' % default_colors[i if i < 5 else i+1]
+  #    for i in xrange(len(mee_keys))
+  #  ] + [
+  #   'with lines lt 2 lw 4 lc %s' % default_colors[mee_keys.index('LMR')]
+  #  ] + [
+  #   'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[i if i < 5 else i+1]
+  #    for i in xrange(len(mee_keys))
+  #  ],
+  #  titles = [ getMeeLabel(k) for k in mee_keys ] + ['']*(len(mee_keys)+1),
+  #  name = os.path.join(outDir, 'meanPt'),
+  #  xlabel = '{/Symbol \326}s_{NN} (GeV)',
+  #  ylabel = '{/Symbol \341}p_{T}{/Symbol \361} in STAR Acceptance (GeV/c)',
+  #  xlog = True, xr = [17,220], yr = [yMinPt, yMaxPt], size = '11in,9in',
+  #  key = [ 'maxrows 1', 'at graph 1, 1.1' ],
+  #  lmargin = 0.11, bmargin = 0.11, tmargin = 1., rmargin = 1.,
+  #  gpcalls = [
+  #    'format x "%g"',
+  #    'xtics (20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
+  #  ]
+  #)
+  ## make mean pt plot for LMR only
+  #make_plot(
+  #  data = [
+  #    np.array(data_avpt['LMR_c']),
+  #    np.array(data_avpt['LMR_m']),
+  #    np.array(data_avpt['LMR'])
+  #  ],
+  #  properties = [
+  #   'with lines lt 2 lw 4 lc %s' % default_colors[0],
+  #   'with lines lt 1 lw 4 lc %s' % default_colors[0],
+  #   'lt 1 lw 4 ps 1.5 lc %s pt 18' % default_colors[0]
+  #  ],
+  #  titles = [
+  #      'cocktail', 'HMBT', getMeeLabel('data')
+  #  ],
+  #  name = os.path.join(outDir, 'meanPtLMR'),
+  #  xlabel = '{/Symbol \326}s_{NN} (GeV)',
+  #  ylabel = 'LMR {/Symbol \341}p_{T}{/Symbol \361} in STAR Acceptance (GeV/c)',
+  #  lmargin = 0.17, bmargin = 0.15, tmargin = 0.95, xlog = True, xr = [17,80],
+  #  yr = [0.65,1.05], #yr = [yMinPt, yMaxPt],
+  #  key = [ 'bottom right' ],
+  #  gpcalls = [
+  #    'format x "%g"',
+  #    'xtics (20, 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
+  #  ],
+  #  labels = {
+  #      'stat. errors only': [0.7,0.95,False], lmr_label: [0.05,0.07,False],
+  #      '0.4 < p_{T} < 2.2 GeV/c': [0.05,0.14,False]
+  #  }
+  #)
   return 'done'
 
 if __name__ == '__main__':
