@@ -241,14 +241,14 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     ],
     titles = titles + [
         'HMBT + QGP', 'BW/FO-{/Symbol \162}', '{/Symbol \162}/{/Symbol \167} VacSF+FB+FO',
-        '%g%s' % (hline, ' {/Symbol \264} 10^{-3}' if not diffRel else '')
+        'baseline', #'%g%s' % (hline, ' {/Symbol \264} 10^{-3}' if not diffRel else '')
     ],
     name = os.path.join(outDir, 'diff%s%s%s%s' % (
       'Rel' if diffRel else 'Abs', version,
       'NoMed' if nomed else '', 'NoXErr' if noxerr else ''
     )),
     xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
-    ylabel = 'Enhancement Ratio' if diffRel else 'Excess Yield ({/Symbol \264} 10^{-3} (GeV/c^2)^{-1})',
+    ylabel = 'Enhancement Ratio' if diffRel else 'Excess Yield / dM_{ee} ({/Symbol \264} 10^{-3} (GeV/c^2)^{-1})',
     #labels = labels,
     xr = [0.18,0.97], yr = yr, ylog = True,
     key = ['at graph 0.96,1.17', 'maxrows 3', 'width -4', 'nobox', 'samplen 0.9'],
@@ -415,6 +415,8 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
         float(energy), exc.nominal_value, 0,
         getErrorComponent(exc, 'stat'), getErrorComponent(exc, 'syst')
     ]
+    if suffix == '_Med' and not diffRel and not divdNdy:
+        print dp
     key = 'LMR' + suffix
     if key not in excess: excess[key] = [ dp ]
     else: excess[key].append(dp)
@@ -452,6 +454,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   ]
   yr_upp = 4.5 if version == 'QM12Latest200' or version == 'QM14' else 7
   if version == 'LatestPatrickJieYi': yr_upp = 3 if divdNdy else 2.
+  labels = {}
   if divdNdy:
     labels.update(dict((str(v), [float(k)*0.9,yr_upp*1.05,True]) for k,v in dNdyPi0.items()))
     labels.update({ 'dN/dy|_{/Symbol \\160}': [100,yr_upp*1.05,True]})
@@ -462,7 +465,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     data = graph_data, properties = props, titles = tits,
     name = os.path.join(outDir, 'excess%s%s' % (version,'DivdNdy' if divdNdy else '')),
     xlabel = '{/Symbol \326}s_{NN} (GeV)',
-    ylabel = 'LMR Excess Yield %s({/Symbol \264} 10^{-%d} (GeV/c^2)^{-1}))' % (
+    ylabel = 'LMR Excess Yield %s({/Symbol \264} 10^{-%d})' % (
         '/ dN/dy|_{/Symbol \\160}  ' if divdNdy else '', 5 if divdNdy else 3
     ),
     xlog = True, xr = [7,220],
@@ -473,7 +476,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       'xtics (7,10,20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
       'boxwidth 0.025 absolute',
       'label 52 "{/=18 0.4 < M_{ee} < 0.75 GeV/c^{2}}" at 60,0.55 tc %s' % default_colors[0],
-    ], #labels = labels,
+    ], labels = labels,
   )
   return 'done'
 
