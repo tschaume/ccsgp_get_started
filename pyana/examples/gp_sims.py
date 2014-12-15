@@ -1,5 +1,5 @@
 import os, argparse, logging
-from .utils import getWorkDirs, checkSymLink
+from .utils import getWorkDirs, checkSymLink, getEnergy4Key, particleLabel4Key
 from collections import OrderedDict
 from ..ccsgp.ccsgp import make_plot
 from ..ccsgp.config import default_colors
@@ -13,33 +13,48 @@ def gp_sims(version):
   """
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version, 'cocktail_contribs')
+  energies = [19, 27, 39, 62]
   xmax = {
-      'pion': 0.13, 'eta': 0.55, 'etap': 0.95, 'rho': 1.1,
-      'phi': 1.3, 'jpsi': 3.5
+      'pion': 0.125, 'eta': 0.52, 'etap': 0.92, 'omega': 1.22,
+      'phi': 1.22, 'jpsi': 3.52
   }
   for particles in [
-      'pion', 'eta', 'etap', ['rho', 'omega'], 'phi', 'jpsi'
+      'pion', 'eta', 'etap', ['omega', 'rho'], 'phi', 'jpsi'
   ]:
       if isinstance(particles, str):
           particles = [particles]
       contribs = OrderedDict()
-      for energy in [19, 27, 39, 62]:
-          for particle in particles:
+      for particle in particles:
+          for energy in energies:
               fstem = particle+str(energy)
               fname = os.path.join(inDir, fstem+'.dat')
               contribs[fstem] = np.loadtxt(open(fname, 'rb'))
               contribs[fstem][:,2:] = 0
+      print contribs.keys()
+      titles = [
+          ' '.join([getEnergy4Key(str(energy)), 'GeV'])
+          for energy in energies
+      ] + [ '' for k in range(len(contribs)-len(energies)) ]
       make_plot(
           data = contribs.values(),
           properties = [
-              'with lines lc %s lw 4 lt 2' % default_colors[i]
-              for i in xrange(len(contribs))
+              'with lines lc %s lw 4 lt %d' % (
+                  default_colors[i%len(energies)], i/len(energies)+1
+              ) for i in xrange(len(contribs))
           ],
-          titles = contribs.keys(),
+          titles = titles,
+          xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})' if particles[0] == 'phi' else '',
+          ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]' \
+          if particles[0] == 'pion' or particles[0] == 'omega' else '',
           name = os.path.join(outDir, '_'.join(['sims']+particles)),
-          ylog = True, lmargin = 0.1, bmargin = 0.15,
+          ylog = True, lmargin = 0.18, bmargin = 0.13, tmargin = 0.96,
           gpcalls = [ 'nokey' ] if particles[0] != 'pion' else [],
-          xr = [0,xmax[particles[0]]]
+          xr = [1. if particles[0] == 'jpsi' else 0,xmax[particles[0]]],
+          size = '8.5in,8in',
+          labels = {
+              particleLabel4Key(particles[0]): [0.15,0.9,False],
+              particleLabel4Key(particles[1]) if len(particles) > 1 else '': [0.15,0.1,False],
+          }
       )
 
 if __name__ == '__main__':

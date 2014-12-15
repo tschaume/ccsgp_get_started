@@ -146,3 +146,16 @@ def getEnergy4Key(energy):
   if energy == '19': return '19.6'
   if energy == '62': return '62.4'
   return energy
+
+def particleLabel4Key(k):
+    if k == 'pion': return '{/Symbol \160}^0 {/Symbol \256} e^{+}e^{-}{/Symbol \147}'
+    if k == 'eta': return '{/Symbol \150} {/Symbol \256} e^{+}e^{-}{/Symbol \147}'
+    if k == 'etap': return '{/Symbol \150}\' {/Symbol \256} e^{+}e^{-}{/Symbol \147}'
+    if k == 'rho': return '{/Symbol \162} {/Symbol \256} e^{+}e^{-}'
+    if k == 'omega': return '{/Symbol \167} {/Symbol \256} e^{+}e^{-}({/Symbol \160})'
+    if k == 'phi': return '{/Symbol \146} {/Symbol \256} e^{+}e^{-}({/Symbol \150})'
+    if k == 'jpsi': return 'J/{/Symbol \171} {/Symbol \256} e^{+}e^{-}'
+    if k == 'ccbar':
+        return 'c@^{/=18-}c {/Symbol \256} D/{/Symbol \514} {/Symbol \256} e^{+}e^{-}'
+    return k
+

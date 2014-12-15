@@ -2,7 +2,8 @@ import logging, argparse, os, sys, re, math, random
 import numpy as np
 from fnmatch import fnmatch
 from collections import OrderedDict
-from .utils import getWorkDirs, checkSymLink, getEnergy4Key, getMassRangesSums
+from .utils import getWorkDirs, checkSymLink, getEnergy4Key
+from .utils import particleLabel4Key, getMassRangesSums
 from ..ccsgp.ccsgp import make_plot
 from ..ccsgp.utils import getOpts
 from ..ccsgp.config import default_colors
@@ -18,18 +19,6 @@ def truncated_gaus(r, mu, sig):
     while 1:
         x = r.gauss(mu, sig)
         if x > 0: return x
-
-def particleLabel4Key(k):
-    if k == 'pion': return '{/Symbol \160}^0 {/Symbol \256} e^{+}e^{-}{/Symbol \147}'
-    if k == 'eta': return '{/Symbol \150} {/Symbol \256} e^{+}e^{-}{/Symbol \147}'
-    if k == 'etap': return '{/Symbol \150}\' {/Symbol \256} e^{+}e^{-}{/Symbol \147}'
-    if k == 'rho': return '{/Symbol \162} {/Symbol \256} e^{+}e^{-}'
-    if k == 'omega': return '{/Symbol \167} {/Symbol \256} e^{+}e^{-}({/Symbol \160})'
-    if k == 'phi': return '{/Symbol \146} {/Symbol \256} e^{+}e^{-}({/Symbol \150})'
-    if k == 'jpsi': return 'J/{/Symbol \171} {/Symbol \256} e^{+}e^{-}'
-    if k == 'ccbar':
-        return 'c@^{/=18-}c {/Symbol \256} D/{/Symbol \514} {/Symbol \256} e^{+}e^{-}'
-    return k
 
 def gp_stack(version, energies, inclMed, inclFits):
   """example for a plot w/ stacked graphs using QM12 data (see gp_panel)
