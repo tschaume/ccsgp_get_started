@@ -66,7 +66,7 @@ def gp_sims_panel(version):
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version)
   energies = [19, 27, 39, 62]
-  mesons = ['pion', 'eta', 'etap', 'rho', 'omega', 'phi', 'jpsi']
+  mesons = ['pion', 'eta', 'etap', 'rho', 'omega', 'phi', 'jpsi', 'ccbar']
   fstems = ['cocktail_contribs/'+m for m in mesons] + ['cocktail']
   data = OrderedDict((energy, [
       np.loadtxt(open(os.path.join(inDir, fstem+str(energy)+'.dat'), 'rb'))
@@ -79,8 +79,9 @@ def gp_sims_panel(version):
       dpt_dict = OrderedDict((
           ' '.join([getEnergy4Key(str(energy)), 'GeV']),
           [ data[energy], [
-              'with lines lc %s lw 4 lt %d' % (
-                  default_colors[(-2*i-2) if i!=len(fstems)-1 else 0], int(i==3)+1
+              'with lines lc %s lw 5 lt %d' % (
+                  default_colors[(-2*i-2) if i!=len(fstems)-1 else 0] \
+                  if i!=len(fstems)-2 else default_colors[1], int(i==3)+1
               ) for i in xrange(len(fstems))
           ], [particleLabel4Key(m) for m in mesons] + ['Cocktail (w/o {/Symbol \162})'] ]
       ) for energy in energies),
@@ -88,7 +89,8 @@ def gp_sims_panel(version):
       ylog = True, xr = [0.,3.2], yr = [1e-6,9],
       ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
       xlabel = 'invariant dielectron mass, M_{ee} (GeV/c^{2})',
-      layout = '2x2', size = '7in,9in', key = ['width -4']
+      layout = '2x2', size = '7in,9in',
+      key = ['width -4', 'spacing 1.5', 'nobox', 'at graph 0.9,0.95']
   )
 
 if __name__ == '__main__':
