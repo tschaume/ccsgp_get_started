@@ -63,6 +63,7 @@ def gp_stack(version, energies, inclMed, inclFits):
         for fn in os.listdir(file_url):
             energy = re.compile('\d+').search(fn).group()
             particle = re.sub('%s\.dat' % energy, '', fn)
+            if energy != '19': continue
             if version == 'QM14' and energy == '19' and particle == 'jpsi': continue
             cocktailContribs[particle] = np.loadtxt(open(
                 os.path.join(file_url, fn), 'rb'
