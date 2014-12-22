@@ -125,7 +125,38 @@ def gp_sims_total_overlay(version):
       xlabel = xlabel, ylabel = ylabel,
       name = os.path.join(outDir, 'sims_total_overlay'),
       ylog = True, xr = [0.,3.2], yr = [1e-6,9],
-      lmargin = 0.18, bmargin = 0.13, tmargin = 0.96,
+      tmargin = 0.98, rmargin = 0.99, bmargin = 0.14,
+      size = '8.5in,8in',
+  )
+
+def gp_sims_totalerrors_overlay(version):
+  """single plot comparing syst. uncertainties on total cocktails at all energies
+
+  :param version: plot version / input subdir name
+  :type version: str
+  """
+  inDir, outDir = getWorkDirs()
+  inDir = os.path.join(inDir, version)
+  data = OrderedDict()
+  for energy in energies:
+      fname = os.path.join(inDir, 'cocktail'+str(energy)+'.dat')
+      data[energy] = np.loadtxt(open(fname, 'rb'))
+      data[energy][:,1] = data[energy][:,4]/data[energy][:,1]
+      data[energy][:,2:] = 0
+  make_plot(
+      data = data.values(),
+      properties = [
+          'with lines lc %s lw 4 lt 1' % (default_colors[i])
+          for i in xrange(len(energies))
+      ],
+      titles = [
+          ' '.join([getEnergy4Key(str(energy)), 'GeV'])
+          for energy in energies
+      ],
+      xlabel = xlabel, ylabel = 'total relative systematic uncertainty',
+      name = os.path.join(outDir, 'sims_totalerrors_overlay'),
+      xr = [0.,3.2], yr = [0.15,0.65], key = ['at graph 0.7,0.3'],
+      tmargin = 0.98, rmargin = 0.99, bmargin = 0.14,
       size = '8.5in,8in',
   )
 
@@ -141,4 +172,5 @@ if __name__ == '__main__':
   )
   #gp_sims(args.version)
   #gp_sims_panel(args.version)
-  gp_sims_total_overlay(args.version)
+  #gp_sims_total_overlay(args.version)
+  gp_sims_totalerrors_overlay(args.version)
