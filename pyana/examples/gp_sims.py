@@ -5,6 +5,10 @@ from ..ccsgp.ccsgp import make_plot, make_panel
 from ..ccsgp.config import default_colors
 import numpy as np
 
+energies = [19, 27, 39, 62]
+xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})'
+ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]'
+
 def gp_sims(version):
   """example for a batch generating simple plots (cocktail contributions)
 
@@ -13,7 +17,6 @@ def gp_sims(version):
   """
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version, 'cocktail_contribs')
-  energies = [19, 27, 39, 62]
   xmax = {
       'pion': 0.125, 'eta': 0.52, 'etap': 0.92, 'omega': 1.22,
       'phi': 1.22, 'jpsi': 3.52
@@ -43,9 +46,8 @@ def gp_sims(version):
               ) for i in xrange(len(contribs))
           ],
           titles = titles,
-          xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})' if particles[0] == 'phi' else '',
-          ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]' \
-          if particles[0] == 'pion' or particles[0] == 'omega' else '',
+          xlabel = xlabel if particles[0] == 'phi' else '',
+          ylabel = ylabel if particles[0] == 'pion' or particles[0] == 'omega' else '',
           name = os.path.join(outDir, '_'.join(['sims']+particles)),
           ylog = True, lmargin = 0.18, bmargin = 0.13, tmargin = 0.96,
           gpcalls = [ 'nokey' ] if particles[0] != 'pion' else [],
@@ -65,7 +67,6 @@ def gp_sims_panel(version):
   """
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version)
-  energies = [19, 27, 39, 62]
   mesons = ['pion', 'eta', 'etap', 'rho', 'omega', 'phi', 'jpsi']
   fstems = ['cocktail_contribs/'+m for m in mesons] + ['cocktail', 'cocktail_contribs/ccbar']
   data = OrderedDict((energy, [
@@ -93,10 +94,39 @@ def gp_sims_panel(version):
       ) for energy in energies),
       name = os.path.join(outDir, 'sims_panel'),
       ylog = True, xr = [0.,3.2], yr = [1e-6,9],
-      ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
-      xlabel = 'invariant dielectron mass, M_{ee} (GeV/c^{2})',
+      xlabel = xlabel, ylabel = ylabel,
       layout = '2x2', size = '7in,9in',
       key = ['width -4', 'spacing 1.5', 'nobox', 'at graph 0.9,0.95']
+  )
+
+def gp_sims_total_overlay(version):
+  """single plot comparing total cocktails at all energies
+
+  :param version: plot version / input subdir name
+  :type version: str
+  """
+  inDir, outDir = getWorkDirs()
+  inDir = os.path.join(inDir, version)
+  data = OrderedDict()
+  for energy in energies:
+      fname = os.path.join(inDir, 'cocktail'+str(energy)+'.dat')
+      data[energy] = np.loadtxt(open(fname, 'rb'))
+      data[energy][:,2:] = 0
+  make_plot(
+      data = data.values(),
+      properties = [
+          'with lines lc %s lw 4 lt 1' % (default_colors[i])
+          for i in xrange(len(energies))
+      ],
+      titles = [
+          ' '.join([getEnergy4Key(str(energy)), 'GeV'])
+          for energy in energies
+      ],
+      xlabel = xlabel, ylabel = ylabel,
+      name = os.path.join(outDir, 'sims_total_overlay'),
+      ylog = True, xr = [0.,3.2], yr = [1e-6,9],
+      lmargin = 0.18, bmargin = 0.13, tmargin = 0.96,
+      size = '8.5in,8in',
   )
 
 if __name__ == '__main__':
@@ -110,4 +140,5 @@ if __name__ == '__main__':
     format='%(message)s', level=getattr(logging, loglevel)
   )
   #gp_sims(args.version)
-  gp_sims_panel(args.version)
+  #gp_sims_panel(args.version)
+  gp_sims_total_overlay(args.version)
