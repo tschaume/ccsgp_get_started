@@ -48,7 +48,9 @@ def gp_ccX():
     model = lambda x: fitfunc(x, *popt)
     # calculate mean standard deviation of data from parameterization
     yfit = np.array([model(x) for x in alldata[:,0]])
-    stddev = np.sqrt(np.average((alldata[:,1]-yfit)**2, weights=1./alldata[:,3]))
+    stddev = 1.5*np.sqrt( # multiple of "sigma"
+        np.average((alldata[:,1]-yfit)**2, weights=1./alldata[:,3])
+    )
     print 'stddev = %.2g' % stddev
     errorband = np.array([[x, model(x), 0, 0, stddev] for x in np.linspace(1,4)])
     # make plot
