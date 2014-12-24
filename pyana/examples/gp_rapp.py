@@ -77,9 +77,13 @@ def gp_ee_hadrons_xsec():
       name = os.path.join(outDir, 'ee_hadrons_xsec'),
       xlabel = '{/Symbol \326}s = M_{ee} (GeV)',
       ylabel = 'R = {/Symbol \163}(e^{+}e^{-}{/Symbol \256}hadrons) / {/Symbol \163}(e^{+}e^{-}{/Symbol \256}{/Symbol \155}^{+}{/Symbol \155}^{-})',
-      size = '8in,8in', xr = [0.35, 3], yr = [0.1,60], ylog=True,
-      bmargin = 0.13, rmargin = 0.98, tmargin = 0.99,
-      gpcalls = ['bars small'], key = ['width -6', 'bottom right']
+      size = '10in,7.5in', xr = [0.35, 3], yr = [0.1,60], ylog=True,
+      bmargin = 0.14, rmargin = 0.99, tmargin = 0.99,
+      gpcalls = ['bars small'], key = ['width -6', 'bottom right', 'nobox'],
+      labels = {
+          '{/Symbol \162}': [0.5,1.5,True], '{/Symbol \167}': [0.8,25,True],
+          '{/Symbol \146}': [1.05,40,True], "{/Symbol \162}'": [1.7,4,True],
+      }
   )
 
 if __name__ == '__main__':
