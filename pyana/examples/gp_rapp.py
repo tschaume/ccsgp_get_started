@@ -34,27 +34,26 @@ def gp_rapp():
   )
   return 'done'
 
-def gp_ee_hadrons_xsec():
-  inDir, outDir = getWorkDirs()
-  infile = os.path.join(inDir, 'ee_hadrons_xsec.dat')
-  data = np.loadtxt(open(infile, 'rb'))
-  data[:,-1] = 0 # ignore systematic uncertainties
-  # constants for pQCD curve
-  nf, L = 3, 0.217
-  beta0 = (11-2./3.*nf)/(4*pi)
-  eq = np.array([2./3., -1./3., -1./3.]) # u/d/s
+def calc_REW_eta(nf):
+  charges = [2./3., -1./3., -1./3.] # u/d/s
+  eq = np.array(charges[:nf])
   REW = 3*np.sum(eq*eq)
   eta = np.sum(eq)**2/REW
+  return REW, eta
+
+def calc_pQCD(nf): # nf = 2,3
+  REW, eta = calc_REW_eta(nf)
+  limits = [0.35, 1.02, 3]
+  L = 0.217
+  beta0 = (11-2./3.*nf)/(4*pi)
   cn = [
-      1,
-      1.9857-0.1152*nf,
+      1, 1.9857-0.1152*nf,
       -6.63694-1.20013*nf-0.00518*nf**2-1.240*eta,
       -156.61+18.775*nf-0.7974*nf**2+0.0215*nf**3+(17.828-0.575*nf)*eta
   ]
-
-  # center-of-mass energy Q
-  def alpha_s(Q):
-      return 1./(beta0*log((Q/L)**2))
+  print 'beta0 = ', beta0, ', eta = ', eta
+  print 'cn = ', cn
+  alpha_s = lambda Q: 1./(beta0*log((Q/L)**2)) # center-of-mass energy Q
 
   def delta_QCD(Q):
       delta = 0.
@@ -62,12 +61,26 @@ def gp_ee_hadrons_xsec():
           delta += c * (alpha_s(Q)/pi)**(n+1)
           return delta
 
-  pQCD = np.array([
+  return np.array([
       [roots, REW*(1.+delta_QCD(roots)), 0, 0, 0]
-      for roots in np.linspace(1.5, 3)
+      for roots in np.linspace(limits[nf-2], limits[nf-1])
+  ])
+
+def gp_ee_hadrons_xsec():
+  inDir, outDir = getWorkDirs()
+  infile = os.path.join(inDir, 'ee_hadrons_xsec.dat')
+  data = np.loadtxt(open(infile, 'rb'))
+  data[:,-1] = 0 # ignore systematic uncertainties
+  pQCD = calc_pQCD(2)
+  pQCD = np.vstack((pQCD, calc_pQCD(3)))
+  REW = [ calc_REW_eta(nf)[0] for nf in [2,3] ]
+  print 'REW = ', REW
+  rew = np.array([
+      [0.25, REW[0], 0, 0, 0], [1.02, REW[0], 0, 0, 0],
+      [1.02, REW[1], 0, 0, 0], [3, REW[1], 0, 0, 0],
   ])
   make_plot(
-      data = [data, np.array([[1.5, REW, 0, 0, 0],[3, REW, 0, 0, 0]]), pQCD],
+      data = [data, rew, pQCD],
       properties = [
           'lc %s lw 2 lt 1 pt 18 ps 0.8' % (default_colors[0]),
           'with lines lt 2 lw 3 lc %s' % (default_colors[1]),
@@ -81,7 +94,7 @@ def gp_ee_hadrons_xsec():
       bmargin = 0.14, rmargin = 0.99, tmargin = 0.99,
       gpcalls = ['bars small'], key = ['width -6', 'bottom right', 'nobox'],
       labels = {
-          '{/Symbol \162}': [0.5,1.5,True], '{/Symbol \167}': [0.8,25,True],
+          '{/Symbol \162}': [0.6,0.5,True], '{/Symbol \167}': [0.8,25,True],
           '{/Symbol \146}': [1.05,40,True], "{/Symbol \162}'": [1.7,4,True],
       }
   )
