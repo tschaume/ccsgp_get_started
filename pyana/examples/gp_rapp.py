@@ -43,7 +43,7 @@ def calc_REW_eta(nf):
 
 def calc_pQCD(nf): # nf = 2,3
   REW, eta = calc_REW_eta(nf)
-  limits = [0.35, 1.02, 3]
+  limits = [0.5, 1.02, 3]
   L = 0.217
   beta0 = (11-2./3.*nf)/(4*pi)
   cn = [
@@ -76,7 +76,7 @@ def gp_ee_hadrons_xsec():
   REW = [ calc_REW_eta(nf)[0] for nf in [2,3] ]
   print 'REW = ', REW
   rew = np.array([
-      [0.25, REW[0], 0, 0, 0], [1.02, REW[0], 0, 0, 0],
+      [0.5, REW[0], 0, 0, 0], [1.02, REW[0], 0, 0, 0],
       [1.02, REW[1], 0, 0, 0], [3, REW[1], 0, 0, 0],
   ])
   make_plot(
@@ -90,11 +90,11 @@ def gp_ee_hadrons_xsec():
       name = os.path.join(outDir, 'ee_hadrons_xsec'),
       xlabel = '{/Symbol \326}s = M_{ee} (GeV)',
       ylabel = 'R = {/Symbol \163}(e^{+}e^{-}{/Symbol \256}hadrons) / {/Symbol \163}(e^{+}e^{-}{/Symbol \256}{/Symbol \155}^{+}{/Symbol \155}^{-})',
-      size = '10in,7.5in', xr = [0.35, 3], yr = [0.1,60], ylog=True,
+      size = '10in,7.5in', xr = [0.5, 3], yr = [0.7,60], ylog=True,
       bmargin = 0.14, rmargin = 0.99, tmargin = 0.99,
-      gpcalls = ['bars small'], key = ['width -6', 'bottom right', 'nobox'],
+      gpcalls = ['bars small', 'format y "%g"'], key = ['width -6', 'nobox'],
       labels = {
-          '{/Symbol \162}': [0.6,0.5,True], '{/Symbol \167}': [0.8,25,True],
+          '{/Symbol \162}': [0.7,1.1,True], '{/Symbol \167}': [0.8,25,True],
           '{/Symbol \146}': [1.05,40,True], "{/Symbol \162}'": [1.7,4,True],
       }
   )
