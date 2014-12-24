@@ -83,7 +83,7 @@ def gp_ccX():
         xlabel = 'x = log_{10}[{/Symbol \326}s_{NN} (GeV)]',
         ylabel = 'y = log_{10}[{/Symbol \163}@_{c@^{/=18-}c}^{NN} ({/Symbol \155}b)]',
         name = os.path.join(outDir, 'ccX'),
-        size = '8.5in,8in', xr = [1, 4], yr = [0.5,4.5],
+        size = '11.4in,8.3in', xr = [1, 4], yr = [0.5,4.5],
         key = ['bottom right', 'nobox', 'width -5'],
         tmargin = 0.98, rmargin = 0.99, bmargin = 0.13,
         lines = dict(
