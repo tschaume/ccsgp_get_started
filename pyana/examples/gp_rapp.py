@@ -1,9 +1,10 @@
 import logging, argparse, os, re
 import numpy as np
 from ..ccsgp.config import default_colors
-from ..ccsgp.ccsgp import make_plot
-from .utils import getWorkDirs, checkSymLink, getMassRangesSums
+from ..ccsgp.ccsgp import make_plot, make_panel
+from .utils import getWorkDirs, checkSymLink, getMassRangesSums, getEnergy4Key
 from math import pi, log
+from collections import OrderedDict
 
 def gp_rapp():
   """rho in-medium ratios by Rapp (based on protected data)"""
@@ -99,6 +100,64 @@ def gp_ee_hadrons_xsec():
       }
   )
 
+def gp_rapp_overview_panel():
+  inDir, outDir = getWorkDirs()
+  energies = ['19', '27', '39', '62']
+  subkeys = ['Energy Dependence', '27 GeV Medium Effects']
+  dpt_dict = OrderedDict((subkey, [[], [], []]) for subkey in subkeys)
+  pseudo_data = np.array([[0,1,0,0,0]])
+  for i,title in enumerate([
+      'HMBT+QGP', 'HMBT', 'QGP', 'VacSF+FB+FO', 'Cocktail (w/o {/Symbol \162})'
+  ]):
+      dpt_dict[subkeys[0]][0].append(pseudo_data)
+      dpt_dict[subkeys[0]][1].append(
+          'with lines lt %d lc rgb "black" lw 5' % (i+1)
+      )
+      dpt_dict[subkeys[0]][2].append(title)
+  for i,modeltype in enumerate(['MedOnly', 'QgpOnly']):
+      infile = os.path.join(inDir, 'medium'+modeltype+'19.dat')
+      data = np.loadtxt(open(infile, 'rb'))
+      data[:,2:] = 0
+      dpt_dict[subkeys[0]][0].append(data)
+      dpt_dict[subkeys[0]][1].append(
+          'with lines lt %d lc %s lw 5' % (i+2, default_colors[0])
+      )
+      dpt_dict[subkeys[0]][2].append('')
+  for i,energy in enumerate(energies):
+      infile = os.path.join(inDir, 'medium'+energy+'.dat')
+      data = np.loadtxt(open(infile, 'rb'))
+      data[:,2:] = 0
+      dpt_dict[subkeys[0]][0].append(data)
+      dpt_dict[subkeys[0]][1].append('with lines lt 1 lc %s lw 5' % default_colors[i])
+      dpt_dict[subkeys[0]][2].append(' '.join([getEnergy4Key(energy), 'GeV']))
+  linetypes = [5,4,1]
+  for i,infile in enumerate([
+      '../../gp_panel/input/LatestPatrickJieYi/cocktail27.dat',
+      'vacRho27.dat', 'medium27.dat'
+  ]):
+      data = np.loadtxt(open(os.path.join(inDir, infile), 'rb'))
+      data[:,(2,3)] = 0
+      if i != 2: data[:,4] = 0
+      dpt_dict[subkeys[1]][0].append(data)
+      dpt_dict[subkeys[1]][1].append('with %s lt %d lc %s lw 5' % (
+          'filledcurves pt 0' if i == 2 else 'lines', linetypes[i], default_colors[1]
+      ))
+      dpt_dict[subkeys[1]][2].append('')
+  yr = [2e-5, 0.03]
+  make_panel(
+    dpt_dict = dpt_dict,
+    name = os.path.join(outDir, 'rapp_overview_panel'),
+    ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
+    xlabel = 'invariant dielectron mass, M_{ee} (GeV/c^{2})',
+    ylog = True, xr = [0.3, 1.45], yr = yr,
+    layout = '2x1', size = '4in,11in', key = ['nobox', 'width -5'],
+    gpcalls = [
+        'object 51 rectangle back fc rgb "grey" from 0.75,%f to 0.825,%f' % (yr[0]*2, yr[1]/3),
+        'object 52 rectangle back fc rgb "grey" from 0.95,%f to 1.08,%f' % (yr[0]*2, yr[1]/3),
+        'object 53 rectangle back fc rgb "#C6E2FF" from 0.4,%f to 0.75,%f' % (yr[0]*2, yr[1]/3),
+    ]
+  )
+
 if __name__ == '__main__':
   checkSymLink()
   parser = argparse.ArgumentParser()
@@ -109,4 +168,5 @@ if __name__ == '__main__':
     format='%(message)s', level=getattr(logging, loglevel)
   )
   #print gp_rapp()
-  gp_ee_hadrons_xsec()
+  #gp_ee_hadrons_xsec()
+  gp_rapp_overview_panel()
