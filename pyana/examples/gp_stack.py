@@ -3,7 +3,7 @@ import numpy as np
 from fnmatch import fnmatch
 from collections import OrderedDict
 from .utils import getWorkDirs, checkSymLink, getEnergy4Key
-from .utils import particleLabel4Key, getMassRangesSums
+from .utils import particleLabel4Key, getMassRangesSums, getErrorComponent
 from ..ccsgp.ccsgp import make_plot
 from ..ccsgp.utils import getOpts
 from ..ccsgp.config import default_colors
@@ -176,20 +176,32 @@ def gp_stack(version, energies, inclMed, inclFits):
   # cocktail/data
   scale = {}
   for e in ['19', '27', '39', '62', '200' ]:
-      scale[e] = (pi0yld[e+'_cocktail'] / pi0yld[e+'_data']).nominal_value
+      a, b = pi0yld[e+'_cocktail'], pi0yld[e+'_data']
+      z = a/b
+      scale[e] = ufloat(z.nominal_value, z.std_dev*2)
+      # checked the following
+      # z = a/b, dz = sqrt((da/b)^2+(db*a/b^2)^2) = z*sqrt((da/a)^2+(db/b)^2)
+      #scale_err[e] = 0.
+      #for err in ['stat', 'syst']:
+      #    aerr_rel, berr_rel = getErrorComponent(a, err), getErrorComponent(b, err)
+      #    aerr_rel /= a.nominal_value
+      #    berr_rel /= b.nominal_value
+      #    scale_err[e] += aerr_rel**2+berr_rel**2
+      #scale_err[e] = scale[e] * math.sqrt(scale_err[e])
+      #print scale_err[e], (a/b).std_dev*2 # are equal
   print scale
   if version == 'QM14': # scale cocktail to data for all but 19 GeV
     for k in cocktail:
-      if k != '19': cocktail[k][:,(1,3,4)] /= scale[k]
+      if k != '19': cocktail[k][:,(1,3,4)] /= scale[k].nominal_value
     for k in medium:
-      if k != '19': medium[k][:,(1,3,4)] /= scale[k]
+      if k != '19': medium[k][:,(1,3,4)] /= scale[k].nominal_value
     for k in medOnly:
-      if k != '19': medOnly[k][:,(1,3,4)] /= scale[k]
+      if k != '19': medOnly[k][:,(1,3,4)] /= scale[k].nominal_value
     for k in qgpOnly:
-      if k != '19': qgpOnly[k][:,(1,3,4)] /= scale[k]
+      if k != '19': qgpOnly[k][:,(1,3,4)] /= scale[k].nominal_value
   elif version == 'LatestPatrickJieYi': # scale data to cocktail
     for e in ['19', '27', '39', '62', '200' ]:
-      data[e][:,(1,3,4)] *= scale[e]
+      data[e][:,(1,3,4)] *= scale[e].nominal_value
   # ordered
   dataOrdered = OrderedDict(
     (' '.join([
