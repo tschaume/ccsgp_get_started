@@ -143,18 +143,18 @@ def gp_rapp_overview_panel():
           'filledcurves pt 0' if i == 2 else 'lines', linetypes[i], default_colors[1]
       ))
       dpt_dict[subkeys[1]][2].append('')
-  yr = [2e-5, 0.03]
+  yr = [2e-5, 0.07]
   make_panel(
     dpt_dict = dpt_dict,
     name = os.path.join(outDir, 'rapp_overview_panel'),
     ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
     xlabel = 'invariant dielectron mass, M_{ee} (GeV/c^{2})',
     ylog = True, xr = [0.3, 1.45], yr = yr,
-    layout = '2x1', size = '4in,11in', key = ['nobox', 'width -5'],
+    layout = '2x1', size = '4in,9in', key = ['opaque', 'width -5'],
     gpcalls = [
-        'object 51 rectangle back fc rgb "grey" from 0.75,%f to 0.825,%f' % (yr[0]*2, yr[1]/3),
-        'object 52 rectangle back fc rgb "grey" from 0.95,%f to 1.08,%f' % (yr[0]*2, yr[1]/3),
-        'object 53 rectangle back fc rgb "#C6E2FF" from 0.4,%f to 0.75,%f' % (yr[0]*2, yr[1]/3),
+        'object 51 rectangle back fc rgb "grey" from 0.75,%f to 0.825,%f' % (yr[0]*2, yr[1]/4),
+        'object 52 rectangle back fc rgb "grey" from 0.95,%f to 1.08,%f' % (yr[0]*2, yr[1]/4),
+        'object 53 rectangle back fc rgb "#C6E2FF" from 0.4,%f to 0.75,%f' % (yr[0]*2, yr[1]/4),
     ]
   )
 
