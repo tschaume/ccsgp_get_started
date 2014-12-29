@@ -107,7 +107,7 @@ def gp_rapp_overview_panel():
   dpt_dict = OrderedDict((subkey, [[], [], []]) for subkey in subkeys)
   pseudo_data = np.array([[0,1,0,0,0]])
   for i,title in enumerate([
-      'HMBT+QGP', 'HMBT', 'QGP', 'VacSF+FB+FO', 'Cocktail (w/o {/Symbol \162})'
+      'HMBT+QGP', 'HMBT', 'QGP', '{/Symbol \162}/{/Symbol \167} VacSF+FB', 'Cocktail (w/o {/Symbol \162})'
   ]):
       dpt_dict[subkeys[0]][0].append(pseudo_data)
       dpt_dict[subkeys[0]][1].append(

@@ -145,7 +145,7 @@ def gp_ptspec():
     ylabel = '1/N@_{mb}^{evt} d^{2}N@_{ee}^{acc.}/dp_{T}dM_{ee} (c^3/GeV^2)',
     xlabel = 'dielectron transverse momentum, p_{T} (GeV/c)',
     ylog = True, xr = [0, 2.2], yr = [1e-9, 1e4],
-    lmargin = 0.12, bmargin = 0.10, tmargin = 1., rmargin = 1.,
+    #lmargin = 0.12, bmargin = 0.10, tmargin = 1., rmargin = 1.,
     key = ['bottom left', 'samplen 0.5', 'width -2', 'opaque'],
     arrow_bar = 0.002, layout = '3x2', size = '8in,8in'
   )

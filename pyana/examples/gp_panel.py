@@ -28,7 +28,7 @@ def gp_panel(version, skip):
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version)
   data = {}
-  vacRhoTitle = '{/Symbol \162}/{/Symbol \167} (VacSF+FB+FO)'
+  vacRhoTitle = '{/Symbol \162}/{/Symbol \167} VacSF+FB'
   for infile in os.listdir(inDir):
     if infile == "cocktail_contribs": continue
     if infile == 'mediumDmOnly200.dat': continue
@@ -47,7 +47,7 @@ def gp_panel(version, skip):
        data_import = data_import[data_import[:,0] < 0.9] \
                if energy == '200' and data_type == '+medium' \
                else data_import
-       data_import[:,2] = 0.
+       data_import[:,(2,3)] = 0.
     key = getEnergy4Key(energy)
     if key not in data: data[key] = {}
     data_type_mod = data_type
@@ -87,8 +87,8 @@ def gp_panel(version, skip):
     ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
     xlabel = 'invariant dielectron mass, M_{ee} (GeV/c^{2})',
     ylog = True, xr = [0.05, 1.1], yr = [1e-4, 0.5],
-    lmargin = 0.12 if panel2D_versions else 0.1,
-    bmargin = 0.11 if panel2D_versions else 0.15,
+    #lmargin = 0.12 if panel2D_versions else 0.1,
+    #bmargin = 0.11 if panel2D_versions else 0.15,
     arrow_length = 0.4, arrow_bar = 0.002,
     gpcalls = [
         'mxtics 2',
