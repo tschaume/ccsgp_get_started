@@ -50,6 +50,23 @@ def gp_syserr():
         ]
     )
 
+def gp_tpc_select_eff():
+    inDir, outDir = getWorkDirs()
+    infile = os.path.join(inDir, 'tpc_select_eff_electrons_39GeV.dat')
+    data = np.loadtxt(open(infile, 'rb'))
+    nrows = len(data)
+    data[:,1:] *= 100. # convert to %
+    data = np.c_[data[:,:2], np.zeros(nrows), np.zeros(nrows), data[:,-1] ]
+    make_plot(
+        data = [data], titles = [''],
+        properties = [ 'with filledcurves lt 1 lc %s lw 5 pt 0' % default_colors[1] ],
+        tmargin = 0.98, rmargin = 0.99, yr = [80,100], xr = [0.2,2.052],
+        gpcalls = ['nokey', 'xtics 0.5', 'mxtics 5', 'mytics 2'],
+        xlabel = 'momentum, p (GeV/c)', ylabel = 'TPC Selection Efficiency (%)',
+        name = os.path.join(outDir, 'tpc_select_eff'), size = '8.8in,6.8in',
+        labels = {'39 GeV Electrons': [1.0,93,True]}
+    )
+
 if __name__ == '__main__':
   checkSymLink()
   parser = argparse.ArgumentParser()
@@ -59,4 +76,5 @@ if __name__ == '__main__':
   logging.basicConfig(
     format='%(message)s', level=getattr(logging, loglevel)
   )
-  gp_syserr()
+  #gp_syserr()
+  gp_tpc_select_eff()
