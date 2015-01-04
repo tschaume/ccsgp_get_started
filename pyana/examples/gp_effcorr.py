@@ -1,7 +1,7 @@
 import os, argparse, logging
 from .utils import getWorkDirs, checkSymLink, getEnergy4Key, particleLabel4Key
 from collections import OrderedDict
-from ..ccsgp.ccsgp import make_plot
+from ..ccsgp.ccsgp import make_plot, make_panel
 from ..ccsgp.config import default_colors
 import numpy as np
 
@@ -77,6 +77,55 @@ def gp_tpc_select_eff():
         labels = {'Electrons': [1.0,93,True]}
     )
 
+def gp_tof_match():
+    data = OrderedDict()
+    inDir, outDir = getWorkDirs()
+    subtitles = [
+        '-1 < {/Symbol \150} < 1, -180 < {/Symbol \146} < 180',
+        '0 < {/Symbol \150} < 0.25, -180 < {/Symbol \146} < 180',
+        '-1 < {/Symbol \150} < 1, 45 < {/Symbol \146} < 60',
+        '0 < {/Symbol \150} < 0.25, 45 < {/Symbol \146} < 60',
+    ]
+    for isuf,suffix in enumerate([
+        'Eta1_Phi1', 'Eta8_Phi1', 'Eta1_Phi24', 'Eta8_Phi24'
+    ]):
+        subkey = subtitles[isuf]
+        data[subkey] = [[], [], []]
+        d = OrderedDict()
+        for ip,particle in enumerate(['pi', 'e']):
+            infile = os.path.join(inDir, 'tof_match', '%sminus_39_%s.dat' % (particle, suffix))
+            data_import = np.loadtxt(open(infile, 'rb'))
+            data_import[:,3:] *= 100. # convert to %
+            data_import = data_import[data_import[:,0]<2.]
+            if particle == 'pi': data_import[:,4] = 0
+            if suffix != 'Eta8_Phi24': data_import[:,-1] = 0
+            nrows = len(data_import)
+            d[particle] = np.c_[ data_import[:,0], data_import[:,3], np.zeros(nrows), data_import[:,4:] ]
+            data[subkey][0].append(d[particle])
+            data[subkey][1].append('with %s lc %s lw 5 lt 1' % (
+                'points pt 18 ps 1.5' if particle == 'e' else 'filledcurves pt 0', default_colors[ip]
+            ))
+            data[subkey][2].append('e^{-} (39 GeV)' if particle == 'e' else 'scaled {/Symbol \160}^{-} (39 GeV)')
+        chi2i = [
+            ((o-e)/s)**2
+            for o,e,s in np.c_[d['e'][:,1], d['pi'][:,1], d['e'][:,3]]
+            if o > 0 and e > 0 and s > 0
+        ]
+        newsubkey = subkey + ', {/Symbol \543}@^{2}_{red} = %.2g' % (sum(chi2i)/len(chi2i))
+        print newsubkey
+        data[newsubkey] = data[subkey]
+        del data[subkey]
+    make_panel(
+        dpt_dict = data,
+        name = os.path.join(outDir, 'tof_match'),
+        xlog = True, xr = [0.18, 2.1], yr = [35, 97],
+        xlabel = 'transverse momentum, p_{T} (GeV/c)',
+        ylabel = 'TOF Matching Efficiency (%)',
+        layout = '2x2', size = '5in,7.5in',
+        key = ['nobox', 'bottom right'],
+        gpcalls = [ 'xtics add (.2,.5,1,2)' ],
+    )
+
 if __name__ == '__main__':
   checkSymLink()
   parser = argparse.ArgumentParser()
@@ -87,4 +136,5 @@ if __name__ == '__main__':
     format='%(message)s', level=getattr(logging, loglevel)
   )
   #gp_syserr()
-  gp_tpc_select_eff()
+  #gp_tpc_select_eff()
+  gp_tof_match()
