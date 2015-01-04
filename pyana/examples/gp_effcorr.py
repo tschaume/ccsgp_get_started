@@ -51,20 +51,30 @@ def gp_syserr():
     )
 
 def gp_tpc_select_eff():
+    data = OrderedDict()
     inDir, outDir = getWorkDirs()
-    infile = os.path.join(inDir, 'tpc_select_eff_electrons_39GeV.dat')
-    data = np.loadtxt(open(infile, 'rb'))
-    nrows = len(data)
-    data[:,1:] *= 100. # convert to %
-    data = np.c_[data[:,:2], np.zeros(nrows), np.zeros(nrows), data[:,-1] ]
+    for energy in ['19', '27', '39', '62']:
+        infile = os.path.join(inDir, 'tpc_select_eff', 'electrons_%sGeV.dat' % energy)
+        data_import = np.loadtxt(open(infile, 'rb'))
+        nrows = len(data_import)
+        data_import[:,1:] *= 100. # convert to %
+        if energy != '19': data_import[:,2:] = 0
+        key = '%s GeV' % getEnergy4Key(energy)
+        data[key] = np.c_[
+            data_import[:,:2], np.zeros(nrows),
+            np.zeros(nrows), data_import[:,-1]
+        ]
     make_plot(
-        data = [data], titles = [''],
-        properties = [ 'with filledcurves lt 1 lc %s lw 5 pt 0' % default_colors[1] ],
-        tmargin = 0.98, rmargin = 0.99, yr = [80,100], xr = [0.2,2.052],
-        gpcalls = ['nokey', 'xtics 0.5', 'mxtics 5', 'mytics 2'],
+        data = data.values(), titles = data.keys(),
+        properties = [
+            'with filledcurves lt 1 lc %s lw 5 pt 0' % default_colors[i]
+            for i in range(len(data))
+        ],
+        tmargin = 0.98, rmargin = 0.99, yr = [75,100], xr = [0.2,2.052],
+        gpcalls = ['xtics 0.5', 'mxtics 5', 'mytics 2'], key = ['nobox'],
         xlabel = 'momentum, p (GeV/c)', ylabel = 'TPC Selection Efficiency (%)',
         name = os.path.join(outDir, 'tpc_select_eff'), size = '8.8in,6.8in',
-        labels = {'39 GeV Electrons': [1.0,93,True]}
+        labels = {'Electrons': [1.0,93,True]}
     )
 
 if __name__ == '__main__':
