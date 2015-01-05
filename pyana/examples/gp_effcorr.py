@@ -1,4 +1,4 @@
-import os, argparse, logging
+import os, argparse, logging, math
 from .utils import getWorkDirs, checkSymLink, getEnergy4Key, particleLabel4Key
 from collections import OrderedDict
 from ..ccsgp.ccsgp import make_plot, make_panel
@@ -131,32 +131,57 @@ def gp_tof_match_extra():
     energies = ['19.6 GeV', '27 GeV', '39 GeV', '62.4 GeV']
     particles = ['e^{-}', 'e^{+}']
     columns = ['{/Symbol \104}{/Symbol \145}', 'F', '{/Symbol \143}^{2}']
-    bins, NE, NP, NC = 50, len(energies), len(particles), len(columns)
+    NE, NP, NC = len(energies), len(particles), len(columns)
     data = OrderedDict()
     for particle in particles:
         for column in columns:
-            key = '%s_{%s}' % (column, particle)
+            key = 'x = %s_{%s}' % (column, particle)
             data[key] = [[], [], []]
     for col,column in enumerate(data_import.T[2:]):
         eidx, cidx = col/NP/NC, col%NC
-        key = '%s_{%s}' % (columns[cidx], particles[(col/NC)%NP])
-        if cidx == 0: column *= 0.25
-        histo = list(np.histogram(column, bins=bins, range=(0,2.5)))
+        key = 'x = %s_{%s}' % (columns[cidx], particles[(col/NC)%NP])
+        mean, std = np.mean(column), np.std(column)
+        xmin, xmax = mean-3*std, mean+3*std
+        trunc_column = np.array([x for x in column if x > xmin and x < xmax])
+        bins = int(math.ceil(math.sqrt(len(trunc_column))))
+        histo = list(np.histogram(column, bins=bins, range=(xmin,xmax)))
         binwidths = np.diff(histo[1])
-        histo[0] /= binwidths[0]*sum(histo[1])
         data[key][0].append(np.c_[
             0.5*(histo[1][:-1]+histo[1][1:]), histo[0],
             0.5*binwidths, np.zeros(bins), np.zeros(bins)
         ])
-        data[key][1].append('with histeps lc %s lt 1 lw 4' % default_colors[eidx])
+        data[key][1].append('with histeps lc %s lt 1 lw 3' % default_colors[eidx])
         data[key][2].append(energies[eidx])
+    keys = data.keys()
+    for key in keys:
+        Ns, means, sigmas = [], [], []
+        for d in data[key][0]:
+            d[:,1] /= sum(d[:,1])
+            Ns.append(len(d))
+            mean = np.average(d[:,0], weights=d[:,1])
+            sigma = np.sqrt(np.average((d[:,0]-mean)**2, weights=d[:,1]))
+            means.append(mean)
+            sigmas.append(sigma)
+        Ns, means, sigmas = np.array(Ns), np.array(means), np.array(sigmas)
+        glmean = sum(Ns*means)/sum(Ns)
+        glsigma = sum(Ns*sigmas)/sum(Ns)
+        for d in data[key][0]:
+            d[:,0] -= glmean
+            d[:,(0,2)] /= glsigma
+            d[:,1] /= 2*d[:,2]
+        newkey = ', '.join([
+            key, '{/Symbol \155} = %.3g' % glmean, '{/Symbol \163} = %.2g' % glsigma
+        ])
+        data[newkey] = data[key]
+        del data[key]
     make_panel(
         dpt_dict = data,
         name = os.path.join(outDir, 'tof_match_extra'),
-        xr = [0.3,2.3], yr = [0,50],
-        xlabel = 'left to right: de F chi2', ylabel = 'dN/Ndx',
-        layout = '3x2', size = '5in,7.5in',
-        key = ['nobox'], gpcalls = ['bars small', 'xtics 0.4'],
+        xr = [-3.5,6.5], yr = [0,.98],
+        xlabel = '(x - {/Symbol \155}) / {/Symbol \163}', ylabel = 'dN / N dx',
+        layout = '3x2', size = '5in,8in',
+        key = ['nobox', 'at graph 0.99,0.8'],
+        gpcalls = ['bars small', 'ytics 0.2'],
         key_subplot_id = 2
     )
 
