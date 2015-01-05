@@ -98,7 +98,7 @@ def gp_tof_match():
             data_import[:,3:] *= 100. # convert to %
             data_import = data_import[data_import[:,0]<2.]
             if particle == 'pi': data_import[:,4] = 0
-            if suffix != 'Eta8_Phi24': data_import[:,-1] = 0
+            if suffix != 'Eta8_Phi24': data_import[:,5] = 0
             nrows = len(data_import)
             d[particle] = np.c_[ data_import[:,0], data_import[:,3], np.zeros(nrows), data_import[:,4:] ]
             data[subkey][0].append(d[particle])
@@ -112,7 +112,6 @@ def gp_tof_match():
             if o > 0 and e > 0 and s > 0
         ]
         newsubkey = subkey + ', {/Symbol \543}@^{2}_{red} = %.2g' % (sum(chi2i)/len(chi2i))
-        print newsubkey
         data[newsubkey] = data[subkey]
         del data[subkey]
     make_panel(
@@ -126,6 +125,41 @@ def gp_tof_match():
         gpcalls = [ 'xtics add (.2,.5,1,2)' ],
     )
 
+def gp_tof_match_extra():
+    inDir, outDir = getWorkDirs()
+    data_import = np.loadtxt(open(os.path.join(inDir, 'tof_match', 'extra.dat'), 'rb'))
+    energies = ['19.6 GeV', '27 GeV', '39 GeV', '62.4 GeV']
+    particles = ['e^{-}', 'e^{+}']
+    columns = ['{/Symbol \104}{/Symbol \145}', 'F', '{/Symbol \143}^{2}']
+    bins, NE, NP, NC = 50, len(energies), len(particles), len(columns)
+    data = OrderedDict()
+    for particle in particles:
+        for column in columns:
+            key = '%s_{%s}' % (column, particle)
+            data[key] = [[], [], []]
+    for col,column in enumerate(data_import.T[2:]):
+        eidx, cidx = col/NP/NC, col%NC
+        key = '%s_{%s}' % (columns[cidx], particles[(col/NC)%NP])
+        if cidx == 0: column *= 0.25
+        histo = list(np.histogram(column, bins=bins, range=(0,2.5)))
+        binwidths = np.diff(histo[1])
+        histo[0] /= binwidths[0]*sum(histo[1])
+        data[key][0].append(np.c_[
+            0.5*(histo[1][:-1]+histo[1][1:]), histo[0],
+            0.5*binwidths, np.zeros(bins), np.zeros(bins)
+        ])
+        data[key][1].append('with histeps lc %s lt 1 lw 4' % default_colors[eidx])
+        data[key][2].append(energies[eidx])
+    make_panel(
+        dpt_dict = data,
+        name = os.path.join(outDir, 'tof_match_extra'),
+        xr = [0.3,2.3], yr = [0,50],
+        xlabel = 'left to right: de F chi2', ylabel = 'dN/Ndx',
+        layout = '3x2', size = '5in,7.5in',
+        key = ['nobox'], gpcalls = ['bars small', 'xtics 0.4'],
+        key_subplot_id = 2
+    )
+
 if __name__ == '__main__':
   checkSymLink()
   parser = argparse.ArgumentParser()
@@ -137,4 +171,5 @@ if __name__ == '__main__':
   )
   #gp_syserr()
   #gp_tpc_select_eff()
-  gp_tof_match()
+  #gp_tof_match()
+  gp_tof_match_extra()
