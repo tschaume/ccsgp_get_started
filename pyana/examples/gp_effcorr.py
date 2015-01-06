@@ -10,44 +10,51 @@ def gp_syserr():
     inDir, outDir = getWorkDirs()
     inDir = os.path.join(inDir, 'syserr')
     data = OrderedDict()
-    shift, factor = 0.7, -1.5
-    ymin = OrderedDict((energy, 100) for energy in energies)
-    ymax = OrderedDict((energy, -100) for energy in energies)
-    for particle in ['e', 'pi']:
-        for charge in ['plus', 'minus']:
-            fname = particle + charge + '.dat'
+    for charge in ['minus', 'plus']:
+        subkey = 'positive particles' if charge == 'plus' else 'negative particles'
+        data[subkey] = [[], [], []]
+        shift, factor = 2., -0.5
+        for p,particle in enumerate(['e', 'pi']):
             key = '{/Symbol \160}' if particle == 'pi' else 'e'
             key += '^{+}' if charge == 'plus' else '^{-}'
-            data[key] = np.loadtxt(open(os.path.join(inDir, fname), 'rb'))
-            # get y-values for error box
-            for dp in data[key]:
-                energy = '%g' % dp[0]
-                curymin, curymax = dp[1]-dp[3], dp[1]+dp[3]
-                if curymin < ymin[energy]: ymin[energy] = curymin
-                if curymax > ymax[energy]: ymax[energy] = curymax
-            # shift data for visibility
-            data[key][:,0] += factor*shift
+            shiftPt, factorPt = 0.3, -3
+            for ipt,pt in enumerate([0.35+0.3*i for i in range(6)]):
+                ptstr = 'Pt%.2f' % pt
+                fname = particle + charge + ptstr + '.dat'
+                data[subkey][0].append(
+                    np.loadtxt(open(os.path.join(inDir, fname), 'rb'))
+                )
+                data[subkey][0][-1][:,0] += factor*shift + factorPt*shiftPt # shift data for visibility
+                data[subkey][1].append(
+                    'lc %s lw 4 ps 2 pt %d' % (default_colors[10+p],18+ipt)
+                )
+                pttit = '%g - %g GeV/c' % (pt-0.15, pt+0.15)
+                data[subkey][2].append(pttit if particle == 'e' else '')
+                factorPt += 1
             factor += 1
-    print ymax
-    make_plot(
-        data = data.values(),
-        properties = [
-            'lc %s lw 5 ps 2 pt %d' % (default_colors[10+i/2],18+i%2)
-            for i in xrange(len(data))
-        ],
-        titles = data.keys(),
-        tmargin = 0.98, rmargin = 0.99, bmargin = 0.17,
-        yr = [0,15], xr = [15,68],
-        xlabel = '{/Symbol \326}s_{NN} (GeV)',
-        ylabel = '{/Symbol \504}{/Symbol \145}/{/Symbol \145} with {/Symbol \145} = {/Symbol \145}_{qual} {/Symbol \327} {/Symbol \145}_{glDCA} (%)',
+    fake_point = np.array([[-1,-1,0,0,0]])
+    for p in range(2):
+        data['negative particles'][0].append(fake_point)
+        data['negative particles'][1].append('with lines lc %s lw 4 lt 1' % default_colors[10+p])
+        data['negative particles'][2].append('{/Symbol \160}^{+/-}' if p else 'e^{+/-}')
+    dx = 0.5*3+4*0.3
+    make_panel(
+        dpt_dict = data,
         name = os.path.join(outDir, 'syserr'),
-        size = '8.8in,6.8in', key = ['width 1.7', 'at graph 0.85,0.25', 'maxrows 2'],
-        lines = dict(('y=%s' % energy,'lw 4 lt 2 lc "black"') for energy in energies),
-        gpcalls = [
-            'object %d rectangle back from %f,%f to %f,%f fc rgb "#FF9999" lw 2 fs border lc rgb "#FF6666"' % (
-                50+i, float(energy)-2*shift, ymin[energy], float(energy)+2*shift, ymax[energy]
-            ) for i,energy in enumerate(energies)
-        ]
+        yr = [0,35], xr = [16,66],
+        xlabel = '{/Symbol \326}s_{NN} (GeV)',
+        ylabel = 'syst. {/Symbol \504}{/Symbol \145}/{/Symbol \145} with {/Symbol \145} = {/Symbol \145}_{qual} {/Symbol \327} {/Symbol \145}_{glDCA} (%)',
+        layout = '2x1', size = '4.5in,8in', tmargin = 0.9,
+        key = ['nobox', 'width -3', 'at screen 1.0,1.0', 'maxrows 2'],
+        key_subplot_id = 0, gpcalls = [
+            'object %d rectangle back fc rgb "#C6E2FF" from %f,%f to %f,%f' % (
+                50+e, float(energy)-dx, 1, float(energy)+dx, 32
+            ) for e,energy in enumerate(energies)
+        ] + [
+            'label %d "{/Helvetica-Bold=18 %s GeV}" at %f,%f rotate by 90 center' % (
+                55+e, energy, float(energy)+0.5*dx, 28
+            ) for e,energy in enumerate(energies)
+        ],
     )
 
 def gp_tpc_select_eff():
