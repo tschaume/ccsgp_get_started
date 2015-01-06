@@ -36,16 +36,16 @@ def gp_syserr():
             for i in xrange(len(data))
         ],
         titles = data.keys(),
-        tmargin = 0.98, rmargin = 0.99, bmargin = 0.13,
-        yr = [0,22], xr = [15,68],
+        tmargin = 0.98, rmargin = 0.99, bmargin = 0.17,
+        yr = [0,15], xr = [15,68],
         xlabel = '{/Symbol \326}s_{NN} (GeV)',
-        ylabel = 'Relative Systematic Uncertainty on {/Symbol \145}_{qual}{/Symbol \327}{/Symbol \145}_{glDCA} (%)',
+        ylabel = '{/Symbol \504}{/Symbol \145}/{/Symbol \145} with {/Symbol \145} = {/Symbol \145}_{qual} {/Symbol \327} {/Symbol \145}_{glDCA} (%)',
         name = os.path.join(outDir, 'syserr'),
-        size = '11in,8.5in', key = ['nobox', 'at graph 0.7,0.2', 'maxrows 2'],
+        size = '8.8in,6.8in', key = ['width 1.7', 'at graph 0.85,0.25', 'maxrows 2'],
         lines = dict(('y=%s' % energy,'lw 4 lt 2 lc "black"') for energy in energies),
         gpcalls = [
             'object %d rectangle back from %f,%f to %f,%f fc rgb "#FF9999" lw 2 fs border lc rgb "#FF6666"' % (
-                50+i, float(energy)-1.5*shift, ymin[energy], float(energy)+1.5*shift, ymax[energy]
+                50+i, float(energy)-2*shift, ymin[energy], float(energy)+2*shift, ymax[energy]
             ) for i,energy in enumerate(energies)
         ]
     )
@@ -194,7 +194,7 @@ if __name__ == '__main__':
   logging.basicConfig(
     format='%(message)s', level=getattr(logging, loglevel)
   )
-  #gp_syserr()
+  gp_syserr()
   #gp_tpc_select_eff()
   #gp_tof_match()
-  gp_tof_match_extra()
+  #gp_tof_match_extra()
