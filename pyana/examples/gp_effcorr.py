@@ -65,7 +65,7 @@ def gp_tpc_select_eff():
         data_import = np.loadtxt(open(infile, 'rb'))
         nrows = len(data_import)
         data_import[:,1:] *= 100. # convert to %
-        if energy != '19': data_import[:,2:] = 0
+        #if energy != '19': data_import[:,2:] = 0
         key = '%s GeV' % getEnergy4Key(energy)
         data[key] = np.c_[
             data_import[:,:2], np.zeros(nrows),
@@ -77,11 +77,11 @@ def gp_tpc_select_eff():
             'with filledcurves lt 1 lc %s lw 5 pt 0' % default_colors[i]
             for i in range(len(data))
         ],
-        tmargin = 0.98, rmargin = 0.99, yr = [75,100], xr = [0.2,2.052],
+        tmargin = 0.98, rmargin = 0.99, yr = [77,100], xr = [0.2,2.052],
         gpcalls = ['xtics 0.5', 'mxtics 5', 'mytics 2'], key = ['nobox'],
         xlabel = 'momentum, p (GeV/c)', ylabel = 'TPC Selection Efficiency (%)',
         name = os.path.join(outDir, 'tpc_select_eff'), size = '8.8in,6.8in',
-        labels = {'Electrons': [1.0,93,True]}
+        labels = {'{/Helvetica-Bold=22 Electrons}': [1.0,93,True]}
     )
 
 def gp_tof_match():
@@ -192,6 +192,38 @@ def gp_tof_match_extra():
         key_subplot_id = 2
     )
 
+def gp_total():
+    inDir, outDir = getWorkDirs()
+    energies = ['19', '27', '39', '62']
+    particles = ['eplus', 'eminus']
+    data = OrderedDict()
+    for energy in energies:
+        ekey = ' '.join([getEnergy4Key(energy), 'GeV'])
+        data[ekey] = [[], [], []]
+        for p,particle in enumerate(particles):
+            data_import = np.loadtxt(
+                open(os.path.join(inDir, 'total', particle+energy+'.dat'), 'rb')
+            )
+            data_import[:,3:] *= 100.
+            if p == 1: data_import[:,0] *= 1.03
+            data[ekey][0].append(np.c_[
+                data_import[:,0], data_import[:,3],
+                np.zeros(len(data_import)), data_import[:,4:]
+            ])
+            data[ekey][1].append('lt 1 lc %s lw 3 pt 18 ps 1.3' % default_colors[p])
+            data[ekey][2].append('e^{-}' if particle == 'eminus' else 'e^{+}')
+    make_panel(
+        dpt_dict = data,
+        name = os.path.join(outDir, 'total_overview'),
+        xlog = True, xr = [0.2, 3.6], yr = [10, 75],
+        xlabel = 'transverse momentum, p_{T} (GeV/c)',
+        ylabel = 'Total Single Track Efficiency (%)',
+        layout = '2x2', size = '5in,7.5in',
+        gpcalls = [ 'xtics add (.2,.5,1,2,3,5)'],
+        key = ['bottom left', 'width 1.5'],
+        #labels = { '0 < {/Symbol \550} < 0.25, 45 < {/Symbol \556} < 60': [0.7, 1.0, False]}
+    )
+
 if __name__ == '__main__':
   checkSymLink()
   parser = argparse.ArgumentParser()
@@ -201,7 +233,8 @@ if __name__ == '__main__':
   logging.basicConfig(
     format='%(message)s', level=getattr(logging, loglevel)
   )
-  gp_syserr()
+  #gp_syserr()
   #gp_tpc_select_eff()
   #gp_tof_match()
   #gp_tof_match_extra()
+  gp_total()
