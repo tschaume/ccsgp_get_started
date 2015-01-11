@@ -4,6 +4,8 @@ from collections import OrderedDict
 from ..ccsgp.ccsgp import make_plot, make_panel
 from ..ccsgp.config import default_colors
 import numpy as np
+from itertools import groupby
+from operator import itemgetter
 
 def gp_syserr():
     energies = ['19.6', '27', '39', '62.4']
@@ -224,6 +226,49 @@ def gp_total():
         #labels = { '0 < {/Symbol \550} < 0.25, 45 < {/Symbol \556} < 60': [0.7, 1.0, False]}
     )
 
+def gp_pair():
+    inDir, outDir = getWorkDirs()
+    energies = ['19', '27', '39', '62']
+    data = OrderedDict()
+    data['19.6 GeV'] = [[], [], []]
+    data['19.6 GeV'][0].append(np.array([[0]*5]))
+    data['19.6 GeV'][1].append('with filledcurves lt 1 lc rgb "black" lw 3 pt 0')
+    data['19.6 GeV'][2].append('pair efficiency {/Symbol \545} (%)')
+    data['19.6 GeV'][0].append(np.array([[0]*5]))
+    data['19.6 GeV'][1].append('with lines lt 2 lc rgb "black" lw 3')
+    data['19.6 GeV'][2].append('{/Symbol \104\545}_{syst} / {/Symbol \545} (%)')
+    for energy in energies:
+        ekey = ' '.join([getEnergy4Key(energy), 'GeV'])
+        if ekey != '19.6 GeV': data[ekey] = [[], [], []]
+        data_import = np.loadtxt(
+            open(os.path.join(inDir, 'pair', 'pair'+energy+'.dat'), 'rb')
+        )
+        centers = np.array(sorted(set(data_import[:,1])))
+        edges = [0.]
+        for i,center in enumerate(centers):
+            edges.append(edges[-1]+2*(center-edges[-1]))
+        for i,(pt,g) in enumerate(groupby(data_import, itemgetter(1))):
+            d = np.array(list(g))
+            d[:,2:] *= 100.
+            data[ekey][0].append(np.c_[
+                d[:,(0,2)], np.zeros(len(d)), np.zeros(len(d)), d[:,3]
+            ])
+            data[ekey][1].append('with filledcurves lt 1 lc %s lw 3 pt 0' % default_colors[i])
+            data[ekey][2].append('%g - %g GeV/c' % (edges[i], edges[i+1]))
+            data[ekey][0].append(np.c_[
+                d[:,0], d[:,4]/d[:,2]*100., np.zeros(len(d)), np.zeros(len(d)), np.zeros(len(d))
+            ])
+            data[ekey][1].append('with lines lt 2 lc %s lw 3' % default_colors[i])
+            data[ekey][2].append('')
+    make_panel(
+        dpt_dict = data,
+        name = os.path.join(outDir, 'pair'),
+        xlog = True, xr = [0.002, 3.35], yr = [0, 33],
+        xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
+        layout = '2x2', size = '5in,7.5in', tmargin = 0.9, lmargin = 0.04,
+        key = ['nobox', 'at screen 1.0,1.0', 'maxrows 2', 'width -7'],
+    )
+
 if __name__ == '__main__':
   checkSymLink()
   parser = argparse.ArgumentParser()
@@ -237,4 +282,5 @@ if __name__ == '__main__':
   #gp_tpc_select_eff()
   #gp_tof_match()
   #gp_tof_match_extra()
-  gp_total()
+  #gp_total()
+  gp_pair()
