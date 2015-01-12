@@ -233,10 +233,10 @@ def gp_pair():
     data['19.6 GeV'] = [[], [], []]
     data['19.6 GeV'][0].append(np.array([[0]*5]))
     data['19.6 GeV'][1].append('with filledcurves lt 1 lc rgb "black" lw 3 pt 0')
-    data['19.6 GeV'][2].append('pair efficiency {/Symbol \545} (%)')
+    data['19.6 GeV'][2].append('{/Symbol \545\661\104\545}_{stat}')
     data['19.6 GeV'][0].append(np.array([[0]*5]))
     data['19.6 GeV'][1].append('with lines lt 2 lc rgb "black" lw 3')
-    data['19.6 GeV'][2].append('{/Symbol \104\545}_{syst} / {/Symbol \545} (%)')
+    data['19.6 GeV'][2].append('{/Symbol \104\545}_{syst} / {/Symbol \545}')
     for energy in energies:
         ekey = ' '.join([getEnergy4Key(energy), 'GeV'])
         if ekey != '19.6 GeV': data[ekey] = [[], [], []]
@@ -265,8 +265,9 @@ def gp_pair():
         name = os.path.join(outDir, 'pair'),
         xlog = True, xr = [0.002, 3.35], yr = [0, 33],
         xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
-        layout = '2x2', size = '5in,7.5in', tmargin = 0.9, lmargin = 0.04,
-        key = ['nobox', 'at screen 1.0,1.0', 'maxrows 2', 'width -7'],
+        ylabel = 'pair efficiency and systematic uncertainty (%)',
+        layout = '2x2', size = '5in,7.5in', tmargin = 0.9,
+        key = ['nobox', 'at screen 1.0,1.0', 'maxrows 2', 'width -3'],
     )
 
 if __name__ == '__main__':
