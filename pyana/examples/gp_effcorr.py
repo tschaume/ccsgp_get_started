@@ -270,6 +270,24 @@ def gp_pair():
         key = ['nobox', 'at screen 1.0,1.0', 'maxrows 2', 'width -3'],
     )
 
+def gp_phiv():
+    inDir, outDir = getWorkDirs()
+    infile = os.path.join(inDir, 'phiVeff.dat')
+    data_import = np.loadtxt(open(infile, 'rb'))
+    nrows = len(data_import)
+    data_import[:,1] *= 100. # convert to %
+    data = np.c_[ data_import, np.zeros(nrows), np.zeros(nrows), np.zeros(nrows) ]
+    make_plot(
+        data = [data], titles = [''],
+        properties = [ 'with linespoints lt 1 lc %s lw 3 pt 18 ps 1.7' % default_colors[0] ],
+        tmargin = 0.98, rmargin = 0.99, bmargin = 0.16,
+        yr = [70,103], xr = [0,0.31],
+        xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
+        ylabel = '{/Symbol \146}_{V} Efficiency (%)', gpcalls = ['nokey'],
+        name = os.path.join(outDir, 'phiv'), size = '8.8in,6.8in',
+        lines = {'y=0.2': 'lw 4 lt 2 lc 0'}
+    )
+
 if __name__ == '__main__':
   checkSymLink()
   parser = argparse.ArgumentParser()
@@ -284,4 +302,5 @@ if __name__ == '__main__':
   #gp_tof_match()
   #gp_tof_match_extra()
   #gp_total()
-  gp_pair()
+  #gp_pair()
+  gp_phiv()
