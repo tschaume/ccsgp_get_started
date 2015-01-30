@@ -44,9 +44,9 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
   #  '27': 0.6412140408244136, '62.4': 0.9174700031778402
   #}
   scale = {
-      '19.6': 1.0683068402506954, '200': 1.1051002240771077,
-      '39': 1.1324387079295581, '27': 1.1990343614750614,
-      '62.4': 1.111841594264936
+      '19.6': 1.1750239280176988, '200': 1.1051002240771077,
+      '39': 1.2719203877292842, '27': 1.350873678084769,
+      '62.4': 1.2694222816365672
   }
   yunit = 1.0e-3 if not diffRel else 1.
   for infile in os.listdir(inDir):
@@ -56,10 +56,10 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     energy = getEnergy4Key(energy)
     file_url = os.path.join(inDir, infile)
     data_import = np.loadtxt(open(file_url, 'rb'))
-    if data_type == 'cocktail' and version == 'QM14' and energy != '19.6':
+    if data_type != 'data' and (
+        (version == 'QM14' and energy != '19.6') or version == 'LatestPatrickJieYi'
+    ):
        data_import[:,(1,3,4)] /= scale[energy]
-    elif data_type == 'data' and version == 'LatestPatrickJieYi':
-       data_import[:,(1,3,4)] *= scale[energy]
     if version == 'LatestPatrickJieYi':
         if data_type == 'data':
             data_import = data_import[(data_import[:,0] > 0.14) & (data_import[:,0] < 1.0)]
@@ -453,7 +453,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
       'HMBT + QGP', '{/Symbol \162}/{/Symbol \167} VacSF+FB', 'BW/FO-{/Symbol \162}',
   ]
   yr_upp = 4.5 if version == 'QM12Latest200' or version == 'QM14' else 7
-  if version == 'LatestPatrickJieYi': yr_upp = 3 if divdNdy else 2.
+  if version == 'LatestPatrickJieYi': yr_upp = 2 if divdNdy else 2.
   labels = {}
   if divdNdy:
     labels.update(dict((str(v), [float(k)*0.9,yr_upp*1.05,True]) for k,v in dNdyPi0.items()))

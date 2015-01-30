@@ -41,8 +41,8 @@ def gp_ptspec():
   data, data_avpt, dpt_dict = {}, {}, {}
   yvals, yvalsPt = [], []
   scale = {
-      '19': 1.0683068402506954, '200': 1.0, '39': 1.1324387079295581,
-      '27': 1.1990343614750614, '62': 1.111841594264936
+      '19': 1.1750239280176988, '200': 1.0, '39': 1.2719203877292842,
+      '27': 1.350873678084769, '62': 1.2694222816365672
   }
   lmr_label = None
   for filename in os.listdir(inDir):
@@ -85,8 +85,8 @@ def gp_ptspec():
     else: data_avpt[avpt_key] = [ dp ]
     yvalsPt.append(avpt.nominal_value)
     # now adjust data for panel plot and append to yvals
-    if data_type == 'data':
-      data[filebase][:,(1,3,4)] *= scale[energy]
+    if data_type != 'data':
+      data[filebase][:,(1,3,4)] /= scale[energy]
     data[filebase][:,(1,3,4)] *= float(yscale[energy])
     if data_type == 'cocktail' or fnmatch(data_type, '*medium*'):
         data[filebase][:,2:] = 0.

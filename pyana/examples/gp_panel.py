@@ -21,9 +21,9 @@ def gp_panel(version, skip):
   #  '27': 0.6412140408244136, '62': 0.9174700031778402
   #}
   scale = {
-      '19': 1.0683068402506954, '200': 1.1051002240771077,
-      '39': 1.1324387079295581, '27': 1.1990343614750614,
-      '62': 1.111841594264936
+      '19': 1.1750239280176988, '200': 1.1051002240771077,
+      '39': 1.2719203877292842, '27': 1.350873678084769,
+      '62': 1.2694222816365672
   }
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version)
@@ -37,11 +37,10 @@ def gp_panel(version, skip):
     data_type = re.sub('%s\.dat' % energy, '', infile)
     file_url = os.path.join(inDir, infile)
     data_import = np.loadtxt(open(file_url, 'rb'))
-    if (data_type == 'cocktail' or fnmatch(data_type, '*medium*')) \
-       and (version == 'QM14' and energy != '19'):
+    if data_type != 'data' and (
+        (version == 'QM14' and energy != '19') or version == 'LatestPatrickJieYi'
+    ):
        data_import[:,(1,3,4)] /= scale[energy]
-    elif data_type == 'data' and version == 'LatestPatrickJieYi':
-       data_import[:,(1,3,4)] *= scale[energy]
     if data_type == 'cocktail': data_import[:,2:] = 0.
     elif fnmatch(data_type, '*medium*') or data_type == 'vacRho':
        data_import = data_import[data_import[:,0] < 0.9] \

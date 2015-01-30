@@ -190,18 +190,20 @@ def gp_stack(version, energies, inclMed, inclFits):
       #scale_err[e] = scale[e] * math.sqrt(scale_err[e])
       #print scale_err[e], (a/b).std_dev*2 # are equal
   print scale
-  if version == 'QM14': # scale cocktail to data for all but 19 GeV
+  print ['{}: {}'.format(k, 1./v) for k,v in scale.iteritems()]
+  if version == 'QM14' or version == 'LatestPatrickJieYi': # scale cocktail to data
     for k in cocktail:
-      if k != '19': cocktail[k][:,(1,3,4)] /= scale[k].nominal_value
+        if (version == 'QM14' and k != '19') or version == 'LatestPatrickJieYi':
+            cocktail[k][:,(1,3,4)] /= scale[k].nominal_value
     for k in medium:
-      if k != '19': medium[k][:,(1,3,4)] /= scale[k].nominal_value
+        if (version == 'QM14' and k != '19') or version == 'LatestPatrickJieYi':
+            medium[k][:,(1,3,4)] /= scale[k].nominal_value
     for k in medOnly:
-      if k != '19': medOnly[k][:,(1,3,4)] /= scale[k].nominal_value
+        if (version == 'QM14' and k != '19') or version == 'LatestPatrickJieYi':
+            medOnly[k][:,(1,3,4)] /= scale[k].nominal_value
     for k in qgpOnly:
-      if k != '19': qgpOnly[k][:,(1,3,4)] /= scale[k].nominal_value
-  elif version == 'LatestPatrickJieYi': # scale data to cocktail
-    for e in ['19', '27', '39', '62', '200' ]:
-      data[e][:,(1,3,4)] *= scale[e].nominal_value
+        if (version == 'QM14' and k != '19') or version == 'LatestPatrickJieYi':
+            qgpOnly[k][:,(1,3,4)] /= scale[k].nominal_value
   # ordered
   dataOrdered = OrderedDict(
     (' '.join([
