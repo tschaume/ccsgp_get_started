@@ -33,31 +33,9 @@ def gp_tbw():
                             data_import[:,4]*data_import[:,4]
                         )
                         data_import[:,(2,4)] = 0.
-                        if energy == '19':
-                            data_import[:,(1,3)] /= 2.
                         props = 'lt 1 lw 2 pt 18 lc %s' % default_colors[eidx]
                     elif dtype == 'tbw':
                         props = 'with lines lt %d lw 2 lc %s' % (cidx+1, default_colors[eidx])
-                        if energy == '19':
-                            # scale 19 tbw to data
-                            filename19 = '_'.join(['data', code, energy]) + '.dat'
-                            data19 = np.loadtxt(open(
-                                os.path.join(inDir, filename19), 'rb'
-                            ))
-                            data19[:,3] = np.sqrt(
-                                data19[:,3]*data19[:,3] + data19[:,4]*data19[:,4]
-                            )
-                            data19[:,(2,4)] = 0.
-                            data19[:,(1,3)] /= 2.
-                            tbwF = interp1d(data_import[:,0], data_import[:,1])
-                            tbwY = np.array([ tbwF(x) for x in data19[:,0] if x < 2 ])
-                            data19Y = unp.uarray(data19[:,1], data19[:,3])
-                            ratios = data19Y[:len(tbwY)] / tbwY
-                            normfactor = np.average(
-                                unp.nominal_values(ratios), weights=1./unp.std_devs(ratios)
-                            )
-                            print filename, normfactor
-                            data_import[:,1] *= normfactor
                     if particle.startswith('K'):
                         data_import[:,(1,3)] *= 3.
                     if particle.startswith('p'):
