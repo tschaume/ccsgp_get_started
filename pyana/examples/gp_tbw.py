@@ -72,7 +72,7 @@ def gp_tbw():
         data[particles.keys()[0]][2].append('charge -1' if cidx else 'charge +1')
     for eidx,energy in enumerate(energies):
         data[particles.keys()[0]][0].append(pseudo)
-        data[particles.keys()[0]][1].append('lt 1 lw 2 pt 18 lc %s ps 2' % default_colors[eidx])
+        data[particles.keys()[0]][1].append('lt 1 lw 2 pt 18 lc %s ps 1.3' % default_colors[eidx])
         data[particles.keys()[0]][2].append(' '.join([getEnergy4Key(energy), 'GeV']))
     make_panel(
         dpt_dict = data,
@@ -80,7 +80,8 @@ def gp_tbw():
         yr = [1e-2,500], xr = [-0.05,2.05], ylog = True,
         xlabel = 'transverse momentum, p_{T} (GeV/c)',
         ylabel = 'd^{2}N/2{/Symbol \160}p_{T}dp_{T}dy',
-        layout = '3x1', size = '4.5in,12in', key = ['nobox'],
+        layout = '3x1', size = '3.5in,9in',
+        key = ['nobox', 'samplen 0.7', 'at graph 1.05,1.0'],
     )
 
 
