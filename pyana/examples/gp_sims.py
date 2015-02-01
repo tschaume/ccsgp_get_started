@@ -46,13 +46,13 @@ def gp_sims(version):
               ) for i in xrange(len(contribs))
           ],
           titles = titles,
-          xlabel = xlabel if particles[0] == 'phi' else '',
-          ylabel = ylabel if particles[0] == 'pion' or particles[0] == 'omega' else '',
+          xlabel = xlabel, # if particles[0] == 'phi' else '',
+          ylabel = ylabel, # if particles[0] == 'pion' or particles[0] == 'omega' else '',
           name = os.path.join(outDir, '_'.join(['sims']+particles)),
-          ylog = True, lmargin = 0.18, bmargin = 0.13, tmargin = 0.96,
+          ylog = True, lmargin = 0.15, bmargin = 0.17, tmargin = 0.96, rmargin = 0.98,
           gpcalls = [ 'nokey' ] if particles[0] != 'pion' else [],
           xr = [1. if particles[0] == 'jpsi' else 0,xmax[particles[0]]],
-          size = '8.5in,8in',
+          size = '10in,6.5in',
           labels = {
               particleLabel4Key(particles[0]): [0.15,0.9,False],
               particleLabel4Key(particles[1]) if len(particles) > 1 else '': [0.15,0.1,False],
