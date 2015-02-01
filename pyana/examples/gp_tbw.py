@@ -12,15 +12,15 @@ def gp_tbw():
     energies = ['19', '27', '39', '62']
     particles = OrderedDict()
     particles['{/Symbol \160}'] = ['pip', 'pim']
-    particles['K'] = ['kp', 'km']
-    particles['p'] = ['p', 'pbar']
+    particles['K {/Symbol \264}3'] = ['kp', 'km']
+    particles['p {/Symbol \264}5'] = ['p', 'pbar']
     dtypes = ['tbw', 'data']
     data = OrderedDict()
     for particle,codes in particles.iteritems():
         if particle not in data:
             data[particle] = [[], [], []]
-        for energy in energies:
-            for code in codes:
+        for eidx,energy in enumerate(energies):
+            for cidx,code in enumerate(codes):
                 for dtype in dtypes:
                     filename = '_'.join([dtype, code, energy]) + '.dat'
                     data_import = np.loadtxt(open(
@@ -33,9 +33,11 @@ def gp_tbw():
                             data_import[:,4]*data_import[:,4]
                         )
                         data_import[:,(2,4)] = 0.
-                        props = 'lt 1 lw 2 pt 18'
+                        if energy == '19':
+                            data_import[:,(1,3)] /= 2.
+                        props = 'lt 1 lw 2 pt 18 lc %s' % default_colors[eidx]
                     elif dtype == 'tbw':
-                        props = 'with lines lt 1 lw 2'
+                        props = 'with lines lt %d lw 2 lc %s' % (cidx+1, default_colors[eidx])
                         if energy == '19':
                             # scale 19 tbw to data
                             filename19 = '_'.join(['data', code, energy]) + '.dat'
@@ -46,6 +48,7 @@ def gp_tbw():
                                 data19[:,3]*data19[:,3] + data19[:,4]*data19[:,4]
                             )
                             data19[:,(2,4)] = 0.
+                            data19[:,(1,3)] /= 2.
                             tbwF = interp1d(data_import[:,0], data_import[:,1])
                             tbwY = np.array([ tbwF(x) for x in data19[:,0] if x < 2 ])
                             data19Y = unp.uarray(data19[:,1], data19[:,3])
@@ -55,16 +58,29 @@ def gp_tbw():
                             )
                             print filename, normfactor
                             data_import[:,1] *= normfactor
+                    if particle.startswith('K'):
+                        data_import[:,(1,3)] *= 3.
+                    if particle.startswith('p'):
+                        data_import[:,(1,3)] *= 5.
                     data[particle][0].append(data_import)
                     data[particle][1].append(props)
-                    data[particle][2].append(filename)
+                    data[particle][2].append('')
+    pseudo = np.array([[-1,-1,0,0,0]])
+    for cidx in range(2):
+        data[particles.keys()[0]][0].append(pseudo)
+        data[particles.keys()[0]][1].append('with lines lt %d lw 2 lc %s' % (cidx+1, default_colors[-1]))
+        data[particles.keys()[0]][2].append('charge -1' if cidx else 'charge +1')
+    for eidx,energy in enumerate(energies):
+        data[particles.keys()[0]][0].append(pseudo)
+        data[particles.keys()[0]][1].append('lt 1 lw 2 pt 18 lc %s ps 2' % default_colors[eidx])
+        data[particles.keys()[0]][2].append(' '.join([getEnergy4Key(energy), 'GeV']))
     make_panel(
         dpt_dict = data,
         name = os.path.join(outDir, 'tbw'),
-        yr = [8e-3,300], xr = [-0.05,2.05], ylog = True,
-        xlabel = 'p_{T} (GeV/c)', ylabel = 'd^{2}N/2{/Symbol \160}p_{T}dp_{T}dy',
-        layout = '3x1', size = '4.5in,12in', tmargin = 0.9,
-        key = ['nobox', 'width -3', 'at screen 1.0,1.0', 'maxrows 2'],
+        yr = [1e-2,500], xr = [-0.05,2.05], ylog = True,
+        xlabel = 'transverse momentum, p_{T} (GeV/c)',
+        ylabel = 'd^{2}N/2{/Symbol \160}p_{T}dp_{T}dy',
+        layout = '3x1', size = '4.5in,12in', key = ['nobox'],
     )
 
 
