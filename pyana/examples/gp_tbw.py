@@ -7,9 +7,10 @@ import numpy as np
 from scipy.interpolate import interp1d
 import uncertainties.unumpy as unp
 
-def gp_tbw():
+def gp_tbw(shift = False):
     inDir, outDir = getWorkDirs()
     energies = ['19', '27', '39', '62']
+    scale = { '19': 0.5, '27': 2, '39': 4, '62': 15 }
     particles = OrderedDict()
     particles['{/Symbol \160}'] = ['pip', 'pim']
     particles['K {/Symbol \264}3'] = ['kp', 'km']
@@ -26,6 +27,7 @@ def gp_tbw():
                     data_import = np.loadtxt(open(
                         os.path.join(inDir, filename), 'rb'
                     ))
+                    if shift: data_import[:,(1,3,4)] *= scale[energy]
                     props = None
                     if dtype == 'data':
                         data_import[:,3] = np.sqrt(
@@ -51,15 +53,17 @@ def gp_tbw():
     for eidx,energy in enumerate(energies):
         data[particles.keys()[0]][0].append(pseudo)
         data[particles.keys()[0]][1].append('lt 1 lw 2 pt 18 lc %s ps 1.3' % default_colors[eidx])
-        data[particles.keys()[0]][2].append(' '.join([getEnergy4Key(energy), 'GeV']))
+        data[particles.keys()[0]][2].append(' '.join([ getEnergy4Key(energy), 'GeV', (
+            ('{/Symbol \264}%g' % scale[energy]) if shift else ''
+        )]))
     make_panel(
         dpt_dict = data,
-        name = os.path.join(outDir, 'tbw'),
-        yr = [1e-2,500], xr = [-0.05,2.05], ylog = True,
+        name = os.path.join(outDir, ('tbw_shift' if shift else 'tbw')),
+        yr = [1e-2,(2e4 if shift else 500)], xr = [-0.05,2.05], ylog = True,
         xlabel = 'transverse momentum, p_{T} (GeV/c)',
         ylabel = 'd^{2}N/2{/Symbol \160}p_{T}dp_{T}dy',
         layout = '3x1', size = '3.5in,9in',
-        key = ['nobox', 'samplen 0.7', 'at graph 1.05,1.0'],
+        key = ['nobox', 'samplen 0.7', 'at graph %f,1.0' % (1.1 if shift else 1.05)],
     )
 
 
@@ -73,3 +77,4 @@ if __name__ == '__main__':
         format='%(message)s', level=getattr(logging, loglevel)
     )
     gp_tbw()
+    gp_tbw(shift = True)
