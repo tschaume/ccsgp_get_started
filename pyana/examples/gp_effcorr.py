@@ -227,6 +227,7 @@ def gp_total():
     )
 
 def gp_pair():
+    # TODO: use input files from dielectron_data_protected/efficiencies/patrick/pair
     inDir, outDir = getWorkDirs()
     energies = ['19', '27', '39', '62']
     data = OrderedDict()
