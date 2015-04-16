@@ -1,15 +1,16 @@
-import os, argparse, logging, math
+import os, argparse, logging, math, glob
 from .utils import getWorkDirs, checkSymLink, getEnergy4Key, particleLabel4Key
 from collections import OrderedDict
 from ..ccsgp.ccsgp import make_panel
 from ..ccsgp.config import default_colors
 import numpy as np
 
+particles = ['electrons', 'positrons']
+contams = ['{/Symbol \160}', 'K', 'p', '{/Symbol \160}{/Symbol \160}']
+
 def gp_purity():
     inDir, outDir = getWorkDirs()
     energies = ['19', '27', '39', '62']
-    particles = ['electrons', 'positrons']
-    contams = ['{/Symbol \160}', 'K', 'p', '{/Symbol \160}{/Symbol \160}']
     dtypes = ['purity'] + ['contam{}'.format(i+1) for i in range(len(contams))]
     data = OrderedDict()
     sampfr = {0.4: [], 0.7: [], 1: []}
@@ -57,6 +58,32 @@ def gp_purity():
         ]
     )
 
+def gp_nsigmael():
+    inDir, outDir = getWorkDirs()
+    energy, mom_ranges = '39', []
+    for path in glob.glob(os.path.join(
+        inDir, '{}_{}_e_*'.format(particles[0], energy)
+    )):
+        mom_ranges.append(path.split('_')[-1][:-4])
+    data = OrderedDict()
+    for ridx,r in enumerate(mom_ranges):
+        if ridx > 5: break # skip last momentum bin (cover 99%)
+        data[r] = [[], [], []]
+        for pidx,particle in enumerate(particles):
+            infile = os.path.join(inDir, '{}_{}_data_{}.dat'.format(particle, energy, r))
+            data_import = np.loadtxt(open(infile,'r'))
+            data_import[:,2] = 0
+            props = 'lw 3 pt {} lc {}'.format(4+pidx*2, default_colors[-1])
+            data[r][0].append(data_import)
+            data[r][1].append(props)
+            data[r][2].append(particle)
+    make_panel(
+        dpt_dict = data, name = os.path.join(outDir, 'nsigmael_overview'),
+        yr = [1e-7,0.2], xr = [-10,12], ylog = True, lmargin = 0.06,
+        xlabel = 'nsigma_{el}', layout = '2x3', size = '8.3in,7.5in',
+        key = ['nobox'], gpcalls = ['bars small']
+    )
+
 if __name__ == '__main__':
     checkSymLink()
     parser = argparse.ArgumentParser()
@@ -66,4 +93,5 @@ if __name__ == '__main__':
     logging.basicConfig(
         format='%(message)s', level=getattr(logging, loglevel)
     )
-    gp_purity()
+    #gp_purity()
+    gp_nsigmael()
