@@ -29,8 +29,8 @@ def gp_purity():
                 data_import = np.loadtxt(open(infile,'r'))
                 data_import[:,2] = 0
                 #data_import = data_import[data_import[:,1]>0.001]
-                propsstr = 'with linespoints lt {} lw 3 pt 18 lc {}' if didx == 0 \
-                        else 'with lines lt {} lw 3 lc {}'
+                propsstr = 'with linespoints lt {} lw 4 pt 18 lc {} ps 1.2' if didx == 0 \
+                        else 'with lines lt {} lw 4 lc {}'
                 props = propsstr.format(pidx+1, default_colors[didx])
                 data[ekey][0].append(data_import)
                 data[ekey][1].append(props)
@@ -49,7 +49,7 @@ def gp_purity():
         ylabel = 'fraction of candidate sample',
         layout = '2x2', size = '5in,7in',
         key = ['nobox', 'at graph 0.4,0.72'], lines = dict(
-            ('y={}'.format(x), 'lc {} lt 3 lw 3'.format(default_colors[-8]))
+            ('y={}'.format(x), 'lc {} lt 3 lw 4'.format(default_colors[-8]))
             for x in sampfr
         ), key_subplot_id = 2, gpcalls = [
             'label %d "{/Helvetica=18 %.0f%%}" at %f,0.5 rotate center textcolor %s' % (
@@ -66,22 +66,41 @@ def gp_nsigmael():
     )):
         mom_ranges.append(path.split('_')[-1][:-4])
     data = OrderedDict()
+    dtypes = ['data', 'e', 'pi', 'K', 'p', 'pipi', 'total']
+    fakept = np.array([[-20, 1, 0, 0, 0]])
     for ridx,r in enumerate(mom_ranges):
         if ridx > 5: break # skip last momentum bin (cover 99%)
-        data[r] = [[], [], []]
-        for pidx,particle in enumerate(particles):
-            infile = os.path.join(inDir, '{}_{}_data_{}.dat'.format(particle, energy, r))
-            data_import = np.loadtxt(open(infile,'r'))
-            data_import[:,2] = 0
-            props = 'lw 3 pt {} lc {}'.format(4+pidx*2, default_colors[-1])
-            data[r][0].append(data_import)
-            data[r][1].append(props)
-            data[r][2].append(particle)
+        rkey = '%g - %g\\n     GeV/c' % (float(r.split('-')[0]), float(r.split('-')[1]))
+        data[rkey] = [[], [], []]
+        for didx,dtype in enumerate(dtypes):
+            for pidx,particle in enumerate(particles):
+                infile = os.path.join(inDir, '{}_{}_{}_{}.dat'.format(
+                    particle, energy, dtype, r
+                ))
+                data_import = np.loadtxt(open(infile,'r'))
+                if len(data_import) < 1: data_import = fakept
+                data_import[:,2] = 0
+                props = 'lw 4 pt {} lc {} ps 1.4'.format(70+pidx, default_colors[-1]) \
+                        if dtype == 'data' else 'with lines lw 5 lc {} lt {}'.format(
+                            default_colors[20 if didx == 6 else didx-1], pidx+1)
+                data[rkey][0].append(data_import)
+                data[rkey][1].append(props)
+                title = contams[didx-2] if didx > 1 and didx < 6 else 'e'
+                if didx == 0 or didx == 6:
+                    title = '%s {/Helvetica=16 q %s 0}' % (
+                        dtypes[didx], ('>' if particle == 'positrons' else '<')
+                    )
+                else:
+                    title += '^{%s}' % ('+' if particle == 'positrons' else '-')
+                if title == 'p^{-}': title = '@^{\261}p'
+                if title == 'p^{+}': title = 'p'
+                data[rkey][2].append(title)
     make_panel(
         dpt_dict = data, name = os.path.join(outDir, 'nsigmael_overview'),
-        yr = [1e-7,0.2], xr = [-10,12], ylog = True, lmargin = 0.06,
-        xlabel = 'nsigma_{el}', layout = '2x3', size = '8.3in,7.5in',
-        key = ['nobox'], gpcalls = ['bars small']
+        yr = [5e-7,0.15], xr = [-9.5,8.5], ylog = True,
+        lmargin = 0.06, tmargin =  0.94, gpcalls = ['bars small'],
+        xlabel = 'n{/Symbol \163}_{el}', layout = '2x3', size = '8in,7.5in',
+        key = ['nobox', 'at graph 2.05,1.22', 'maxrows 2', 'width -4', 'samplen 1.'],
     )
 
 if __name__ == '__main__':
@@ -93,5 +112,5 @@ if __name__ == '__main__':
     logging.basicConfig(
         format='%(message)s', level=getattr(logging, loglevel)
     )
-    #gp_purity()
+    gp_purity()
     gp_nsigmael()
