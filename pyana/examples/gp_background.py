@@ -97,6 +97,50 @@ def gp_background():
     )
     return 'done'
 
+def gp_norm():
+    """indentify normalization region"""
+    inDir, outDir = getWorkDirs()
+    data, titles = [], []
+    for eidx,energy in enumerate(['19', '27', '39', '62']):
+        for infile in [ 'rmm' ]: # 'rpp'
+            file_url = os.path.realpath(os.path.join(
+                inDir, 'rawdata', energy, 'pt-integrated', infile+'.dat'
+            ))
+            data_import = np.loadtxt(open(file_url, 'rb'))
+            data_import[:,1] += eidx * 0.2
+            data_import[:,4] = data_import[:,3]
+            data_import[:,(2,3)] = 0
+            data.append(data_import)
+            titles.append(' '.join([getEnergy4Key(energy), 'GeV']))
+    nData = len(data)
+    lines = dict(
+        ('x={}'.format(1+i*0.2), 'lc {} lt 2 lw 4'.format(default_colors[-2]))
+        for i in range(nData)
+    )
+    lines.update(dict(
+        ('x={}'.format(1+i*0.2+0.02), 'lc {} lt 3 lw 4'.format(default_colors[-5]))
+        for i in range(nData)
+    ))
+    lines.update(dict(
+        ('x={}'.format(1+i*0.2-0.02), 'lc {} lt 3 lw 4'.format(default_colors[-5]))
+        for i in range(nData)
+    ))
+    lines.update({'y=0.9': 'lc {} lt 1 lw 4'.format(default_colors[-2])})
+    make_plot(
+        name = '%s/norm_range' % outDir, xr = [0,2], yr = [0.9,1.7],
+        data = data, properties = [
+            'lt 1 lw 3 lc %s pt 1' % (default_colors[i]) # (i/2)%4
+            for i in range(nData)
+        ], titles = titles, size = '8in,8in',
+        lmargin = 0.05, rmargin = 0.99, tmargin = 0.93, bmargin = 0.14,
+        xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
+        lines = lines, key = [
+            'maxrows 1', 'nobox', 'samplen 0.1', 'width -1', 'at graph 1,1.1'
+        ], labels = { 'SE_{--} / ME@_{--}^N': (0.3, 1.3) }, gpcalls = [
+            'ytics (1,"1" 1.2, "1" 1.4, "1" 1.6)', 'boxwidth 0.002',
+        ],
+    )
+
 if __name__ == '__main__':
     checkSymLink()
     parser = argparse.ArgumentParser()
@@ -106,4 +150,5 @@ if __name__ == '__main__':
     logging.basicConfig(
         format='%(message)s', level=getattr(logging, loglevel)
     )
-    print gp_background()
+    #print gp_background()
+    gp_norm()

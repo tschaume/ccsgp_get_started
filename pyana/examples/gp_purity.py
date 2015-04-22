@@ -46,7 +46,7 @@ def gp_purity():
         dpt_dict = data, name = os.path.join(outDir, 'purity'),
         yr = [-0.03,1.03], xr = [0.12,1.87],
         xlabel = 'momentum, p (GeV/c)',
-        ylabel = 'fraction of candidate sample',
+        ylabel = 'fraction of electron/positron sample',
         layout = '2x2', size = '5in,7in',
         key = ['nobox', 'at graph 0.4,0.72'], lines = dict(
             ('y={}'.format(x), 'lc {} lt 3 lw 4'.format(default_colors[-8]))
@@ -82,7 +82,7 @@ def gp_nsigmael():
                 data_import[:,2] = 0
                 props = 'lw 4 pt {} lc {} ps 1.4'.format(70+pidx, default_colors[-1]) \
                         if dtype == 'data' else 'with lines lw 5 lc {} lt {}'.format(
-                            default_colors[20 if didx == 6 else didx-1], pidx+1)
+                            default_colors[23 if didx == 6 else didx-1], pidx+1)
                 data[rkey][0].append(data_import)
                 data[rkey][1].append(props)
                 title = contams[didx-2] if didx > 1 and didx < 6 else 'e'
