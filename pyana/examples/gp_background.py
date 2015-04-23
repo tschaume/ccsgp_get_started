@@ -144,33 +144,47 @@ def gp_norm():
 def gp_acc():
     """acceptance correction"""
     inDir, outDir = getWorkDirs()
-    data, titles = [], []
-    for eidx,energy in enumerate(['19', '27', '39', '62']):
-        for infile in glob.glob(os.path.realpath(os.path.join(
+    #for energy in ['19', '27', '39', '62']:
+    for energy in ['39']:
+        data, titles = [], []
+        for idx,infile in enumerate(glob.glob(os.path.realpath(os.path.join(
             inDir, 'rawdata', energy, 'pt-differential', 'acPt_*.dat'
-        ))):
+        )))):
             data_import = np.loadtxt(open(infile, 'rb'))
-            data_import[:,1] += eidx * 0.2
+            data_import[:,1] += idx * 0.2
             data_import[:,4] = data_import[:,3]
             data_import[:,(2,3)] = 0
             data.append(data_import)
-            titles.append(' '.join([
-                getEnergy4Key(energy), 'GeV', os.path.basename(infile)
-            ]))
-            break
-        break
-    nData = len(data)
-    make_plot(
-        name = '%s/acc_fac' % outDir, xr = [0,2], yr = [0.5,1.5],
-        data = data, properties = [
-            'lt 1 lw 3 lc %s pt 1' % (default_colors[i]) # (i/2)%4
+            titles.append(os.path.basename(infile).split('_')[-1][:-4])
+        nData = len(data)
+        lines = dict(
+            ('x={}'.format(1+i*0.2), 'lc {} lt 2 lw 4'.format(default_colors[-2]))
             for i in range(nData)
-        ], titles = titles, size = '8in,8in',
-        lmargin = 0.1, rmargin = 0.99, tmargin = 0.93, bmargin = 0.14,
-        xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
-        key = [ 'maxrows 1', 'nobox', 'samplen 0.1', 'width -1', 'at graph 1,1.1' ],
-        gpcalls = ['boxwidth 0.002']
-    )
+        )
+        lines.update(dict(
+            ('x={}'.format(1+i*0.2+0.02), 'lc {} lt 3 lw 4'.format(default_colors[-5]))
+            for i in range(nData)
+        ))
+        lines.update(dict(
+            ('x={}'.format(1+i*0.2-0.02), 'lc {} lt 3 lw 4'.format(default_colors[-5]))
+            for i in range(nData)
+        ))
+        make_plot(
+            name = '%s/accfac%s' % (outDir,energy), xr = [0,2], yr = [0.8,2],
+            data = data, properties = [
+                'lt 1 lw 3 lc %s pt 1' % (default_colors[i])
+                for i in range(nData)
+            ], titles = titles, size = '8in,8in',
+            lmargin = 0.05, rmargin = 0.98, tmargin = 0.93, bmargin = 0.14,
+            xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
+            lines = lines, key = [
+                'maxrows 1', 'nobox', 'samplen 0.1', 'width -2', 'at graph 1,1.1'
+            ], labels = {
+                'ME_{+-} / 2{/Symbol \326}ME_{++}ME_{--}': (0.3, 0.85),
+                ' '.join([getEnergy4Key(energy), 'GeV']): (1.3, 0.85)
+            },
+            gpcalls = [ 'ytics (1,"1" 1.2, "1" 1.4, "1" 1.6, "1" 1.8)', 'boxwidth 0.002', ],
+        )
 
 if __name__ == '__main__':
     checkSymLink()
