@@ -1,4 +1,4 @@
-import logging, argparse, re, os
+import logging, argparse, re, os, glob
 import numpy as np
 from .utils import getWorkDirs, checkSymLink, getEnergy4Key
 from ..ccsgp.ccsgp import make_plot
@@ -141,6 +141,37 @@ def gp_norm():
         ],
     )
 
+def gp_acc():
+    """acceptance correction"""
+    inDir, outDir = getWorkDirs()
+    data, titles = [], []
+    for eidx,energy in enumerate(['19', '27', '39', '62']):
+        for infile in glob.glob(os.path.realpath(os.path.join(
+            inDir, 'rawdata', energy, 'pt-differential', 'acPt_*.dat'
+        ))):
+            data_import = np.loadtxt(open(infile, 'rb'))
+            data_import[:,1] += eidx * 0.2
+            data_import[:,4] = data_import[:,3]
+            data_import[:,(2,3)] = 0
+            data.append(data_import)
+            titles.append(' '.join([
+                getEnergy4Key(energy), 'GeV', os.path.basename(infile)
+            ]))
+            break
+        break
+    nData = len(data)
+    make_plot(
+        name = '%s/acc_fac' % outDir, xr = [0,2], yr = [0.5,1.5],
+        data = data, properties = [
+            'lt 1 lw 3 lc %s pt 1' % (default_colors[i]) # (i/2)%4
+            for i in range(nData)
+        ], titles = titles, size = '8in,8in',
+        lmargin = 0.1, rmargin = 0.99, tmargin = 0.93, bmargin = 0.14,
+        xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
+        key = [ 'maxrows 1', 'nobox', 'samplen 0.1', 'width -1', 'at graph 1,1.1' ],
+        gpcalls = ['boxwidth 0.002']
+    )
+
 if __name__ == '__main__':
     checkSymLink()
     parser = argparse.ArgumentParser()
@@ -151,4 +182,5 @@ if __name__ == '__main__':
         format='%(message)s', level=getattr(logging, loglevel)
     )
     #print gp_background()
-    gp_norm()
+    #gp_norm()
+    gp_acc()
