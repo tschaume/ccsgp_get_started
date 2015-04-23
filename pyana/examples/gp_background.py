@@ -1,53 +1,65 @@
 import logging, argparse, re, os, glob
 import numpy as np
 from .utils import getWorkDirs, checkSymLink, getEnergy4Key
-from ..ccsgp.ccsgp import make_plot
+from ..ccsgp.ccsgp import make_plot, make_panel
 from ..ccsgp.config import default_colors
+from collections import OrderedDict
+
+def _clamp(val, minimum = 0, maximum = 255):
+    """convenience function to clamp number into min..max range"""
+    if val < minimum: return minimum
+    if val > maximum: return maximum
+    return val
+
+def _colorscale(gpcol, scalefactor = 1.4):
+    hexstr = gpcol.split('#')[-1][:-1]
+    if scalefactor < 0 or len(hexstr) != 6: return hexstr
+    r, g, b = int(hexstr[:2], 16), int(hexstr[2:4], 16), int(hexstr[4:], 16)
+    r = _clamp(r * scalefactor)
+    g = _clamp(g * scalefactor)
+    b = _clamp(b * scalefactor)
+    return 'rgb "#%02x%02x%02x"' % (r, g, b)
 
 def gp_background():
     """ plot background methods and S/B vs energy """
     inDir, outDir = getWorkDirs()
-    graph_data = []
-    energy, REBIN = None, None
-    for infile in [ 'eps', 'ngm_corr', 'epm_normed', 'rgm', 'ac' ]:
-        file_url = os.path.realpath(os.path.join(inDir, infile) + '.dat')
-        if energy is None: energy = file_url.split('/')[-3]
-        if os.path.isdir(file_url): continue
-        data_import = np.loadtxt(open(file_url, 'rb'))
-        if REBIN is None: REBIN = int(data_import[-1][2]*2*1000) # MeV
-        # reset syst. uncertainties to stat. for filledcurves
-        data_import[:,4] = data_import[:,3]
-        data_import[:,3] = 0
-        data_import[:,2] = 0 # no x errors
-        if infile == 'ngm_corr':
-            data_import = data_import[data_import[:,0] <= 0.9]
-        if infile == 'epm_normed':
-            data_import = data_import[data_import[:,0] > 0.9]
-        graph_data.append(data_import)
+    data, REBIN = OrderedDict(), None
+    titles = [ 'SE_{+-}', 'SE@^{corr}_{/Symbol \\261\\261}', 'ME@^{N}_{+-}' ]
+    Apm = OrderedDict([
+        ('19', 0.026668), ('27', 0.026554), ('39', 0.026816), ('62', 0.026726)
+    ])
+    for energy in ['19', '27', '39', '62']:
+        ekey = ' '.join([getEnergy4Key(energy), 'GeV'])
+        data[ekey] = [[], [], []]
+        for didx,dtype in enumerate(['epsPt', 'ngmPt_corr', 'epmPt']):
+            for idx,infile in enumerate(glob.glob(os.path.realpath(os.path.join(
+                inDir, 'rawdata', energy, 'pt-differential', '%s_*.dat' % dtype
+            )))):
+                file_url = os.path.realpath(os.path.join(inDir, infile))
+                data_import = np.loadtxt(open(file_url, 'rb'))
+                if REBIN is None: REBIN = int(data_import[-1][2]*2*1000) # MeV
+                data_import[:,4] = data_import[:,3]
+                data_import[:,(2,3)] = 0
+                if dtype == 'ngmPt_corr':
+                    data_import = data_import[data_import[:,0] <= 0.9]
+                if dtype == 'epmPt':
+                    data_import = data_import[data_import[:,0] > 0.9]
+                    data_import[:,(1,4)] *= Apm[energy]
+                data[ekey][0].append(data_import)
+                col = _colorscale(default_colors[didx], 1.+idx*0.2)
+                data[ekey][1].append('lt 1 lw 3 lc %s pt 0' % col)
+                momrange =  os.path.basename(infile).split('_')[-1][:-4]
+                data[ekey][2].append(' '.join([titles[didx], momrange]))
     # unsubtracted background
-    make_plot(
-        name = '%s/methods%s' % (outDir, energy),
-        xr = [0,3.5], yr = [0.9,2e5], ylog = True,
-        data = graph_data[:3],
-        properties = [
-            'with filledcurves lt 1 lw 3 lc %s pt 0' % default_colors[i]
-            for i in xrange(3)
-        ],
-        titles = [
-            'SE_{+-}', 'SE@^{acc-corr\'ed}_{/Symbol \\261\\261}',
-            'ME@^{norm\'ed}_{+-}'
-        ],
+    make_panel(
+        name = '%s/methods' % outDir, dpt_dict = data,
+        xr = [0,3.35], yr = [0.9,2e5], ylog = True,
         xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
-        ylabel = 'counts / %d MeV/c^{2}' % REBIN,
-        key = ['spacing 1.6'],
-        labels = {
-            '%s GeV' % energy: (1.5, 5e4),
-            'Normalization Region:': (0.1, 1e3),
-            'M_{ee} > 0.9 GeV/c^{2}': (0.1,0.3e3),
-            'relative statistical error on': (0.1, 10),
-            'normalization factor: 9.3{/Symbol \264}10^{-4}': (0.1, 4) #0.026813(25)
-        },
+        ylabel = 'counts / %d MeV/c^{2}' % REBIN, layout = '2x2',
+        key = ['spacing 1.6'], gpcalls = ['boxwidth 0.002'],
+        # TODO vertical line for SE/ME
     )
+    return 'done'
     # background ratio and acc.corr.
     make_plot(
         name = '%s/ratios%s' % (outDir, energy),
@@ -97,21 +109,20 @@ def gp_background():
     )
     return 'done'
 
-def gp_norm():
+def gp_norm(infile):
     """indentify normalization region"""
     inDir, outDir = getWorkDirs()
     data, titles = [], []
     for eidx,energy in enumerate(['19', '27', '39', '62']):
-        for infile in [ 'rmm' ]: # 'rpp'
-            file_url = os.path.realpath(os.path.join(
-                inDir, 'rawdata', energy, 'pt-integrated', infile+'.dat'
-            ))
-            data_import = np.loadtxt(open(file_url, 'rb'))
-            data_import[:,1] += eidx * 0.2
-            data_import[:,4] = data_import[:,3]
-            data_import[:,(2,3)] = 0
-            data.append(data_import)
-            titles.append(' '.join([getEnergy4Key(energy), 'GeV']))
+        file_url = os.path.realpath(os.path.join(
+            inDir, 'rawdata', energy, 'pt-integrated', infile+'.dat'
+        ))
+        data_import = np.loadtxt(open(file_url, 'rb'))
+        data_import[:,1] += eidx * 0.2
+        data_import[:,4] = data_import[:,3]
+        data_import[:,(2,3)] = 0
+        data.append(data_import)
+        titles.append(' '.join([getEnergy4Key(energy), 'GeV']))
     nData = len(data)
     lines = dict(
         ('x={}'.format(1+i*0.2), 'lc {} lt 2 lw 4'.format(default_colors[-2]))
@@ -127,7 +138,7 @@ def gp_norm():
     ))
     lines.update({'y=0.9': 'lc {} lt 1 lw 4'.format(default_colors[-2])})
     make_plot(
-        name = '%s/norm_range' % outDir, xr = [0,2], yr = [0.9,1.7],
+        name = '%s/norm_range_%s' % (outDir,infile), xr = [0,2], yr = [0.9,1.7],
         data = data, properties = [
             'lt 1 lw 3 lc %s pt 1' % (default_colors[i]) # (i/2)%4
             for i in range(nData)
@@ -144,8 +155,7 @@ def gp_norm():
 def gp_acc():
     """acceptance correction"""
     inDir, outDir = getWorkDirs()
-    #for energy in ['19', '27', '39', '62']:
-    for energy in ['39']:
+    for energy in ['19', '27', '39', '62']:
         data, titles = [], []
         for idx,infile in enumerate(glob.glob(os.path.realpath(os.path.join(
             inDir, 'rawdata', energy, 'pt-differential', 'acPt_*.dat'
@@ -195,6 +205,7 @@ if __name__ == '__main__':
     logging.basicConfig(
         format='%(message)s', level=getattr(logging, loglevel)
     )
-    #print gp_background()
-    #gp_norm()
-    gp_acc()
+    print gp_background()
+    #gp_norm('rmm')
+    #gp_norm('rpp')
+    #gp_acc()
