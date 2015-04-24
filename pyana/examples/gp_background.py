@@ -28,6 +28,8 @@ def gp_background():
     Apm = OrderedDict([
         ('19', 0.026668), ('27', 0.026554), ('39', 0.026816), ('62', 0.026726)
     ])
+    fake = np.array([[-1, 1, 0, 0, 0]])
+    lines = {'y=0.9': 'lc {} lt 2 lw 3'.format(default_colors[-4])}
     for energy in ['19', '27', '39', '62']:
         ekey = ' '.join([getEnergy4Key(energy), 'GeV'])
         data[ekey] = [[], [], []]
@@ -45,19 +47,25 @@ def gp_background():
                 if dtype == 'epmPt':
                     data_import = data_import[data_import[:,0] > 0.9]
                     data_import[:,(1,4)] *= Apm[energy]
-                data[ekey][0].append(data_import)
                 col = _colorscale(default_colors[didx], 1.+idx*0.2)
-                data[ekey][1].append('lt 1 lw 3 lc %s pt 0' % col)
                 momrange =  os.path.basename(infile).split('_')[-1][:-4]
-                data[ekey][2].append(' '.join([titles[didx], momrange]))
+                if idx < 1:
+                    data[ekey][0].append(fake)
+                    data[ekey][1].append('with lines lt 1 lw 5 lc %s' % col)
+                    data[ekey][2].append(titles[didx])
+                data[ekey][0].append(data_import)
+                data[ekey][1].append('lt 1 lw 3 lc %s pt 0' % col)
+                data[ekey][2].append('')
     # unsubtracted background
     make_panel(
         name = '%s/methods' % outDir, dpt_dict = data,
-        xr = [0,3.35], yr = [0.9,2e5], ylog = True,
+        xr = [0,3.35], yr = [0.9,2e5], ylog = True, lines = lines,
         xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
         ylabel = 'counts / %d MeV/c^{2}' % REBIN, layout = '2x2',
-        key = ['spacing 1.6'], gpcalls = ['boxwidth 0.002'],
-        # TODO vertical line for SE/ME
+        key = ['spacing 1.6', 'nobox'], gpcalls = ['boxwidth 0.002'],
+        labels = {
+            '{/=20 the lighter the color, the higher the p_{T}}': (1.5, 1e5)
+        }, key_subplot_id = 1,
     )
     return 'done'
     # background ratio and acc.corr.
