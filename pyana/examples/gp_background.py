@@ -117,6 +117,54 @@ def gp_background():
     )
     return 'done'
 
+def gp_rebin():
+    MIL = 1e6
+    NEVTS = { '19': 32.2307*MIL, '27': 63.6828*MIL, '39': 122.390*MIL, '62': 59.4631*MIL}
+    inDir, outDir = getWorkDirs()
+    data = OrderedDict()
+    titles = [ 'raw signal', 'rebinned raw signal']
+    lines = {'y=0.9': 'lc {} lt 2 lw 3'.format(default_colors[-4])}
+    min_content, max_content = 1e20, -1e20
+    colors = [default_colors[-9], default_colors[0]]
+    points = [1,6]
+    for eidx,energy in enumerate(['19', '27', '19', '27', '39', '62', '39', '62']):
+        sgn_idx = (eidx%4)/2
+        ekey = ' '.join([getEnergy4Key(energy), 'GeV'])
+        if sgn_idx == 0: ekey += ' {}'.format(sgn_idx)
+        data[ekey] = [[], [], []]
+        for didx,dtype in enumerate(['sig', 'sigRb']):
+            for idx,infile in enumerate(glob.glob(os.path.realpath(os.path.join(
+                inDir, 'rawdata', energy, 'pt-integrated', '%s.dat' % dtype
+            )))):
+                if sgn_idx == 1 and dtype == 'sigRb': continue
+                file_url = os.path.realpath(os.path.join(inDir, infile))
+                data_import = np.loadtxt(open(file_url, 'rb'))
+                data_import = data_import[data_import[:,0]>0.1]
+                for i in [1,3,4]:
+                    data_import[:,i] /= NEVTS[energy]
+                    if dtype == 'sig': data_import[:,i] /= 2*data_import[:,2]
+                if dtype == 'sig':
+                    data_import[:,4] = data_import[:,3]
+                    data_import[:,(2,3)] = 0
+                if sgn_idx == 0: data_import = data_import[data_import[:,1]>0]
+                else: data_import = np.abs(data_import[data_import[:,1]<0])
+                cur_min, cur_max = min(data_import[:,1]), max(data_import[:,1]) 
+                if ( cur_min < min_content ): min_content = cur_min
+                if ( cur_max > max_content ): max_content = cur_max
+                data[ekey][0].append(data_import)
+                data[ekey][1].append('lt 1 lw %d lc %s pt %d' % (
+                    3+didx, colors[didx], points[didx]))
+                data[ekey][2].append(titles[didx])
+    make_panel(
+        name = '%s/rebin' % outDir, dpt_dict = data, ylog = True,
+        xr = [0.1,3.2], yr = [2e-6, 7e-3], lines = lines, size = '7in,8in',
+        xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
+        ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
+        layout = '2x4', key = ['width -5', 'nobox'], rmargin = 0.999, tmargin = 0.999,
+        gpcalls = ['boxwidth 0.002', 'bars small', 'xtics (0.1,0.5,1,1.5,2,2.5,3)'],
+    )
+    return 'done'
+
 def gp_norm(infile):
     """indentify normalization region"""
     inDir, outDir = getWorkDirs()
@@ -213,7 +261,8 @@ if __name__ == '__main__':
     logging.basicConfig(
         format='%(message)s', level=getattr(logging, loglevel)
     )
-    print gp_background()
+    #gp_background()
     #gp_norm('rmm')
     #gp_norm('rpp')
     #gp_acc()
+    gp_rebin()
