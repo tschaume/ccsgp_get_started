@@ -4,6 +4,23 @@ from .utils import getWorkDirs, checkSymLink, getEnergy4Key
 from ..ccsgp.ccsgp import make_plot, make_panel
 from ..ccsgp.config import default_colors
 from collections import OrderedDict
+from fnmatch import fnmatch
+
+MIL = 1e6
+NEVTS = { '19': 32.2307*MIL, '27': 63.6828*MIL, '39': 122.390*MIL, '62': 59.4631*MIL}
+mee_ranges = OrderedDict([
+    ('omega', [0.76, 0.82]), ('phi', [0.98, 1.06]), ('jpsi', [2.97, 3.22])
+])
+masses = OrderedDict([
+    ('omega', 0.78265), ('phi', 1.019455), ('jpsi', 3.096916)
+])
+
+def getMeeLabel(s):
+  if s == 'pi0': return '{/Symbol \160}^0'
+  if s == 'omega': return '{/Symbol \167}'
+  if s == 'phi': return '{/Symbol \152}'
+  if s == 'jpsi': return 'J/{/Symbol \171}'
+  return s
 
 def _clamp(val, minimum = 0, maximum = 255):
     """convenience function to clamp number into min..max range"""
@@ -118,25 +135,23 @@ def gp_background():
     return 'done'
 
 def gp_rebin():
-    MIL = 1e6
-    NEVTS = { '19': 32.2307*MIL, '27': 63.6828*MIL, '39': 122.390*MIL, '62': 59.4631*MIL}
     inDir, outDir = getWorkDirs()
     data = OrderedDict()
-    titles = [ 'raw signal', 'rebinned raw signal']
+    titles = [ 'raw signal', 'rebinned raw signal', 'sigRbPtTotRaw']
     lines = {'y=0.9': 'lc {} lt 2 lw 3'.format(default_colors[-4])}
     min_content, max_content = 1e20, -1e20
-    colors = [default_colors[-9], default_colors[0]]
-    points = [1,6]
+    colors = [default_colors[-9], default_colors[0], default_colors[1]]
+    points = [1,6,4]
     for eidx,energy in enumerate(['19', '27', '19', '27', '39', '62', '39', '62']):
         sgn_idx = (eidx%4)/2
         ekey = ' '.join([getEnergy4Key(energy), 'GeV'])
         if sgn_idx == 0: ekey += ' {}'.format(sgn_idx)
         data[ekey] = [[], [], []]
-        for didx,dtype in enumerate(['sig', 'sigRb']):
+        for didx,dtype in enumerate(['sig', 'sigRb']):#, '../sigRbPtTotRaw']):
             for idx,infile in enumerate(glob.glob(os.path.realpath(os.path.join(
                 inDir, 'rawdata', energy, 'pt-integrated', '%s.dat' % dtype
             )))):
-                if sgn_idx == 1 and dtype == 'sigRb': continue
+                if sgn_idx == 1 and fnmatch(dtype, '*sigRb*'): continue
                 file_url = os.path.realpath(os.path.join(inDir, infile))
                 data_import = np.loadtxt(open(file_url, 'rb'))
                 data_import = data_import[data_import[:,0]>0.1]
@@ -162,6 +177,38 @@ def gp_rebin():
         ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ (GeV/c^2)^{-1} ]',
         layout = '2x4', key = ['width -5', 'nobox'], rmargin = 0.999, tmargin = 0.999,
         gpcalls = ['boxwidth 0.002', 'bars small', 'xtics (0.1,0.5,1,1.5,2,2.5,3)'],
+    )
+    return 'done'
+
+def gp_peaks():
+    inDir, outDir = getWorkDirs()
+    data = OrderedDict()
+    for particle,mee_range in mee_ranges.iteritems():
+        for eidx,energy in enumerate(['19', '27', '39', '62']):
+            key = '{/=20 '+getEnergy4Key(energy)+' GeV: '+getMeeLabel(particle)
+            if particle == 'jpsi': key += ' {/Symbol \264}50}'
+            data[key] = [[], [], []]
+            file_url = os.path.realpath(os.path.join(
+                inDir, 'rawdata', energy, 'sigRbPtTotRaw.dat'))
+            data_import = np.loadtxt(open(file_url, 'rb'))
+            #mask = (data_import[:,0] > mee_range[0]) & (data_import[:,0] < mee_range[1])
+            #data_import = data_import[mask]
+            for i in [1,3,4]: data_import[:,i] /= NEVTS[energy]
+            data_import[:,0] -= masses[particle]
+            if particle == 'jpsi': data_import[:,(1,3.4)] *= 50
+            data_import[:,(1,3,4)] *= 1000
+            data_import[:,4] = 0
+            data[key][0].append(data_import)
+            data[key][1].append('with boxerrorbars lt 1 lw 3 lc %s' % default_colors[eidx])
+            data[key][2].append('')
+    make_panel(
+        name = '%s/peaks' % outDir, dpt_dict = data,
+        xr = [-0.13,0.13], yr = [0,5.5], size = '5.5in,8.5in',
+        xlabel = 'M_{ee} - M_{%s,%s,%s} (GeV/c^{2})' % (
+            getMeeLabel('omega'), getMeeLabel('phi'), getMeeLabel('jpsi')
+        ), lmargin = 0.065,
+        ylabel = '1/N@_{mb}^{evt} dN@_{ee}^{acc.}/dM_{ee} [ 10^{-3} (GeV/c^2)^{-1} ]',
+        layout = '4x3', key = ['nobox'], gpcalls = ['bars small', 'boxwidth 0.002']
     )
     return 'done'
 
@@ -265,4 +312,5 @@ if __name__ == '__main__':
     #gp_norm('rmm')
     #gp_norm('rpp')
     #gp_acc()
-    gp_rebin()
+    #gp_rebin()
+    gp_peaks()
