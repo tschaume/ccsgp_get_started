@@ -17,7 +17,7 @@ def gp_datdir(initial, topN):
   Below is an output image for country initial T and the 4 most populated
   countries for this initial (click to enlarge). Also see::
 
-    $ python -m pyana.examples.gp_datdir -h
+    $ python -m ccsgp_get_started.examples.gp_datdir -h
 
   for help on the command line options.
 

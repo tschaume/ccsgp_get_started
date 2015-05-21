@@ -8,84 +8,84 @@ Get started with ccsgp!
 
 *Authors*
   **Patrick Huck** (GitHub_),
-  ``default_colors`` in :class:`pyana.ccsgp.config` contributed by Johanna Huck
+  ``default_colors`` in :class:`ccsgp_get_started.ccsgp.config` contributed by Johanna Huck
 
 *Date*
   |today|
 
 .. _GitHub: https://github.com/tschaume
 
-.. pyana/__init__.py
-.. automodule:: pyana
+.. ccsgp_get_started/__init__.py
+.. automodule:: ccsgp_get_started
    :members:
 
 Examples Module
 ---------------
 
-.. pyana/examples/__init__.py
-.. automodule:: pyana.examples
+.. ccsgp_get_started/examples/__init__.py
+.. automodule:: ccsgp_get_started.examples
    :members:
 
-.. pyana/examples/gp_datdir.py
-.. automodule:: pyana.examples.gp_datdir
+.. ccsgp_get_started/examples/gp_datdir.py
+.. automodule:: ccsgp_get_started.examples.gp_datdir
    :members:
 
-.. pyana/examples/gp_lcltpt.py
-.. automodule:: pyana.examples.gp_lcltpt
+.. ccsgp_get_started/examples/gp_lcltpt.py
+.. automodule:: ccsgp_get_started.examples.gp_lcltpt
    :members:
 
-.. pyana/examples/gp_xfac.py
-.. automodule:: pyana.examples.gp_xfac
+.. ccsgp_get_started/examples/gp_xfac.py
+.. automodule:: ccsgp_get_started.examples.gp_xfac
    :members:
 
-.. pyana/examples/gp_panel.py
-.. automodule:: pyana.examples.gp_panel
+.. ccsgp_get_started/examples/gp_panel.py
+.. automodule:: ccsgp_get_started.examples.gp_panel
    :members:
 
-.. pyana/examples/gp_stack.py
-.. automodule:: pyana.examples.gp_stack
+.. ccsgp_get_started/examples/gp_stack.py
+.. automodule:: ccsgp_get_started.examples.gp_stack
    :members:
 
-.. pyana/examples/gp_rdiff.py
-.. automodule:: pyana.examples.gp_rdiff
+.. ccsgp_get_started/examples/gp_rdiff.py
+.. automodule:: ccsgp_get_started.examples.gp_rdiff
    :members:
 
-.. pyana/examples/gp_ptspec.py
-.. automodule:: pyana.examples.gp_ptspec
+.. ccsgp_get_started/examples/gp_ptspec.py
+.. automodule:: ccsgp_get_started.examples.gp_ptspec
    :members:
 
-.. pyana/examples/utils.py
-.. automodule:: pyana.examples.utils
+.. ccsgp_get_started/examples/utils.py
+.. automodule:: ccsgp_get_started.examples.utils
    :members:
 
 ccsgp
 -----
 
-.. pyana/ccsgp/__init__.py
-.. automodule:: pyana.ccsgp
+.. ccsgp_get_started/ccsgp/__init__.py
+.. automodule:: ccsgp_get_started.ccsgp
    :members:
 
 User Functions
 ^^^^^^^^^^^^^^
 
-.. pyana/ccsgp/ccsgp.py
-.. automodule:: pyana.ccsgp.ccsgp
+.. ccsgp_get_started/ccsgp/ccsgp.py
+.. automodule:: ccsgp_get_started.ccsgp.ccsgp
    :members:
 
 Base Class
 ^^^^^^^^^^
 
-.. automodule:: pyana.ccsgp.myplot
+.. automodule:: ccsgp_get_started.ccsgp.myplot
    :members:
    :private-members:
 
 Config & Utils
 ^^^^^^^^^^^^^^
 
-.. automodule:: pyana.ccsgp.config
+.. automodule:: ccsgp_get_started.ccsgp.config
    :members:
 
-.. automodule:: pyana.ccsgp.utils
+.. automodule:: ccsgp_get_started.ccsgp.utils
    :members:
 
 Indices and tables

@@ -61,7 +61,7 @@ Installation
      $ cd ccsgp_get_started/
      $ ln -s <path/to/ccsgp_get_started_data> pyanaDir
 
-   `pyana.aux.utils.checkSymLink` checks for the *pyanaDir* symbolic link and
+   `ccsgp_get_started.aux.utils.checkSymLink` checks for the *pyanaDir* symbolic link and
    the code won't run without it. Hence you need to generate a symlink called
    *pyanaDir* either to *ccsgp_get_started_data* or your own input/output
    directory (preferably separated from the code repository).
