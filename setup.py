@@ -13,7 +13,8 @@ setup(
     author = metadata['author'],
     author_email = metadata['email'],
     url = metadata['url'],
-    packages = [package_name],
+    packages = [package_name, '{}.ccsgp'.format(package_name),
+                '{}.examples'.format(package_name)],
     dependency_links = [
         'http://sourceforge.net/projects/gnuplot-py/files/Gnuplot-py/1.8/gnuplot-py-1.8.tar.gz/download'
     ],
