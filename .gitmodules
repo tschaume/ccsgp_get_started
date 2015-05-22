@@ -1,3 +1,6 @@
 [submodule "ccsgp_get_started/ccsgp"]
 	path = ccsgp_get_started/ccsgp
 	url = https://github.com/tschaume/ccsgp.git
+[submodule "data"]
+	path = data
+	url = git@github.com:tschaume/ccsgp_get_started_data.git
