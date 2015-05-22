@@ -1,6 +1,4 @@
 numpy==1.9.2
---allow-external gnuplot-py
---allow-unverified gnuplot-py
-gnuplot-py==1.8
+http://prdownloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?download
 Pint==0.5.1
 uncertainties==2.4.4
