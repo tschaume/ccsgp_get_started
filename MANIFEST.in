@@ -1,0 +1,4 @@
+include LICENSE
+include README
+include make_thesis_plots.sh
+recursive-include data *

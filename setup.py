@@ -15,6 +15,7 @@ setup(
     url = metadata['url'],
     packages = [package_name, '{}.ccsgp'.format(package_name),
                 '{}.examples'.format(package_name)],
+    include_package_data=True,
     dependency_links = [
         'http://sourceforge.net/projects/gnuplot-py/files/Gnuplot-py/1.8/gnuplot-py-1.8.tar.gz/download'
     ],
