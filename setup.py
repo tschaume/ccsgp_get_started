@@ -4,11 +4,11 @@ from setuptools import setup, find_packages
 
 setup(
   name = 'ccsgp_get_started',
-  version = '1.0',
-  description = 'get started with ccsp',
+  version = '2.0',
+  description = 'get started with ccsgp',
   licence = 'MIT',
   author = 'Patrick Huck',
-  author_email = 'phuck@lbl.gov',
+  author_email = 'patrick@the-huck.com',
   url = 'https://github.com/tschaume/ccsgp_get_started',
   packages = find_packages(),
   install_requires = [
