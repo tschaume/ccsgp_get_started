@@ -1,6 +1,6 @@
 """get started with the ccsgp plotting library"""
 
-__version__ = '2.0.4'
+__version__ = '2.0.5'
 __url__ = 'https://github.com/tschaume/ccsgp_get_started'
 __author__ = 'Patrick Huck'
 __email__ = 'patrick@the-huck.com'

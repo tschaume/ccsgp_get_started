@@ -1,5 +1,10 @@
 # [Changelog](https://github.com/tschaume/ccsgp_get_started/releases)
 
+## [2.0.5](https://github.com/tschaume/ccsgp_get_started/compare/2.0.4...2.0.5)
+
+* [7da6095](https://github.com/tschaume/ccsgp_get_started/commit/7da6095) manual changelog update
+* [d83aa5f](https://github.com/tschaume/ccsgp_get_started/commit/d83aa5f) ccsgp: Gnuplot update
+
 ## [2.0.4](https://github.com/tschaume/ccsgp_get_started/compare/2.0.3...2.0.4)
 
 * [423d996](https://github.com/tschaume/ccsgp_get_started/commit/423d996) retire gnuplot dependency
