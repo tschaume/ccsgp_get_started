@@ -1,4 +1,4 @@
-__version__ = '2.0.1'
+__version__ = '2.0.0'
 __url__ = 'https://github.com/tschaume/ccsgp_get_started'
 __author__ = 'Patrick Huck'
 __email__ = 'patrick@the-huck.com'
