@@ -6,10 +6,12 @@ setup(
   name = 'ccsgp_get_started',
   version = '2.0',
   description = 'get started with ccsgp',
-  licence = 'MIT',
+  license = 'MIT',
   author = 'Patrick Huck',
   author_email = 'patrick@the-huck.com',
   url = 'https://github.com/tschaume/ccsgp_get_started',
+  download_url = 'https://github.com/tschaume/ccsgp_get_started/archive/v2.0.tar.gz',
+  keywords = ['gnuplot', 'graph', 'plot', 'panel'],
   packages = find_packages(),
   install_requires = [
     #'h5py==2.2.1',
