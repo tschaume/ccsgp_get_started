@@ -7,9 +7,14 @@ from .utils import particleLabel4Key, getMassRangesSums, getErrorComponent
 from ..ccsgp.ccsgp import make_plot
 from ..ccsgp.utils import getOpts
 from ..ccsgp.config import default_colors
-from pymodelfit import LinearModel
 from uncertainties import ufloat
 from decimal import Decimal
+
+try:
+    from pymodelfit import LinearModel
+    linmod = LinearModel()
+except ImportError:
+    linmod = None
 
 dataIMRfit_style = 'with lines lc %s lw 4 lt 1' % default_colors[-2]
 cocktailIMRfit_style = 'with lines lc %s lw 4 lt 2' % default_colors[-2]
@@ -51,7 +56,6 @@ def gp_stack(version, energies, inclMed, inclFits):
   data, cocktail, medium = OrderedDict(), OrderedDict(), OrderedDict()
   dataIMRfit, cocktailIMRfit, dataTvsS = OrderedDict(), OrderedDict(), OrderedDict()
   cocktailContribs, medOnly, qgpOnly = OrderedDict(), OrderedDict(), OrderedDict()
-  linmod = LinearModel()
   rangeIMR = [1.15, 2.5]
   nPtsMC = 1000 # number of MC points per data point
   cRanges = map(Decimal, ['0.', '0.1'])
@@ -84,7 +88,7 @@ def gp_stack(version, energies, inclMed, inclFits):
     ) else np.loadtxt(open(file_url, 'rb'))
     # fit IMR region with exp(-M/kT+C)
     if (
-      inclFits and energies is None and
+      inclFits and energies is None and linmod is not None and
       (data_type == 'data' or data_type == 'cocktail')
     ):
       # data in IMR
