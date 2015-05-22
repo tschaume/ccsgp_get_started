@@ -8,7 +8,8 @@ Get started with ccsgp!
 
 *Authors*
   **Patrick Huck** (GitHub_),
-  ``default_colors`` in :class:`ccsgp_get_started.ccsgp.config` contributed by Johanna Huck
+  original ``default_colors`` in :class:`ccsgp_get_started.ccsgp.config`
+  contributed by Johanna Huck
 
 *Date*
   |today|

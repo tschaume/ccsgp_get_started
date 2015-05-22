@@ -9,11 +9,11 @@ python -m ccsgp_get_started.examples.gp_rdiff --diffRel LatestPatrickJieYi
 python -m ccsgp_get_started.examples.gp_rdiff --divdNdy LatestPatrickJieYi
 python -m ccsgp_get_started.examples.gp_ptspec
 open \
-  pyanaDir/examples/gp_rapp/output/rapp_overview_panel.pdf \
-  pyanaDir/examples/gp_stack/output/stackLatestPatrickJieYiInclMed.pdf \
-  pyanaDir/examples/gp_panel/output/panelLatestPatrickJieYi.pdf \
-  pyanaDir/examples/gp_rdiff/output/diffAbsLatestPatrickJieYiNoXErr.pdf \
-  pyanaDir/examples/gp_rdiff/output/diffRelLatestPatrickJieYiNoXErr.pdf \
-  pyanaDir/examples/gp_rdiff/output/enhanceLatestPatrickJieYi.pdf \
-  pyanaDir/examples/gp_rdiff/output/excessLatestPatrickJieYiDivdNdy.pdf \
-  pyanaDir/examples/gp_ptspec/output/ptspec.pdf
+  data/examples/gp_rapp/output/rapp_overview_panel.pdf \
+  data/examples/gp_stack/output/stackLatestPatrickJieYiInclMed.pdf \
+  data/examples/gp_panel/output/panelLatestPatrickJieYi.pdf \
+  data/examples/gp_rdiff/output/diffAbsLatestPatrickJieYiNoXErr.pdf \
+  data/examples/gp_rdiff/output/diffRelLatestPatrickJieYiNoXErr.pdf \
+  data/examples/gp_rdiff/output/enhanceLatestPatrickJieYi.pdf \
+  data/examples/gp_rdiff/output/excessLatestPatrickJieYiDivdNdy.pdf \
+  data/examples/gp_ptspec/output/ptspec.pdf

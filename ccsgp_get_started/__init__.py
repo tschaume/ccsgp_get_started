@@ -51,22 +51,12 @@ Installation
    use it, uncomment the h5py requirement in ``requirements.txt`` and rerun ``$
    pip install -r requirements.txt``.
 
-4. If you intend to run the examples, clone the test data repository::
+4. As member of the STAR collaboration you can also pull in the protected data::
 
-     $ git clone http://gitlab.the-huck.com/github/ccsgp_get_started_data.git
-
-   Pull in public STAR dielectron data into a new branch to use gp_xfac and gp_panel::
-
-     $ cd <path/to/ccsgp_get_started_data>
-     $ git remote add dielec_public http://gitlab.the-huck.com/star/dielectron_data_public.git
-     $ git checkout -b star_dielec
-     $ git pull dielec_public master
-
-   If you are part of the STAR collaboration you can also pull in the protected
-   STAR dielectron data to include it in gp_panel::
-
-     $ git remote add dielec_protect http://cgit.the-huck.com/dielectron_data_protected
-     $ git pull -Xtheirs dielec_protect master
+     $ cd data
+     $ git remote add dielec http://cgit.the-huck.com/dielectron_data_protected
+     $ git checkout -b dielec
+     $ git pull dielec master
        (enter STAR protected credentials)
 
 

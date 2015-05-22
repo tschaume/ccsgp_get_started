@@ -20,7 +20,7 @@ ltf_combs = list(chain(*ltf_perms))
 
 def getBaseDir(plot):
     # TODO: de-hardcode
-    return 'pyanaDir/examples/%s/input' % plot
+    return 'data/examples/%s/input' % plot
 
 def inBaseDirExists(plot): return os.path.exists(getBaseDir(plot))
 
