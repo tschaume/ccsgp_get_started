@@ -1,7 +1,7 @@
-wsgiref==0.1.2
-numpy>=1.8.0
+ez-setup==0.9
+numpy==1.9.2
 gnuplot-py==1.8
+Pint==0.5.1
+PyModelFit==0.1.2
 uncertainties==2.4.4
-pint==0.5.1
-pymodelfit==0.1.2
 #h5py==2.2.1
