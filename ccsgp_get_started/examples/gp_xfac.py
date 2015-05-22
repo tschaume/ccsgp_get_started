@@ -2,7 +2,7 @@ import logging, argparse, os, sys
 import numpy as np
 from collections import OrderedDict
 from ..ccsgp.ccsgp import make_plot
-from .utils import getWorkDirs, checkSymLink
+from .utils import getWorkDirs
 from ..ccsgp.utils import getOpts
 
 shift = {
@@ -62,7 +62,6 @@ def gp_xfac():
   return 'done'
 
 if __name__ == '__main__':
-  checkSymLink()
   parser = argparse.ArgumentParser()
   #parser.add_argument("initial", help="country initial = input subdir with txt files")
   parser.add_argument("--log", help="show log output", action="store_true")

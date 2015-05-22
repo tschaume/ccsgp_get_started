@@ -6,13 +6,6 @@ from decimal import Decimal
 mass_titles = [ 'pi0', 'LMR', 'omphi', 'IMR' ]
 eRanges = np.array([ Decimal(str(e)) for e in [ 0, 0.4, 0.75, 1.1, 3. ] ])
 
-def checkSymLink():
-  """check for symbolic link to input directory"""
-  link_name = __name__.split('.')[0] + 'Dir'
-  if not os.path.islink(link_name):
-    logging.critical('create symlink %s to continue!' % link_name)
-    sys.exit(1)
-
 def getWorkDirs():
   """get input/output dirs (same input/output layout as for package)"""
   # get caller module

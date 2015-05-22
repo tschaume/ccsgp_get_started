@@ -1,6 +1,5 @@
 import string, logging, argparse, os
 from itertools import permutations, chain
-from examples.utils import checkSymLink
 from examples.gp_datdir import gp_datdir
 from examples.gp_lcltpt import gp_lcltpt
 from examples.gp_panel import gp_panel
@@ -29,7 +28,6 @@ def inDirExists(plot, version):
     return os.path.exists('%s/%s' % (getBaseDir(plot), version))
 
 if __name__ == '__main__':
-    checkSymLink()
     parser = argparse.ArgumentParser()
     parser.add_argument("--log", help="show log output", action="store_true")
     args = parser.parse_args()

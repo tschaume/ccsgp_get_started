@@ -1,5 +1,5 @@
 import os, argparse, logging, math
-from .utils import getWorkDirs, checkSymLink, getEnergy4Key, particleLabel4Key
+from .utils import getWorkDirs, getEnergy4Key, particleLabel4Key
 from collections import OrderedDict
 from ..ccsgp.ccsgp import make_plot, make_panel
 from ..ccsgp.config import default_colors
@@ -68,7 +68,6 @@ def gp_tbw(shift = False):
 
 
 if __name__ == '__main__':
-    checkSymLink()
     parser = argparse.ArgumentParser()
     parser.add_argument("--log", help="show log output", action="store_true")
     args = parser.parse_args()

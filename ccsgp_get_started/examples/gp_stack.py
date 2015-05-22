@@ -2,7 +2,7 @@ import logging, argparse, os, sys, re, math, random
 import numpy as np
 from fnmatch import fnmatch
 from collections import OrderedDict
-from .utils import getWorkDirs, checkSymLink, getEnergy4Key
+from .utils import getWorkDirs, getEnergy4Key
 from .utils import particleLabel4Key, getMassRangesSums, getErrorComponent
 from ..ccsgp.ccsgp import make_plot
 from ..ccsgp.utils import getOpts
@@ -295,7 +295,6 @@ def gp_stack(version, energies, inclMed, inclFits):
   return 'done'
 
 if __name__ == '__main__':
-  checkSymLink()
   parser = argparse.ArgumentParser()
   parser.add_argument("version", help="version = subdir name of input dir")
   parser.add_argument("--energies", nargs='*', help="list of energies to plot (for animation)")

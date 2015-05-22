@@ -2,7 +2,7 @@ import logging, argparse, os, re
 import numpy as np
 from ..ccsgp.config import default_colors
 from ..ccsgp.ccsgp import make_plot, make_panel
-from .utils import getWorkDirs, checkSymLink, getMassRangesSums, getEnergy4Key
+from .utils import getWorkDirs, getMassRangesSums, getEnergy4Key
 from math import pi, log
 from collections import OrderedDict
 
@@ -159,7 +159,6 @@ def gp_rapp_overview_panel():
   )
 
 if __name__ == '__main__':
-  checkSymLink()
   parser = argparse.ArgumentParser()
   parser.add_argument("--log", help="show log output", action="store_true")
   args = parser.parse_args()

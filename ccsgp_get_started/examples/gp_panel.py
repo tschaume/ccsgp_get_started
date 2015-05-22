@@ -1,7 +1,7 @@
 import logging, argparse, os, sys, re
 import numpy as np
 from collections import OrderedDict
-from .utils import getWorkDirs, checkSymLink, getEnergy4Key
+from .utils import getWorkDirs, getEnergy4Key
 from ..ccsgp.ccsgp import make_panel
 from ..ccsgp.utils import getOpts
 from ..ccsgp.config import default_colors
@@ -100,7 +100,6 @@ def gp_panel(version, skip):
   return 'done'
 
 if __name__ == '__main__':
-  checkSymLink()
   parser = argparse.ArgumentParser()
   parser.add_argument("version", help="version = subdir name of input dir")
   parser.add_argument("--skip", help="skip an energy", metavar="energy")

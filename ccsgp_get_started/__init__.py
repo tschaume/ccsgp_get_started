@@ -51,20 +51,9 @@ Installation
    use it, uncomment the h5py requirement in ``requirements.txt`` and rerun ``$
    pip install -r requirements.txt``.
 
-4. If you intend to run the examples, clone the test data repository (somewhere
-   outside of ccsgp_get_started repository)::
+4. If you intend to run the examples, clone the test data repository::
 
      $ git clone http://gitlab.the-huck.com/github/ccsgp_get_started_data.git
-
-   and symlink *pyanaDir* to the *ccsgp_get_started_data* directory::
-
-     $ cd ccsgp_get_started/
-     $ ln -s <path/to/ccsgp_get_started_data> pyanaDir
-
-   `ccsgp_get_started.aux.utils.checkSymLink` checks for the *pyanaDir* symbolic link and
-   the code won't run without it. Hence you need to generate a symlink called
-   *pyanaDir* either to *ccsgp_get_started_data* or your own input/output
-   directory (preferably separated from the code repository).
 
    Pull in public STAR dielectron data into a new branch to use gp_xfac and gp_panel::
 

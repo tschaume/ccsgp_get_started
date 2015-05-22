@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from ..ccsgp.ccsgp import make_plot
-from .utils import getWorkDirs, checkSymLink
+from .utils import getWorkDirs
 from ..ccsgp.config import default_colors
 
 def gp_lcltpt():
@@ -29,7 +29,6 @@ def gp_lcltpt():
 
 if __name__ == '__main__':
   import argparse
-  checkSymLink()
   parser = argparse.ArgumentParser()
   args = parser.parse_args()
   print gp_lcltpt()

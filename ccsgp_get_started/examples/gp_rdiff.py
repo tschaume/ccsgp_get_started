@@ -2,7 +2,7 @@ import logging, argparse, os, sys, re
 import numpy as np
 from fnmatch import fnmatch
 from collections import OrderedDict
-from .utils import getWorkDirs, checkSymLink, eRanges, getEnergy4Key
+from .utils import getWorkDirs, eRanges, getEnergy4Key
 from .utils import getUArray, getEdges, getCocktailSum, enumzipEdges, getMassRangesSums
 from .utils import getErrorComponent
 from ..ccsgp.ccsgp import make_plot
@@ -553,7 +553,6 @@ def gp_rdiff_merged(version, divdNdy):
   return 'done'
 
 if __name__ == '__main__':
-  checkSymLink()
   parser = argparse.ArgumentParser()
   parser.add_argument("version", help="version = subdir name of input dir")
   parser.add_argument("--nomed", help="don't plot medium", action="store_true")

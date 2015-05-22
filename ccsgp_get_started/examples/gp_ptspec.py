@@ -1,7 +1,7 @@
 import logging, argparse, os, sys, re
 import numpy as np
 from collections import OrderedDict
-from .utils import getWorkDirs, checkSymLink, getEnergy4Key
+from .utils import getWorkDirs, getEnergy4Key
 from ..ccsgp.ccsgp import make_panel, make_plot
 from ..ccsgp.utils import getOpts
 from ..ccsgp.config import default_colors
@@ -239,7 +239,6 @@ def gp_ptspec():
   return 'done'
 
 if __name__ == '__main__':
-  checkSymLink()
   parser = argparse.ArgumentParser()
   parser.add_argument("--log", help="show log output", action="store_true")
   args = parser.parse_args()
