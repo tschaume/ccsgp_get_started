@@ -13,14 +13,13 @@ setup(
     author = metadata['author'],
     author_email = metadata['email'],
     url = metadata['url'],
-    packages = [package_name, '{}.ccsgp'.format(package_name),
-                '{}.examples'.format(package_name)],
-    include_package_data=True,
-    setup_requires = [ 'numpy==1.9.2' ],
-    install_requires = [ 'numpy==1.9.2', 'Pint==0.5.1', 'uncertainties==2.4.4', 'gnuplot-py==1.8' ],
-    dependency_links = [
-        'http://prdownloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?download'
+    packages = [
+        package_name, '{}.ccsgp'.format(package_name),
+        '{}.ccsgp.Gnuplot'.format(package_name),
+        '{}.examples'.format(package_name)
     ],
+    include_package_data=True,
+    install_requires = [ 'numpy==1.9.2', 'Pint==0.5.1', 'uncertainties==2.4.4' ],
     license = 'MIT',
     keywords = ['gnuplot', 'graph', 'plot', 'panel'],
 )
