@@ -1,13 +1,20 @@
+import io, re
 from setuptools import setup
+
+package_name = 'ccsgp_get_started'
+init_py = io.open('{}/__init__.py'.format(package_name)).read()
+metadata = dict(re.findall("__([a-z]+)__ = '([^']+)'", init_py))
+metadata['doc'] = re.findall('"""(.+)"""', init_py)[0]
+
 setup(
-  name = 'ccsgp_get_started',
-  version = '2.0',
-  description = 'get started with ccsgp',
-  license = 'MIT',
-  author = 'Patrick Huck',
-  author_email = 'patrick@the-huck.com',
-  url = 'https://github.com/tschaume/ccsgp_get_started',
-  download_url = 'https://github.com/tschaume/ccsgp_get_started/archive/v2.0.tar.gz',
-  keywords = ['gnuplot', 'graph', 'plot', 'panel'],
-  packages = ['ccsgp_get_started'],
+    name = package_name,
+    version = metadata['version'],
+    description = metadata['doc'],
+    author = metadata['author'],
+    author_email = metadata['email'],
+    url = metadata['url'],
+    packages = [package_name],
+    install_requires = io.open('requirements.txt').readlines(),
+    license = open('LICENSE').read(),
+    keywords = ['gnuplot', 'graph', 'plot', 'panel'],
 )
