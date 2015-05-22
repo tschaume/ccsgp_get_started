@@ -3,4 +3,3 @@ http://sourceforge.net/projects/gnuplot-py/files/Gnuplot-py/1.8/gnuplot-py-1.8.t
 Pint==0.5.1
 PyModelFit==0.1.2
 uncertainties==2.4.4
-#h5py==2.2.1

@@ -14,7 +14,10 @@ setup(
     author_email = metadata['email'],
     url = metadata['url'],
     packages = [package_name],
-    install_requires = io.open('requirements.txt').readlines(),
+    install_requires = [
+        'numpy==1.9.2', 'gnuplot-py==1.8', 'Pint==0.5.1',
+        'PyModelFit==0.1.2', 'uncertainties==2.4.4'
+    ],
     license = open('LICENSE').read(),
     keywords = ['gnuplot', 'graph', 'plot', 'panel'],
 )
