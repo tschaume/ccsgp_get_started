@@ -1,4 +1,3 @@
-ez-setup==0.9
 numpy==1.9.2
 gnuplot-py==1.8
 Pint==0.5.1
