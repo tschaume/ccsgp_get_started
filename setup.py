@@ -16,10 +16,11 @@ setup(
     packages = [package_name, '{}.ccsgp'.format(package_name),
                 '{}.examples'.format(package_name)],
     include_package_data=True,
+    setup_requires = [ 'numpy==1.9.2' ],
+    install_requires = [ 'numpy==1.9.2', 'Pint==0.5.1', 'uncertainties==2.4.4', 'gnuplot-py==1.8' ],
     dependency_links = [
-        'http://sourceforge.net/projects/gnuplot-py/files/Gnuplot-py/1.8/gnuplot-py-1.8.tar.gz/download'
+        'http://prdownloads.sourceforge.net/gnuplot-py/gnuplot-py-1.8.tar.gz?download'
     ],
-    install_requires = [ 'numpy==1.9.2', 'Pint==0.5.1', 'uncertainties==2.4.4', 'gnuplot-py==1.8'],
     license = 'MIT',
     keywords = ['gnuplot', 'graph', 'plot', 'panel'],
 )
