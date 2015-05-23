@@ -3,3 +3,4 @@ env/*
 *.swp
 output/*
 ccsgp_get_started/.changes
+ccsgp_get_started.egg-info
