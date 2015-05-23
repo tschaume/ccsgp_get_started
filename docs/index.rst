@@ -66,6 +66,10 @@ ccsgp
 .. automodule:: ccsgp_get_started.ccsgp
    :members:
 
+.. ccsgp_get_started/ccsgp/Gnuplot/__init__.py
+.. automodule:: ccsgp_get_started.ccsgp.Gnuplot
+   :members:
+
 User Functions
 ^^^^^^^^^^^^^^
 
