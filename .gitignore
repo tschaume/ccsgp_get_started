@@ -1,4 +1,5 @@
 env/*
 *.pyc
 *.swp
-*/output/*
+output/*
+ccsgp_get_started/.changes
