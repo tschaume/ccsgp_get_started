@@ -73,7 +73,7 @@ def gp_datdir(initial, topN):
     name = os.path.join(outDir, initial),
     key = [ 'at graph 1., 1.2', 'maxrows 2' ],
     ylabel = 'total population ({/Symbol \664} 10^{6})',
-    xlabel = 'year', lmargin = 0.08, tmargin = 0.9
+    xlabel = 'year', rmargin = 0.99, tmargin = 0.85, size='8.5in,8in'
   )
   return 'done'
 
