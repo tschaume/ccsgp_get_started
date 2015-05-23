@@ -14,9 +14,9 @@ def getWorkDirs():
   caller_modurl = os.path.splitext(caller_relurl)[0]
   # split caller_url & append 'Dir' to package name
   dirs = caller_modurl.split('/')
-  dirs[0] += 'Dir'
+  dirs[0] = 'data' # TODO de-hardcode
   # get, check and create outdir
-  outDir = os.path.join(*(dirs + ['output']))
+  outDir = os.path.join(*(['output'] + dirs[1:]))
   if not os.path.exists(outDir): os.makedirs(outDir)
   # get and check indir
   dirs.append('input')
