@@ -16,11 +16,10 @@ def gp_panel(version, skip):
   :param version: plot version / input subdir name
   :type version: str
   """
-  #scale = { # QM14 (19 GeV skip later, factor here only informational)
-  #  '19': 1.0340571932983775, '200': 1.0, '39': 0.7776679085382481,
-  #  '27': 0.6412140408244136, '62': 0.9174700031778402
-  #}
-  scale = {
+  scale = { # QM14 (19 GeV skip later, factor here only informational)
+    '19': 1.0340571932983775, '200': 1.0, '39': 0.7776679085382481,
+    '27': 0.6412140408244136, '62': 0.9174700031778402
+  } if version == 'QM14' else {
       '19': 1.3410566491548412, '200': 1.1051002240771077,
       '39': 1.2719203877292842, '27': 1.350873678084769,
       '62': 1.2664666321635087
