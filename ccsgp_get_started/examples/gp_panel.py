@@ -95,7 +95,8 @@ def gp_panel(version, skip):
     ],
     layout = '3x2' if panel2D_versions else ('%dx1' % len(data)),
     key = ['width -2', 'at graph 0.95,0.85'],
-    key_subplot_id = 5, size = '8in,8in'
+    key_subplot_id = 5 if version != 'QM12' else 0,
+    size = '8in,8in' if version != 'QM12' else '5in,8.5in'
   )
   return 'done'
 
