@@ -51,6 +51,8 @@ def gp_stack(version, energies, inclMed, inclFits):
   ) else {
     '200': 200., '62': 20., '39': 1., '19': 0.05
   }
+  if version == 'QM14':
+      shift = { '200': 200., '62': 25., '39': 2., '27': 0.03, '19': 2e-3 }
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, version)
   data, cocktail, medium = OrderedDict(), OrderedDict(), OrderedDict()
@@ -174,8 +176,10 @@ def gp_stack(version, energies, inclMed, inclFits):
       medium[energy] = data_import if energy != '200' else data_import[data_import[:,0] < 0.9]
     elif inclMed and fnmatch(filename, 'medium*Only39.dat'):
       data_import[:,2:] = 0 # don't plot any errors
-      if fnmatch(filename, '*Qgp*'): qgpOnly[energy] = data_import#[data_import[:,0] < 1.07]
-      if fnmatch(filename, '*Med*'): medOnly[energy] = data_import#[data_import[:,0] < 1.07]
+      if fnmatch(filename, '*Qgp*'):
+          qgpOnly[energy] = data_import if version != 'QM14' else data_import[data_import[:,0] < 1.07]
+      if fnmatch(filename, '*Med*'):
+          medOnly[energy] = data_import if version != 'QM14' else data_import[data_import[:,0] < 1.07]
   # calculate data-to-cocktail scaling factors in pi0 region < 0.1 GeV/c2
   # cocktail/data
   scale = {}
@@ -250,8 +254,10 @@ def gp_stack(version, energies, inclMed, inclFits):
     + [ cocktailIMRfit_style ] * (nSetsCocktailIMRfit+1),
     titles = [ particleLabel4Key(k) for k in cocktailContribs.keys() ]
     + [''] * nSetsCocktail + ['Cocktail (w/o {/Symbol \162})']
-    + ['QGP', 'HMBT'] * bool(nSetsModelOnly)
-    + [''] * nSetsMedium + ['Cock. + HMBT + QGP'] * bool(nSetsMedium) + dataOrdered.keys()
+    + ['QGP', 'HMBT' if version != 'QM14' else 'in-Medium'] * bool(nSetsModelOnly)
+    + [''] * nSetsMedium + [
+        'Cock. + HMBT + QGP' if version != 'QM14' else 'Cocktail + Model'
+    ] * bool(nSetsMedium) + dataOrdered.keys()
     + [''] * nSetsDataIMRfit + [''] * inclFits
     + [''] * nSetsCocktailIMRfit + [''] * inclFits,
     name = os.path.join(outDir, 'stack%s%s%s%s' % (
@@ -264,17 +270,16 @@ def gp_stack(version, energies, inclMed, inclFits):
     bmargin = 0.09, rmargin = 0.995, tmargin = 0.99,
     #tmargin = 0.9 if version != 'QM12Latest200' else 0.99,
     key = [
-      'width -6.3', 'maxrows 7', 'font ",21"', #'samplen 0.8'#, 'spacing 0.9'
-    ] if version != 'QM12Latest200' else [
-      'width -14', 'maxcols 1'
-    ],
+      'width -6.3', 'maxrows 7', 'font ",21"',
+      'samplen 0.5' if version == 'QM14' else 'samplen 1'#, 'spacing 0.9'
+    ] if version != 'QM12Latest200' else [ 'width -14', 'maxcols 1' ],
     labels = {
-      'BES: STAR Preliminary': [0.05,0.9,False],
-      '200 GeV: PRL 113 022301': [0.05,0.86,False],
+      'BES: STAR Preliminary': [0.05,0.9,False] if version != 'QM14' else [0.4,0.75,False],
+      '200 GeV: PRL 113 022301': [0.05,0.86,False] if version != 'QM14' else [0.4,0.71,False],
       #'{/Symbol=50 \775}': [0.64,0.81 if not inclMed else 0.75,False]
     } if version == 'QM12Latest200' or version == 'QM14' \
       or version == 'LatestPatrickJieYi' else {},
-    size = '16in,12in',
+    size = '16in,12in' if version != 'QM14' else '11in,13in',
     #arrows = [ # example arrow
     #  [ [2.4, 5e-5], [2.3, 1e-5], 'head filled lc 1 lw 4 lt 1 front' ],
     #],
