@@ -30,8 +30,8 @@ def getUArray(npArr):
   """uncertainty array multiplied by binwidth (col2 = dx)"""
   ufloats = []
   for dp in npArr:
-      u = ufloat(dp[1], dp[3], 'stat')
-      v = ufloat(dp[1], dp[4], 'syst')
+      u = ufloat(dp[1], abs(dp[3]), 'stat')
+      v = ufloat(dp[1], abs(dp[4]), 'syst')
       r = (u+v)/2.*dp[2]*2.
       ufloats.append(r)
       # NOTE: center value ok, but both error contribs half!
