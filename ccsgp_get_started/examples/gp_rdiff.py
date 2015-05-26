@@ -435,32 +435,47 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
           [ 7.7, 2*avg, 0, 0, 0], [ 19.6, avg, 0, 0, 0],
       ]),
       np.array(excess['LMR']),
-      np.array(excess['LMR_Med']),
-      np.array(excess['LMR_VacRho']),
-      np.array(excess['LMR_RhoFO']),
   ]
   props = [
       'with filledcurves pt 0 lc %s lw 4 lt 2' % default_colors[8],
       'with lines lc %s lw 4 lt 2' % default_colors[8],
       'with lines lc %s lw 8 lt 2' % default_colors[1],
       'lt 1 lw 4 ps 2 lc %s pt 18' % default_colors[0],
-      'with lines lt 2 lw 4 lc %s' % default_colors[-1],
-      'with lines lt 3 lw 4 lc %s' % default_colors[-1],
-      'with lines lt 4 lw 4 lc %s' % default_colors[-1],
   ]
   tits = [
       'BES-I extrapolation', '', 'model expectation', 'STAR Au+Au',
-      'HMBT + QGP', '{/Symbol \162}/{/Symbol \167} VacSF+FB', 'BW/FO-{/Symbol \162}',
   ]
+  if version != 'QM14':
+      graph_data += [
+          np.array(excess['LMR_Med']),
+          np.array(excess['LMR_VacRho']),
+          np.array(excess['LMR_RhoFO']),
+      ]
+      props += [
+          'with lines lt 2 lw 4 lc %s' % default_colors[-1],
+          'with lines lt 3 lw 4 lc %s' % default_colors[-1],
+          'with lines lt 4 lw 4 lc %s' % default_colors[-1],
+      ]
+      tits += [
+          'HMBT + QGP', '{/Symbol \162}/{/Symbol \167} VacSF+FB', 'BW/FO-{/Symbol \162}',
+      ]
   yr_upp = 4.5 if version == 'QM12Latest200' or version == 'QM14' else 7
   if version == 'LatestPatrickJieYi': yr_upp = 2 if divdNdy else 2.
-  labels = {}
+  labels = {} if version != 'QM14' else labels
   if divdNdy:
     labels.update(dict((str(v), [float(k)*0.9,yr_upp*1.05,True]) for k,v in dNdyPi0.items()))
     labels.update({ 'dN/dy|_{/Symbol \\160}': [100,yr_upp*1.05,True]})
-  #labels.update({
-  #    '{LMR: %.2f < M_{ee} < %.2f GeV/c^{2}}' % (eRanges[1], eRanges[2]): [0.4,0.15,False],
-  #})
+  gpcalls = [
+    'format x "%g"',
+    'xtics (7,10,20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
+    'boxwidth 0.025 absolute',
+  ]
+  if version == 'QM14':
+    labels.update({
+      '{LMR: %.2f < M_{ee} < %.2f GeV/c^{2}}' % (eRanges[1], eRanges[2]): [0.4,0.15,False],
+    })
+  else:
+    gpcalls.append('label 52 "{/=18 0.4 < M_{ee} < 0.75 GeV/c^{2}}" at 60,0.4 tc %s' % default_colors[0])
   make_plot(
     data = graph_data, properties = props, titles = tits,
     name = os.path.join(outDir, 'excess%s%s' % (version,'DivdNdy' if divdNdy else '')),
@@ -471,12 +486,7 @@ def gp_rdiff(version, nomed, noxerr, diffRel, divdNdy):
     xlog = True, xr = [7,220], size = '10in,8in',
     key = ['at graph 1.05,0.98', 'width -3', 'nobox', 'maxrows 3'],
     bmargin = 0.13, tmargin = 0.92, rmargin = 0.99,
-    yr = [0,yr_upp], gpcalls = [
-      'format x "%g"',
-      'xtics (7,10,20,"" 30, 40,"" 50, 60,"" 70,"" 80,"" 90, 100, 200)',
-      'boxwidth 0.025 absolute',
-      'label 52 "{/=18 0.4 < M_{ee} < 0.75 GeV/c^{2}}" at 60,0.4 tc %s' % default_colors[0],
-    ], labels = labels,
+    yr = [0,yr_upp], gpcalls = gpcalls, labels = labels,
   )
   return 'done'
 
