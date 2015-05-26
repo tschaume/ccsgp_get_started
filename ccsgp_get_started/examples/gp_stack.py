@@ -180,6 +180,7 @@ def gp_stack(version, energies, inclMed, inclFits):
   # cocktail/data
   scale = {}
   for e in ['19', '27', '39', '62', '200' ]:
+      if version == 'QM12' and e == '27': continue
       a, b = pi0yld[e+'_cocktail'], pi0yld[e+'_data']
       z = a/b
       scale[e] = ufloat(z.nominal_value, z.std_dev*2)
@@ -227,6 +228,11 @@ def gp_stack(version, energies, inclMed, inclFits):
   if version == 'Latest19200_PatrickQM12': yr_low = 1e-7
   if version == 'QM12Latest200': yr_low = 2e-6
   if version == 'LatestPatrickJieYi': yr_low = 1e-8
+  cocktailContribsProps = ([
+    'with lines lc %s lw 4 lt 3' % default_colors[-i-2]
+    for i in xrange(nSetsCocktailContribs-1)
+  ] + [ 'with lines lc %s lw 4 lt 3' % default_colors[0] ]) \
+          if nSetsCocktailContribs > 0 else []
   make_plot(
     data = cocktailContribs.values()
     + cocktailOrdered.values() + ([ pseudo_point ] if inclMed else [])
@@ -234,13 +240,7 @@ def gp_stack(version, energies, inclMed, inclFits):
     + mediumOrdered.values() + [ pseudo_point ] + dataOrdered.values()
     + dataIMRfitOrdered.values() + ([ pseudo_point ] if inclFits else [])
     + cocktailIMRfitOrdered.values() + ([ pseudo_point ] if inclFits else []),
-    properties = [
-      'with lines lc %s lw 4 lt 3' % default_colors[-i-2]
-      for i in xrange(nSetsCocktailContribs-1)
-    ] + [
-      'with lines lc %s lw 4 lt 3' % default_colors[0]
-    ] + [ cocktail_style ] * (nSetsCocktail+1)
-    + [
+    properties = cocktailContribsProps + [ cocktail_style ] * (nSetsCocktail+1) + [
       'with lines lc %s lw 4 lt 2' % default_colors[-i-16] for i in xrange(nSetsModelOnly)
     ] * (nSetsModelOnly/2)
     + [ medium_style ] * (nSetsMedium+bool(nSetsMedium)) + [
