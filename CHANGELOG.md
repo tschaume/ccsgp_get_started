@@ -1,5 +1,23 @@
 # [Changelog](https://github.com/tschaume/ccsgp_get_started/releases)
 
+## [2.1.0](https://github.com/tschaume/ccsgp_get_started/compare/2.0.5...2.1.0)
+
+* [ca2714a](https://github.com/tschaume/ccsgp_get_started/commit/ca2714a) update data submodule
+* [9433ae2](https://github.com/tschaume/ccsgp_get_started/commit/9433ae2) gp_rdiff: QM14 compatibility
+* [474e994](https://github.com/tschaume/ccsgp_get_started/commit/474e994) gp_panel: QM14 backward-compatibility
+* [bd7f97b](https://github.com/tschaume/ccsgp_get_started/commit/bd7f97b) gp_stack: QM14 backward-compatibility
+* [8c42807](https://github.com/tschaume/ccsgp_get_started/commit/8c42807) update data submodule remote
+* [7714f53](https://github.com/tschaume/ccsgp_get_started/commit/7714f53) make_thesis_plots: fix outdirs
+* [44f8435](https://github.com/tschaume/ccsgp_get_started/commit/44f8435) gp_panel: minor QM12 fixes
+* [71fd7f6](https://github.com/tschaume/ccsgp_get_started/commit/71fd7f6) utils.getUArray: abs on stat/syst errs
+* [48d85d6](https://github.com/tschaume/ccsgp_get_started/commit/48d85d6) gp_stack: make QM12 version work again
+* [cd3e20d](https://github.com/tschaume/ccsgp_get_started/commit/cd3e20d) gp_xfac: minor adjustments
+* [99eaaea](https://github.com/tschaume/ccsgp_get_started/commit/99eaaea) gitignore update
+* [24a68ef](https://github.com/tschaume/ccsgp_get_started/commit/24a68ef) gp_datdir: minor adjustments
+* [5af95e8](https://github.com/tschaume/ccsgp_get_started/commit/5af95e8) utils: fix in/outdir
+* [08b9585](https://github.com/tschaume/ccsgp_get_started/commit/08b9585) docs: add Gnuplot
+* [b656283](https://github.com/tschaume/ccsgp_get_started/commit/b656283) update gitignore
+
 ## [2.0.5](https://github.com/tschaume/ccsgp_get_started/compare/2.0.4...2.0.5)
 
 * [7da6095](https://github.com/tschaume/ccsgp_get_started/commit/7da6095) manual changelog update
