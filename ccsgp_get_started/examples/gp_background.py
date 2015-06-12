@@ -240,6 +240,7 @@ def gp_norm(infile):
         for i in range(nData)
     ))
     lines.update({'y=0.9': 'lc {} lt 1 lw 4'.format(default_colors[-2])})
+    charges = '++' if infile == 'rpp' else '--'
     make_plot(
         name = '%s/norm_range_%s' % (outDir,infile), xr = [0,2], yr = [0.9,1.7],
         data = data, properties = [
@@ -250,7 +251,9 @@ def gp_norm(infile):
         xlabel = 'dielectron invariant mass, M_{ee} (GeV/c^{2})',
         lines = lines, key = [
             'maxrows 1', 'nobox', 'samplen 0.1', 'width -1', 'at graph 1,1.1'
-        ], labels = { 'SE_{--} / ME@_{--}^N': (0.3, 1.3) }, gpcalls = [
+        ], labels = {
+            'SE_{%s} / ME@_{%s}^N' % (charges, charges): (0.3, 1.3)
+        }, gpcalls = [
             'ytics (1,"1" 1.2, "1" 1.4, "1" 1.6)', 'boxwidth 0.002',
         ],
     )
@@ -308,8 +311,8 @@ if __name__ == '__main__':
         format='%(message)s', level=getattr(logging, loglevel)
     )
     #gp_background()
-    #gp_norm('rmm')
-    #gp_norm('rpp')
-    #gp_acc()
+    gp_norm('rmm')
+    gp_norm('rpp')
+    gp_acc()
     #gp_rebin()
-    gp_peaks()
+    #gp_peaks()
