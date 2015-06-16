@@ -10,32 +10,21 @@ def gp_bindenergy(guest):
 
   1. prepare input/output directories
   2. load the data into an OrderedDict() [adjust axes units]
-  3. sort countries from highest to lowest population
-  4. select the <topN> most populated countries
-  5. call ccsgp.make_plot with data from 4
+  3. call ccsgp.make_plot with data from 4
 
-  Below is an output image for country initial T and the 4 most populated
-  countries for this initial (click to enlarge). Also see::
+  Also see::
 
-    $ python -m ccsgp_get_started.examples.gp_datdir -h
+    $ python -m ccsgp_get_started.dftplots.gp_bindenergy -h
 
   for help on the command line options.
 
-  .. image:: pics/T.png
-     :width: 450 px
-
-  .. image:: pics/U.png
-     :width: 450 px
-
-  :param initial: country initial
-  :type initial: str
-  :param topN: number of most populated countries to plot
-  :type topN: int
+  :param guest: guest molecule
+  :type guest: str
   :ivar inDir: input directory according to package structure and initial
   :ivar outDir: output directory according to package structure
   :ivar data: OrderedDict with datasets to plot as separate keys
   :ivar file: data input file for specific country, format: [x y] OR [x y dx dy]
-  :ivar country: country, filename stem of input file
+  :ivar funct: functional, filename stem of input file
   :ivar file_url: absolute url to input file
   :ivar nSets: number of datasets
   """
