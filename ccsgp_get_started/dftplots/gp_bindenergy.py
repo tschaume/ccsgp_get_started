@@ -51,17 +51,7 @@ def gp_bindenergy(guest):
     funct = os.path.splitext(file)[0]
     file_url = os.path.join(inDir, file)
     data[funct] = np.loadtxt(open(file_url, 'rb')) # load data
-    if data[funct].shape[1] > 2: data[funct][:, 3:] /= 1e6
   logging.debug(data) # shown if --log flag given on command line
-  # sort countries according to mean population (highest -> lowest)
-  sorted_data = OrderedDict(sorted(
-    data.items(), key = lambda t: np.mean(t[1][:,1]), reverse = True
-  ))
- # # "pop" (select) N most populated countries
- # top_data = OrderedDict(
- #   sorted_data.popitem(last = False) for i in xrange(topN)
- #   if sorted_data
- # )
   # generate plot using ccsgp.make_plot
   nSets = len(data)
   make_plot(
