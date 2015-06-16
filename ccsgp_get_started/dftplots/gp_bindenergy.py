@@ -10,7 +10,7 @@ def gp_bindenergy(guest):
 
   1. prepare input/output directories
   2. load the data into an OrderedDict() [adjust axes units]
-  3. call ccsgp.make_plot with data from 4
+  3. call ccsgp.make_plot with data from 2
 
   Also see::
 
@@ -20,19 +20,18 @@ def gp_bindenergy(guest):
 
   :param guest: guest molecule
   :type guest: str
-  :ivar inDir: input directory according to package structure and initial
+  :ivar inDir: input directory according to package structure and guest
   :ivar outDir: output directory according to package structure
   :ivar data: OrderedDict with datasets to plot as separate keys
-  :ivar file: data input file for specific country, format: [x y] OR [x y dx dy]
+  :ivar file: data input file for specific guest, format: [x y] OR [x y dx dy]
   :ivar funct: functional, filename stem of input file
   :ivar file_url: absolute url to input file
   :ivar nSets: number of datasets
   """
   # prepare input/output directories
   inDir, outDir = getWorkDirs()
-  guest = guest.capitalize()
   inDir = os.path.join(inDir, guest)
-  if not os.path.exists(inDir): # catch missing initial
+  if not os.path.exists(inDir): # catch missing guest
     return "guest %s doesn't exist" % guest
   # prepare data
   data = OrderedDict()
