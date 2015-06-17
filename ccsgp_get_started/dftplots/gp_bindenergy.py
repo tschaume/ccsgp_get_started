@@ -4,6 +4,7 @@ from collections import OrderedDict
 from ..ccsgp.ccsgp import make_plot
 from ..examples.utils import getWorkDirs
 from ..ccsgp.utils import getOpts
+from ..ccsgp.config import default_colors
 
 def gp_bindenergy(guest):
   """example for plotting from a text file via numpy.loadtxt
@@ -44,12 +45,14 @@ def gp_bindenergy(guest):
   nSets = len(data)
   make_plot(
     data = data.values(),
-    properties = [ getOpts(i) for i in xrange(nSets) ],
+    properties = [ 'with boxes lc %s' % (default_colors[1])],
+    gpcalls = [ 'boxwidth 0.2 absolute', 'style fill solid 1.0 border lt -1'],
     titles = data.keys(), # use data keys as legend titles
     name = os.path.join(outDir, guest),
     key = [ 'at graph 1., 1.2', 'maxrows 2' ],
     ylabel = 'binding energy (kJ/mol)',
-    xlabel = 'metals', rmargin = 0.99, tmargin = 0.85, size='8.5in,8in'
+    xlabel = 'metals', rmargin = 0.99, tmargin = 0.85, size='8.5in,8in',
+    debug = True
   )
   return 'done'
 
