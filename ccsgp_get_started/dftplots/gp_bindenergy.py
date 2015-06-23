@@ -51,7 +51,7 @@ def gp_bindenergy(guest):
                'xtics ("Mg"1, "Mn"2, "Fe"3, "Co"4, "Ni"5, "Cu"6, "Zn"7)'],
     titles = data.keys(), # use data keys as legend titles
     name = os.path.join(outDir, guest),
-    key = [ 'at graph 1., 1.2', 'maxrows 2' ],
+    key = [ 'at graph 1., 1.2', 'maxrows 2', 'width -1.05' ],
     ylabel = 'binding energy (kJ/mol)',
     xlabel = 'metals', rmargin = 0.99, tmargin = 0.85, size='8.5in,8in',
     debug = True
