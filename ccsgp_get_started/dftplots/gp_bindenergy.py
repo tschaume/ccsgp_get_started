@@ -45,8 +45,10 @@ def gp_bindenergy(guest):
   nSets = len(data)
   make_plot(
     data = data.values(),
-    properties = [ 'with boxes lc %s' % (default_colors[1])],
-    gpcalls = [ 'boxwidth 0.2 absolute', 'style fill solid 1.0 border lt -1'],
+    properties = [ 'with boxes lc %s' % (default_colors[i]) for i in
+                                         range(nSets)],
+    gpcalls = [ 'boxwidth 0.2 absolute', 'style fill solid 1.0 border lt 0',
+               'xtics ("Mg"1, "Mn"2, "Fe"3, "Co"4, "Ni"5, "Cu"6, "Zn"7)'],
     titles = data.keys(), # use data keys as legend titles
     name = os.path.join(outDir, guest),
     key = [ 'at graph 1., 1.2', 'maxrows 2' ],
