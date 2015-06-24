@@ -36,21 +36,31 @@ def gp_bindenergy(guest):
     return "guest %s doesn't exist" % guest
   # prepare data
   data = OrderedDict()
-  for file in os.listdir(inDir):
+  files = os.listdir(inDir)
+  nfiles = len(files)
+  dx = 0.7/nfiles
+  gap = (1. - dx*nfiles)/2
+  for idx,file in enumerate(files):
     funct = os.path.splitext(file)[0]
     file_url = os.path.join(inDir, file)
     data[funct] = np.loadtxt(open(file_url, 'rb')) # load data
+    data[funct][:,0] += (idx - nfiles/2 + 0.5*(not nfiles%2)) * dx
   logging.debug(data) # shown if --log flag given on command line
   # generate plot using ccsgp.make_plot
   nSets = len(data)
   make_plot(
     data = data.values(),
-    properties = [ 'with boxes lc %s' % (default_colors[i]) for i in
-                                         range(nSets)],
-    gpcalls = [ 'boxwidth 0.2 absolute', 'style fill solid 1.0 border lt 0',
-               'xtics ("Mg"1, "Mn"2, "Fe"3, "Co"4, "Ni"5, "Cu"6, "Zn"7)'],
-    titles = data.keys(), # use data keys as legend titles
-    name = os.path.join(outDir, guest),
+    properties = [
+        'with boxes lt -1 lc %s' % (default_colors[i]) for i in range(nSets)
+    ], gpcalls = [
+        'boxwidth {} absolute'.format(dx),
+        'style fill solid 1.0 border lt -1',
+        'xtics ("Mg"1, "Mn"2, "Fe"3, "Co"4, "Ni"5, "Cu"6, "Zn"7)',
+        #'object 51 rectangle back fc rgb "grey" from {},0 to {},-60'.format(
+        #    1.5 + gap, 2.5 - gap
+        #),
+    ], titles = data.keys(), # use data keys as legend titles
+    name = os.path.join(outDir, guest), yreverse = True,
     key = [ 'at graph 1., 1.2', 'maxrows 2', 'width -1.05' ],
     ylabel = 'binding energy (kJ/mol)',
     xlabel = 'metals', rmargin = 0.99, tmargin = 0.85, size='8.5in,8in',
