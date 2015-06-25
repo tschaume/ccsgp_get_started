@@ -3,6 +3,7 @@ import numpy as np
 from .utils import getWorkDirs, getEnergy4Key
 from ..ccsgp.ccsgp import make_plot, make_panel
 from ..ccsgp.config import default_colors
+from ..ccsgp.utils import colorscale
 from collections import OrderedDict
 from fnmatch import fnmatch
 
@@ -21,21 +22,6 @@ def getMeeLabel(s):
   if s == 'phi': return '{/Symbol \152}'
   if s == 'jpsi': return 'J/{/Symbol \171}'
   return s
-
-def _clamp(val, minimum = 0, maximum = 255):
-    """convenience function to clamp number into min..max range"""
-    if val < minimum: return minimum
-    if val > maximum: return maximum
-    return val
-
-def _colorscale(gpcol, scalefactor = 1.4):
-    hexstr = gpcol.split('#')[-1][:-1]
-    if scalefactor < 0 or len(hexstr) != 6: return hexstr
-    r, g, b = int(hexstr[:2], 16), int(hexstr[2:4], 16), int(hexstr[4:], 16)
-    r = _clamp(r * scalefactor)
-    g = _clamp(g * scalefactor)
-    b = _clamp(b * scalefactor)
-    return 'rgb "#%02x%02x%02x"' % (r, g, b)
 
 def gp_background():
     """ plot background methods and S/B vs energy """
@@ -64,7 +50,7 @@ def gp_background():
                 if dtype == 'epmPt':
                     data_import = data_import[data_import[:,0] > 0.9]
                     data_import[:,(1,4)] *= Apm[energy]
-                col = _colorscale(default_colors[didx], 1.+idx*0.2)
+                col = colorscale(default_colors[didx], 1.+idx*0.2)
                 momrange =  os.path.basename(infile).split('_')[-1][:-4]
                 if idx < 1:
                     data[ekey][0].append(fake)
