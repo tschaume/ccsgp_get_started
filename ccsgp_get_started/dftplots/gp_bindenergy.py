@@ -62,7 +62,7 @@ def gp_bindenergy(guest):
     ], titles = data.keys(), # use data keys as legend titles
     name = os.path.join(outDir, guest), yreverse = True,
     key = [ 'at graph 1., 1.2', 'maxrows 2', 'width -1.05' ],
-    ylabel = 'binding energy (kJ/mol)',
+    ylabel = 'electronic binding energy (kJ/mol)',
     xlabel = 'metals', rmargin = 0.99, tmargin = 0.85, size='8.5in,8in',
     debug = True
   )
