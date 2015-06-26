@@ -3,7 +3,7 @@ import numpy as np
 from collections import OrderedDict
 from ..ccsgp.ccsgp import make_plot
 from ..examples.utils import getWorkDirs
-from ..ccsgp.utils import getOpts
+from ..ccsgp.utils import getOpts, colorscale
 from ..ccsgp.config import default_colors
 
 def gp_bindenergy(guest):
@@ -28,7 +28,16 @@ def gp_bindenergy(guest):
   :ivar funct: functional, filename stem of input file
   :ivar file_url: absolute url to input file
   :ivar nSets: number of datasets
+  :ivar nfiles: number of files
+  :ivar dx: bar width
+  :ivar gap: gap between 2 bars
   """
+  # prepare color arrays for dataset
+  my_color_set = [default_colors[i] for i in range(0, 3)]
+  my_color_array = []
+  for color in my_color_set:
+      my_color_array.append(colorscale(color[-7:-1], 0.8))
+      my_color_array.append(colorscale(color[-7:-1], 1.5))
   # prepare input/output directories
   inDir, outDir = getWorkDirs()
   inDir = os.path.join(inDir, guest)
@@ -42,6 +51,7 @@ def gp_bindenergy(guest):
   gap = (1. - dx*nfiles)/2
   for idx,file in enumerate(files):
     funct = os.path.splitext(file)[0]
+    if funct == 'experiments': continue
     file_url = os.path.join(inDir, file)
     data[funct] = np.loadtxt(open(file_url, 'rb')) # load data
     data[funct][:,0] += (idx - nfiles/2 + 0.5*(not nfiles%2)) * dx
@@ -51,7 +61,7 @@ def gp_bindenergy(guest):
   make_plot(
     data = data.values(),
     properties = [
-        'with boxes lt -1 lc %s' % (default_colors[i]) for i in range(nSets)
+        'with boxes lt -1 lc %s' % (my_color_array[i]) for i in range(nSets)
     ], gpcalls = [
         'boxwidth {} absolute'.format(dx),
         'style fill solid 1.0 border lt -1',
