@@ -56,7 +56,7 @@ def gp_bindenergy(guest):
     exp_data = np.loadtxt(open(exp_filename, 'rb')) # load exp_data
     if len(exp_data.shape) < 2:
         exp_data = np.array([exp_data])
-    if isM: exp_data[:,1] *= 10.
+    if isM: exp_data[:,1] /= 10.
   yfake = -5 if use_exp_data else -40
   if isM: yfake = 1
   dpt_dict[key][0].append(np.array([[1,yfake]]))
@@ -77,7 +77,7 @@ def gp_bindenergy(guest):
       funct = os.path.splitext(os.path.basename(file_url))[0]
       data_import = np.loadtxt(open(file_url, 'rb')) # load data
       data_import[:,0] += (idx - (nfiles-1)/2.) * dx
-      if isM: data_import[:,1] *= 10.
+      if isM: data_import[:,1] /= 10.
       dpt_dict[key][0].append(data_import)
       dpt_dict[key][1].append('with boxes lt -1 lc %s' % my_color_array[idx])
       dpt_dict[key][2].append(funct)
