@@ -79,21 +79,27 @@ def gp_bindenergy(guest):
       dpt_dict['relative difference'][2].append(dpt_dict['absolute'][2][idx+1])
   logging.debug(dpt_dict) # shown if --log flag given on command line
   # generate plot using ccsgp.make_panel
+  exp_data_gpcalls = [
+    'arrow {} from {},{} to {},{} lw 4 lc {} nohead front'.format(
+      i+5, dp[0]-nfiles*dx/2., dp[1], dp[0]+nfiles*dx/2., dp[1], default_colors[-10]
+    ) for i,dp in enumerate(exp_data)
+  ] if use_exp_data else []
+  guest_split = guest.split('_')
+  ylabel = '{} distance for {} binding (nm)'.format(guest_split[0], guest_split[1]) if isM \
+    else 'electronic binding energy (kJ/mol)'
   make_panel(
       dpt_dict = dpt_dict,
       gpcalls = [
           'boxwidth {} absolute'.format(dx),
           'style fill solid 1.0 border lt -1',
           'xtics ("Mg"1, "Mn"2, "Fe"3, "Co"4, "Ni"5, "Cu"6, "Zn"7)',
-      ] + [
-          'arrow {} from {},{} to {},{} lw 4 lc {} nohead front'.format(
-              i+5, dp[0]-nfiles*dx/2., dp[1], dp[0]+nfiles*dx/2., dp[1], default_colors[-10]
-          ) for i,dp in enumerate(exp_data)
-      ], name = os.path.join(outDir, guest), yreverse = True,
+      ] + exp_data_gpcalls,
+      name = os.path.join(outDir, guest), yreverse = (not isM),
       key = [ 'at graph 1.02, 1.17', 'maxrows 2', 'width -1.1', 'nobox' ],
-      ylabel = 'electronic binding energy (kJ/mol)',
-      xlabel = 'metals', rmargin = 0.99, tmargin = 0.88, size='7in,5.5in',
-      debug = True, layout = '1x2'
+      ylabel = ylabel, xlabel = 'metals', rmargin = 0.99,
+      tmargin = 0.93 if guest != 'M-O_H2O_relax' and use_exp_data else 0.88,
+      size='7in,5.5in' if guest != 'M-O_H2O_relax' and use_exp_data else '4in,5.5in',
+      debug = True, layout = '1x2' if guest != 'M-O_H2O_relax' and use_exp_data else '1x1'
   )
   return 'done'
 
