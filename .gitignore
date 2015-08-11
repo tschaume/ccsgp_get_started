@@ -1,6 +1,7 @@
 env/*
 *.pyc
 *.swp
+.DS_Store
 output/*
 ccsgp_get_started/.changes
 ccsgp_get_started.egg-info
