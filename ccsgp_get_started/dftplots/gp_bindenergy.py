@@ -29,7 +29,6 @@ def gp_bindenergy(guest):
   :ivar file_url: absolute url to input file
   :ivar nfiles: number of files
   :ivar dx: bar width estimated for specific amount of datasets
-  :ivar gap: space between 2 bars
   """
   # prepare color arrays for dataset
   my_color_set = [default_colors[3]] + [default_colors[i] for i in range(0, 3)]
@@ -45,7 +44,10 @@ def gp_bindenergy(guest):
     return "guest %s doesn't exist" % guest
   # prepare data
   dpt_dict = OrderedDict()
-  dpt_dict['absolute'] = [[], [], []] #dpt
+  if 'CO2' in guest: key = '(a)'
+  elif 'CH4' in guest: key = '(b)'
+  else: key = '(a)'
+  dpt_dict[key] = [[], [], []] #dpt
   # exp-data
   exp_data = np.loadtxt(open(os.path.join(inDir,'experiments.dat'), 'rb')) # load exp_data
   dpt_dict['absolute'][0].append(np.array([[1,-5]]))
