@@ -49,10 +49,22 @@ def gp_bindenergy(guest):
   else: key = '(a)'
   dpt_dict[key] = [[], [], []] #dpt
   # exp-data
-  exp_data = np.loadtxt(open(os.path.join(inDir,'experiments.dat'), 'rb')) # load exp_data
-  dpt_dict['absolute'][0].append(np.array([[1,-5]]))
-  dpt_dict['absolute'][1].append('with boxes lt -1 lc %s' % default_colors[-10])
-  dpt_dict['absolute'][2].append('experiments')
+  exp_filename = os.path.join(inDir,'experiments.dat')
+  use_exp_data = os.path.exists(exp_filename)
+  isM = guest.startswith('M-')
+  if use_exp_data:
+    exp_data = np.loadtxt(open(exp_filename, 'rb')) # load exp_data
+    if len(exp_data.shape) < 2:
+        exp_data = np.array([exp_data])
+    if isM: exp_data[:,1] *= 10.
+  yfake = -5 if use_exp_data else -40
+  if isM: yfake = 1
+  dpt_dict[key][0].append(np.array([[1,yfake]]))
+  dpt_dict[key][1].append(
+    'with boxes lt -1 lc {}'.format(default_colors[-10]) if use_exp_data else \
+    'with lines lc rgb "white"'
+  )
+  dpt_dict[key][2].append('experiments' if use_exp_data else ' ')
   # sim-data
   files = [
       os.path.join(inDir, funct+ext)
@@ -61,24 +73,33 @@ def gp_bindenergy(guest):
   ]
   nfiles = len(files)
   dx = 0.7/nfiles
-  gap = (1. - dx*nfiles)/2
   for idx,file_url in enumerate(files):
       funct = os.path.splitext(os.path.basename(file_url))[0]
       data_import = np.loadtxt(open(file_url, 'rb')) # load data
-      data_import[:,0] += (idx - nfiles/2. + 0.5*(not nfiles%2)) * dx
-      dpt_dict['absolute'][0].append(data_import)
-      dpt_dict['absolute'][1].append('with boxes lt -1 lc %s' % my_color_array[idx])
-      dpt_dict['absolute'][2].append(funct)
+      data_import[:,0] += (idx - (nfiles-1)/2.) * dx
+      if isM: data_import[:,1] *= 10.
+      dpt_dict[key][0].append(data_import)
+      dpt_dict[key][1].append('with boxes lt -1 lc %s' % my_color_array[idx])
+      dpt_dict[key][2].append(funct)
   # relative differences
-  dpt_dict['relative difference'] = [[], [], []] #dpt
-  for idx,d in enumerate(dpt_dict['absolute'][0][1:]):
-      diff = np.copy(d)
-      exp_data_mod = exp_data if idx != 0 else exp_data[(0,6),:]
-      diff[:,1] /= -exp_data_mod[:,1]
-      diff[:,1] += 1.
-      dpt_dict['relative difference'][0].append(diff)
-      dpt_dict['relative difference'][1].append('with boxes lt -1 lc %s' % my_color_array[idx])
-      dpt_dict['relative difference'][2].append(dpt_dict['absolute'][2][idx+1])
+  if guest != 'M-O_H2O_relax' and use_exp_data:
+    dpt_dict[' '] = [[], [], []] #dpt
+    for idx,d in enumerate(dpt_dict[key][0][1:]):
+        if not isM and idx == 4: continue
+        try:
+          exp_data_mod = exp_data if idx != 0 else exp_data[(0,6),:]
+        except:
+          exp_data_mod = np.array([exp_data[0,:]])
+        diff = np.copy(d)
+        if len(diff) != len(exp_data_mod):
+          for i,dp in enumerate(diff):
+            if i >= len(exp_data_mod) or round(dp[0]) != exp_data_mod[i,0]:
+              exp_data_mod = np.insert(exp_data_mod, i, [round(dp[0]), dp[1]], 0)
+        diff[:,1] /= exp_data_mod[:,1]
+        diff[:,1] -= 1.
+        dpt_dict[' '][0].append(diff)
+        dpt_dict[' '][1].append('with boxes lt -1 lc %s' % my_color_array[idx])
+        dpt_dict[' '][2].append(dpt_dict[key][2][idx+1])
   logging.debug(dpt_dict) # shown if --log flag given on command line
   # generate plot using ccsgp.make_panel
   exp_data_gpcalls = [
