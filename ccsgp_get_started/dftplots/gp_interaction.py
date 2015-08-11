@@ -57,7 +57,7 @@ def gp_interaction():
       funct_name = os.path.splitext(funct)[0]
       file_url = os.path.join(inDir, energy, funct)
       data_import = np.loadtxt(open(file_url, 'rb')) #load data
-      data_import[:,0] *= 10.
+      data_import[:,0] /= 10.
       dpt_dict[key][0].append(data_import)
       dpt_dict[key][1].append('with linespoints lw 4 pt 18 ps 1.5 lt 2 lc %s' %
                   my_color_array[index])
@@ -68,7 +68,7 @@ def gp_interaction():
   make_panel(
     dpt_dict = dpt_dict,
     name = os.path.join(outDir, 'interaction'),
-    xr = [18, 45.3], yr = [-55, 20],
+    xr = [1.8, 4.53], yr = [-55, 20],
     key = ['bottom right', 'maxrows 2', 'width -1.1', 'nobox' ],
     ylabel = 'DFT binding energy (kJ/mol)',
     xlabel = 'Mg-O distance, r (nm)', rmargin = 0.98, size='7in,7.5in',
