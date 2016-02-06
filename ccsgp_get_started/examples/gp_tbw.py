@@ -22,6 +22,7 @@ def gp_tbw(shift = False):
             data[particle] = [[], [], []]
         for eidx,energy in enumerate(energies):
             for cidx,code in enumerate(codes):
+                if energy == '62' and code in ['p', 'pbar']: continue
                 for dtype in dtypes:
                     filename = '_'.join([dtype, code, energy]) + '.dat'
                     data_import = np.loadtxt(open(
