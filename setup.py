@@ -19,7 +19,7 @@ setup(
         '{}.examples'.format(package_name)
     ],
     include_package_data=True,
-    install_requires = [ 'numpy==1.9.2', 'Pint==0.5.1', 'uncertainties==2.4.4' ],
+    install_requires = [ 'numpy==1.21.0', 'Pint==0.5.1', 'uncertainties==2.4.4' ],
     license = 'MIT',
     keywords = ['gnuplot', 'graph', 'plot', 'panel'],
 )
